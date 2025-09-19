@@ -1,0 +1,16 @@
+*E  //Electronic energy (a.u.)
+     -114.5492540000
+*wavenum  //Wavenumbers (cm-1). Negative value means imaginary frequency
+ 1210.2236
+ 1273.5285
+ 1544.2957
+ 1819.3659
+ 2887.6695
+ 2945.6774
+*atoms  //Information of all atoms: Name, mass (amu), X, Y, Z (Angstrom)
+C   12.000000   0.000000    0.000000    -0.527157   
+H   1.007830    0.000000    0.938309    -1.114616   
+O   15.994910   0.000000    0.000000    0.674022    
+H   1.007830    0.000000    -0.938309   -1.114616   
+*elevel  //Energy (eV) and degeneracy of electronic energy levels
+0.000000    1   

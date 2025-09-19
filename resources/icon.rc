@@ -1,0 +1,36 @@
+// Resource file for OpenThermo icon
+// This file defines the application icon for Windows executables
+#include <windows.h>
+
+// Application icon - use ID 1 for main icon
+1 ICON "icon.ico"
+
+// Version information
+1 VERSIONINFO
+ FILEVERSION 0,0,0,1
+ PRODUCTVERSION 0,0,0,1
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"  // US English
+        BEGIN
+            VALUE "CompanyName", "OpenThermo Project"
+            VALUE "FileDescription", "Calculation of molecular thermochemical properties"
+            VALUE "FileVersion", "0.0.0.1"
+            VALUE "InternalName", "OpenThermo"
+            VALUE "LegalCopyright", "Copyright (C) 2025"
+            VALUE "OriginalFilename", "OpenThermo.exe"
+            VALUE "ProductName", "OpenThermo"
+            VALUE "ProductVersion", "0.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

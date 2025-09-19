@@ -639,15 +639,15 @@ namespace calc
         }
         else if (sys.ilowfreq == 2)
         {
-            std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is used to "
-                         "evaluate S, other terms are identical to harmonic oscillator model\n\n";
+            std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is \n"
+                         "      used to evaluate S, other terms are identical to harmonic oscillator model\n\n";
         }
         else if (sys.ilowfreq == 3)
         {
-            std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is used to "
-                         "evaluate S and U(T). "
-                      << "In this case ZPE and U(T)-U(0) cannot be separated and thus not shown. Other terms are "
-                         "identical to harmonic oscillator model\n\n";
+            std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is \n"
+                         "      used to evaluate S and U(T). "
+                      << "In this case ZPE and U(T)-U(0) cannot be separated and thus not shown. \n"
+                         "Other terms are identical to harmonic oscillator model\n\n";
         }
 
         // Calculate partition function

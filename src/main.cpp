@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
         }
 
         // Print running parameters
-        std::cout << "\nRunning parameters:\n";
+        std::cout << "\n                   --- Summary of Current Parameters ---\n\nRunning parameters:\n";
         if (sys.prtvib == 1)
         {
             std::cout << "Printing individual contribution of vibration modes: Yes\n";
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
         }
         if (sys.Tstep == 0.0)
         {
-            std::cout << " Temperature: " << std::fixed << std::setprecision(3) << std::setw(12) << sys.T << " K\n";
+            std::cout << " Temperature:     " << std::fixed << std::setprecision(3) << std::setw(12) << sys.T << " K\n";
         }
         else
         {
@@ -175,13 +175,19 @@ int main(int argc, char* argv[])
         }
         if (sys.Pstep == 0.0)
         {
-            std::cout << " Pressure:    " << std::fixed << std::setprecision(3) << std::setw(12) << sys.P << " atm\n";
+            std::cout << " Pressure:      " << std::fixed << std::setprecision(3) << std::setw(12) << sys.P << " atm\n";
         }
         else
         {
             std::cout << " Pressure scan, from " << std::fixed << std::setprecision(3) << std::setw(10) << sys.Plow
                       << " to " << std::setw(10) << sys.Phigh << ", step: " << std::setw(8) << sys.Pstep << " atm\n";
         }
+        if (sys.concstr != "0")
+        {
+            std::cout << " Concentration: " << std::fixed << std::setprecision(3) << std::setw(12) << std::stod(sys.concstr)
+                      << " mol/L\n";
+        }
+
         std::cout << " Scale factor of vibrational frequencies for ZPE:       " << std::fixed << std::setprecision(4)
                   << std::setw(8) << sys.sclZPE << "\n"
                   << " Scale factor of vibrational frequencies for U(T)-U(0): " << std::setw(8) << sys.sclheat << "\n"
@@ -193,17 +199,17 @@ int main(int argc, char* argv[])
         }
         else if (sys.ilowfreq == 1)
         {
-            std::cout << "Low frequencies treatment: Raising low frequencies (Truhlar's treatment)\n"
+            std::cout << " Low frequencies treatment: Raising low frequencies (Truhlar's treatment)\n"
                       << " Lower frequencies will be raised to " << std::fixed << std::setprecision(2) << sys.ravib
                       << " cm^-1 during calculating S, U(T)-U(0), CV and q\n";
         }
         else if (sys.ilowfreq == 2)
         {
-            std::cout << "Low frequencies treatment: Grimme's interpolation for entropy\n";
+            std::cout << " Low frequencies treatment: Grimme's interpolation for entropy\n";
         }
         else if (sys.ilowfreq == 3)
         {
-            std::cout << "Low frequencies treatment: Minenkov's interpolation for entropy and internal energy\n";
+            std::cout << " Low frequencies treatment: Minenkov's interpolation for entropy and internal energy\n";
         }
         if (sys.ilowfreq == 2 || sys.ilowfreq == 3)
         {
@@ -223,9 +229,9 @@ int main(int argc, char* argv[])
         }
         if (sys.inputfile.empty())
         {
-            std::cout
-                << "\nInput file path, e.g. C:\\your_dir\\A-rise.otm\n"
-                << " Output file from frequency analysis task of Gaussian/ORCA/GAMESS-US/NWChem/CP2K is also supported\n";
+            std::cout << "\nInput file path, e.g. C:\\your_dir\\A-rise.otm\n"
+                      << " Output file from frequency analysis task of Gaussian/ORCA/GAMESS-US/NWChem/CP2K is also "
+                         "supported\n";
             while (true)
             {
                 std::getline(std::cin, sys.inputfile);
@@ -249,6 +255,15 @@ int main(int argc, char* argv[])
                 std::exit(1);
             }
         }
+
+        // Print start message
+        auto        start_now      = std::chrono::system_clock::now();
+        std::time_t start_now_time = std::chrono::system_clock::to_time_t(start_now);
+        // std::string basename       = get_basename_without_extension(sys.inputfile);
+        std::cout << "                      -------- End of Summary --------\n";
+        std::cout << "\n";
+        std::cout << "OpenThermo started to process " << sys.inputfile << " at "
+                  << std::ctime(&start_now_time);  // << std::endl;
 
         // Process input file
         if (sys.inputfile.find(".txt") != std::string::npos)
@@ -460,8 +475,9 @@ int main(int argc, char* argv[])
 
             // Print molecular information
             sys.ncenter = sys.a.size();
-            std::cout << "\n                      -------- Chemical System Data -------\n"
-                      << "\n                      -------------------------------------\n"
+            std::cout << "\n"
+                      << "                      -------- Chemical System Data -------\n"
+                      << "                      -------------------------------------\n"
                       << " Electronic energy: " << std::fixed << std::setprecision(8) << std::setw(18) << sys.E
                       << " a.u.\n";
             if (sys.spinmult != 0)

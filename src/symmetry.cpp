@@ -6,7 +6,7 @@
  *
  * This file contains the implementation of classes and functions for detecting
  * molecular point groups, analyzing symmetry elements, and performing
- * symmetry-based calculations. It includes implementations of the SYVA program
+ * symmetry-based calculations. 
  * algorithm for automatic point group determination.
  */
 
@@ -70,7 +70,7 @@ const std::array<int, 110> nir_1d = {
     288, 5, 293, 5, 298, 10, 308, 5, 313, 10 // Additional corrections
 };
 
-// 1. Number of irreducible representations (nir) extracted from SYVA
+// 1. Number of irreducible representations (nir)
 const std::array<std::array<int, 2>, 55> nir_ = convert_fortran_to_cpp<55, 2>(nir_1d);
 
 
@@ -586,7 +586,7 @@ std::string symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np,
 
 
 /**
- * Get point group by invoking SYVA routines
+ * Get point group
  * This is a reduced version of that in Multiwfn
  */
 void PG_eqvatm(int natoms, const std::vector<int>& nat, 
@@ -608,7 +608,7 @@ void PG_eqvatm(int natoms, const std::vector<int>& nat,
     int ncr = 0;
     int nsr = 0;
     int nsg = 0;
-    int nout = 0;  // Suppress almost all output of SYVA routines
+    int nout = 0;  // Suppress almost all output 
     int ng, ni, np, nprm, nseq;
     double wmol, cmx, cmy, cmz;
     
@@ -640,7 +640,7 @@ void PG_eqvatm(int natoms, const std::vector<int>& nat,
 }
 
 /**
- * Detect point group via SYVA
+ * Detect point group 
  * ishow=1: Output prompt =0: Do not print
  */
 void SymmetryDetector::detectPG(int ishow) {
@@ -723,7 +723,7 @@ void SymmetryDetector::PGlabel2rotsym() {
         }
         this->rotsym = this->rotsym * 2;
     } else {
-        // Although SYVA can also identify 'O' and 'I', rotsym is not available
+        // Although We can identify 'O' and 'I', rotsym is not available
         // For simplicity in C++, we'll assume rotsym = 1 for unknown cases
         std::cout << "Warning: Rotational symmetry number cannot be identified for point group "
                   << PGlabel_trimmed << std::endl;
@@ -734,7 +734,7 @@ void SymmetryDetector::PGlabel2rotsym() {
 
 
 
-/** @brief 2. Subgroup boundaries (nsgb) - SYVA.F lines 1983-1995 */
+/** @brief 2. Subgroup boundaries (nsgb) */
 /** @brief Static member initialization for nsgb_ array */
 //const std::array<std::array<int, 2>, 57> nsgb_ = {{
 //    {1,1}, {2,2}, {4,2}, {6,2}, {8,2},
@@ -751,7 +751,7 @@ void SymmetryDetector::PGlabel2rotsym() {
 //    {403,2}, {405,2}
 //}};
 
-// 2. Subgroup boundaries (nsgb) - SYVA.F lines 1983-1995
+// 2. Subgroup boundaries (nsgb) 
 const std::array<int, 114> nsgb_1d = {
       1,   1,     2,   2,     4,   2,     6,   2,     8,   2,
      10,   3,    13,   2,    15,   4,    19,   2,    21,   4,
@@ -773,10 +773,8 @@ const std::array<std::array<int, 2>, 57> nsgb_ = convert_fortran_to_cpp<57, 2>(n
 
 
 
-// 5. Irreducible representation symbols (irsymb) - SYVA.F lines 620-667
-// Complete implementation from SYVA.F with exact data
+// 5. Irreducible representation symbols (irsymb)
 const std::array<std::string, 322> irsymb_ = {{
-    // EXACT DATA FROM SYVA.F irsymb array (322 entries)
           "A",   "A'",  "A\"",   "Ag",   "Au",    "A",     "B",    "A",
           "E",   " A",    "B",    "E",    "A",   "E1",    "E2",    "A",
           "B",   "E1",   "E2",    "A",   "E1",   "E2",    "E3",    "A",
@@ -823,8 +821,7 @@ const std::array<std::string, 322> irsymb_ = {{
 
 
 
-// 6. Rotational harmonics (nrotharm) - SYVA.F lines 1897-1951 (3×322 = 966 entries)
-// Complete implementation from SYVA.F with compile-time conversion
+// 6. Rotational harmonics (nrotharm)
 const std::array<int, 966> nrotharm_1d = {
     3, 3, 5,   1, 2, 3,   2, 1, 2,   3, 0, 5,   0, 3, 0,   1, 1, 3,
     2, 2, 2,   1, 1, 1,   2, 2, 4,   1, 1, 1,   0, 0, 2,   2, 2, 2,
@@ -896,9 +893,7 @@ const std::array<std::array<std::array<int, 55>, 4>, 14> nsymop_ = initialize_ns
 
 
 // Function to map point group and irrep indices to linear irsymb index
-// This follows the SYVA.F logic for accessing irsymb(index) using nir_ array
 int getIrrepSymbolIndex(int point_group_idx, int irrep_idx) {
-    // SYVA.F uses 1-based indexing, C++ uses 0-based
     // The mapping uses the nir_ array to find correct starting column for each point group
 
     if (point_group_idx < 0 || point_group_idx >= 55 || irrep_idx < 0) {
@@ -925,7 +920,7 @@ int getIrrepSymbolIndex(int point_group_idx, int irrep_idx) {
     return index;
 }
 
-// Accessor functions following SYVA.F structure
+// Accessor functions 
 std::string getIrrepSymbol(int point_group_idx, int irrep_idx) {
     int index = getIrrepSymbolIndex(point_group_idx, irrep_idx);
     if (index < 0 || index >= 322) {
@@ -1099,7 +1094,7 @@ const std::array<std::string, SymmetryData::max_pgs> SymmetryData::cg = {
     "{(E) (i) 2*(Cinf) ... inf*(C2) 2*(Sinf) ... inf*(SG)}   "
 };
 
-// Initialize static members from SYVA.F data
+// Initialize static members 
 std::array<std::string, SymmetryData::max_pgs> SymmetryData::pgsymb = {
     "C1 ", "Cs ", "Ci ", "C2 ", "C3 ", "C4 ", "C5 ", "C6 ", "C7 ", "C8 ",
     "D2 ", "D3 ", "D4 ", "D5 ", "D6 ", "D7 ", "D8 ", "C2v", "C3v", "C4v",
@@ -1178,8 +1173,8 @@ std::array<std::array<int, 2>, 57> initialize_nsgb() {
 
 
 
-// 4. Symmetry operations (nsymop) - SYVA.F lines 231-1951 (14×4×55 = 3080 entries)
-// Complete implementation from SYVA.F with exact data conversion
+// 4. Symmetry operations (nsymop) 
+
 
 // Helper function to convert 1D Fortran column-major array to 3D C++ row-major array
 template<size_t Dim1, size_t Dim2, size_t Dim3>
@@ -2823,10 +2818,9 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
 
 /**
- * @brief Complete character table data from SYVA.F
+ * @brief Complete character table data 
  *
- * This is the 14×322 character table with exact values
- * extracted from the original SYVA.F Fortran implementation. The character
+ * This is the 14×322 character table 
  * table contains the character values (typically 1, -1, 2, etc.) for all
  * irreducible representations across all 57 supported point groups.
  *

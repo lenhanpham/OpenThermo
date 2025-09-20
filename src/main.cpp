@@ -34,7 +34,7 @@ using namespace util;
  * @return Basename
  * without extension
  */
-std::string get_basename_without_extension(const std::string& filepath)
+auto get_basename_without_extension(const std::string& filepath) -> std::string
 {
     // Find last directory separator
     size_t      last_slash = filepath.find_last_of("/\\");
@@ -56,7 +56,7 @@ std::string get_basename_without_extension(const std::string& filepath)
  * @param argv Array of command-line argument strings
  * @return Exit status (0 for success, non-zero for errors)
  */
-int main(int argc, char* argv[])
+auto main(int argc, char* argv[]) -> int
 {
     try
     {
@@ -65,16 +65,16 @@ int main(int argc, char* argv[])
 
         // Print program information
         std::cout
-            << "   " << "                                                                                           \n"
-            << "     " << "      ***********************************************************************      " << " \n"
-            << "     " << "      Please cite this github project if you use OpenThermo for your research      " << " \n"
-            << "     " << "      ***********************************************************************      " << " \n"
-            << "   # " << "-----------------------------------------------------------------------------------" << "#\n"
-            << "   # " << "OpenThermo: A general program for calculating molecular thermochemistry properties " << "#\n"
-            << "   # " << "Version 0.001.0  Release date: 2025                                                " << "#\n"
-            << "   # " << "Developer: Le Nhan Pham                                                            " << "#\n"
-            << "   # " << "https://github.com/lenhanpham/openthermo                                           " << "#\n"
-            << "   # " << "-----------------------------------------------------------------------------------"
+            << "  " << "                                                                                   \n"
+            << "  " << " ***********************************************************************  " << " \n"
+            << "  " << " Please cite this github project if you use OpenThermo for your research  " << " \n"
+            << "  " << " ***********************************************************************  " << " \n"
+            << "# " << "--------------------------------------------------------------------------" << "#\n"
+            << "# " << "OpenThermo: A general program for calculating molecular thermochemistry   " << "#\n"
+            << "# " << "Version 0.001.0  Release date: 2025                                       " << "#\n"
+            << "# " << "Developer: Le Nhan Pham                                                   " << "#\n"
+            << "# " << "https://github.com/lenhanpham/openthermo                                  " << "#\n"
+            << "# " << "--------------------------------------------------------------------------"
             << "#\n";
 
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
                 }
                 catch (const std::exception& e)
                 {
-                    std::cerr << "Error creating settings file: " << e.what() << std::endl;
+                    std::cerr << "Error creating settings file: " << e.what() << "\n";
                     return 1;
                 }
                 return 0;
@@ -147,7 +147,8 @@ int main(int argc, char* argv[])
         }
         if (narg > 1)
         {
-            loadarguments(sys, argc, argv);
+            std::vector<std::string> args(argv, argv + argc);
+            loadarguments(sys, argc, args);
         }
 
         // Print running parameters
@@ -263,7 +264,7 @@ int main(int argc, char* argv[])
         std::cout << "                      -------- End of Summary --------\n";
         std::cout << "\n";
         std::cout << "OpenThermo started to process " << sys.inputfile << " at "
-                  << std::ctime(&start_now_time);  // << std::endl;
+                  << std::ctime(&start_now_time);  // << "\n";
 
         // Process input file
         if (sys.inputfile.find(".txt") != std::string::npos)
@@ -431,14 +432,14 @@ int main(int argc, char* argv[])
             }
             // Debug GAMESS
             // std::cout << "Debug: After loading, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
-            //          << std::endl;
+            //          << "\n";
             // End Debug GAMESS
 
             // Symmetry detection
-            std::cout << "Number of atoms loaded: " << sys.a.size() << std::endl;
+            std::cout << "Number of atoms loaded: " << sys.a.size() << "\n";
             if (sys.a.empty())
             {
-                std::cerr << "Error: No atoms loaded from input file!" << std::endl;
+                std::cerr << "Error: No atoms loaded from input file!" << "\n";
                 std::exit(1);
             }
             symmetry::SymmetryDetector symDetector;
@@ -684,17 +685,17 @@ int main(int argc, char* argv[])
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
         std::cout << "Calculation completed at: " << std::ctime(&now_time);
         std::cout << "\n"
-                  << "                    ---------- Happy calculation ----------" << std::endl
-                  << "                    ---- OpenThermo normally terminated ---" << std::endl;
+                  << "                    ---------- Happy calculation ----------" << "\n"
+                  << "                    ---- OpenThermo normally terminated ---" << "\n";
         return 0;
     }
     catch (const std::exception& e)
     {
-        std::cerr << "\nError: " << e.what() << std::endl;
-        std::cerr << "Program terminated due to an error." << std::endl << std::endl;
+        std::cerr << "\nError: " << e.what() << "\n";
+        std::cerr << "Program terminated due to an error." << "\n" << "\n";
         if (argc == 1)
         {  // No arguments provided
-            std::cout << "Press ENTER to exit" << std::endl;
+            std::cout << "Press ENTER to exit" << "\n";
             std::cin.get();
         }
         return 1;

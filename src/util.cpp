@@ -50,8 +50,8 @@ namespace util
      * @note UNUSED: Only
      * called internally within util.cpp - no external usage
      */
-    std::vector<std::vector<double>> matmul(const std::vector<std::vector<double>>& A,
-                                            const std::vector<std::vector<double>>& B)
+    auto matmul(const std::vector<std::vector<double>>& A, const std::vector<std::vector<double>>& B)
+        -> std::vector<std::vector<double>> 
     {
         size_t m = A.size();
         if (m == 0)
@@ -95,7 +95,7 @@ namespace util
      *
      * @note UNUSED: Only called internally within util.cpp - no external usage
      */
-    std::vector<std::vector<double>> transpose(const std::vector<std::vector<double>>& M)
+    auto transpose(const std::vector<std::vector<double>>& M) -> std::vector<std::vector<double>> 
     {
         if (M.empty())
             return {};
@@ -177,7 +177,7 @@ namespace util
             if (max_offdiag < thres)
                 break;
             if (k == maxcyc)
-                std::cerr << "Note: Matrix diagonalization exceeded max cycle before convergence" << std::endl;
+                std::cerr << "Note: Matrix diagonalization exceeded max cycle before convergence" << "\n";
 
             double phi      = std::atan(2.0 * mat[max_i][max_j] / (mat[max_i][max_i] - mat[max_j][max_j])) / 2.0;
             double c        = std::cos(phi);
@@ -355,7 +355,7 @@ namespace util
 
      * * -sclZPE, etc.
      */
-    void loadarguments(SystemData& sys, int argc, char* argv[])
+    void loadarguments(SystemData& sys, int argc, std::vector<std::string>& argv)
     {
         // Print full command line
         std::string command = argv[0];
@@ -374,7 +374,7 @@ namespace util
         // Parse arguments starting from index 2
         for (int iarg = 2; iarg < argc; ++iarg)
         {
-            std::string inputArgs = argv[iarg];
+            const std::string& inputArgs = argv[iarg];
             if (inputArgs == "-E")
             {
                 if (++iarg >= argc)
@@ -961,7 +961,10 @@ namespace util
      *
      * Status: HEAVILY USED - 8 calls in sub.cpp alone
      */
-    bool loclabel(std::ifstream& file, const std::string& label, int& nskip, bool rewind, bool find_last, int maxline)
+    auto loclabel(std::ifstream& file, 
+                  const std::string& label,
+                  int& nskip, bool rewind, 
+                  bool find_last, int maxline) -> bool
     {
         std::string line;
         if (rewind)
@@ -1225,107 +1228,107 @@ namespace util
         }
 
         // Write header
-        file << "# OpenThermo Settings File" << std::endl;
-        file << "# This file contains all available parameters with their default values" << std::endl;
-        file << "# Lines starting with # are comments" << std::endl;
-        file << "# parameter = value" << std::endl;
-        file << "# Values can be quoted: parameter = \"value with spaces\"" << std::endl;
-        file << std::endl;
+        file << "# OpenThermo Settings File" << "\n";
+        file << "# This file contains all available parameters with their default values" << "\n";
+        file << "# Lines starting with # are comments" << "\n";
+        file << "# parameter = value" << "\n";
+        file << "# Values can be quoted: parameter = \"value with spaces\"" << "\n";
+        file << "\n";
 
         // Electronic energy
-        file << "# Electronic energy (a.u.) - overrides electronic energy from input file" << std::endl;
-        file << "# E = -76.384729" << std::endl;
-        file << std::endl;
+        file << "# Electronic energy (a.u.) - overrides electronic energy from input file" << "\n";
+        file << "# E = -76.384729" << "\n";
+        file << "\n";
 
         // Temperature settings
-        file << "# Temperature settings (K)" << std::endl;
-        file << "# Single temperature: T = 298.15" << std::endl;
-        file << "# Temperature scan: T = 200.0 400.0 25.0  (start, end, step)" << std::endl;
-        file << "T = 298.15" << std::endl;
-        file << std::endl;
+        file << "# Temperature settings (K)" << "\n";
+        file << "# Single temperature: T = 298.15" << "\n";
+        file << "# Temperature scan: T = 200.0 400.0 25.0  (start, end, step)" << "\n";
+        file << "T = 298.15" << "\n";
+        file << "\n";
 
         // Pressure settings
-        file << "# Pressure settings (atm)" << std::endl;
-        file << "# Single pressure: P = 1.0" << std::endl;
-        file << "# Pressure scan: P = 0.5 2.0 0.2  (start, end, step)" << std::endl;
-        file << "P = 1.0" << std::endl;
-        file << std::endl;
+        file << "# Pressure settings (atm)" << "\n";
+        file << "# Single pressure: P = 1.0" << "\n";
+        file << "# Pressure scan: P = 0.5 2.0 0.2  (start, end, step)" << "\n";
+        file << "P = 1.0" << "\n";
+        file << "\n";
 
         // Frequency scaling factors
-        file << "# Vibrational frequency scaling factors" << std::endl;
-        file << "sclZPE = 1.0" << std::endl;
-        file << "sclheat = 1.0" << std::endl;
-        file << "sclS = 1.0" << std::endl;
-        file << "sclCV = 1.0" << std::endl;
-        file << std::endl;
+        file << "# Vibrational frequency scaling factors" << "\n";
+        file << "sclZPE = 1.0" << "\n";
+        file << "sclheat = 1.0" << "\n";
+        file << "sclS = 1.0" << "\n";
+        file << "sclCV = 1.0" << "\n";
+        file << "\n";
 
         // Low frequency treatment
-        file << "# Low frequency treatment method" << std::endl;
-        file << "# 0 = Standard RRHO (harmonic approximation)" << std::endl;
-        file << "# 1 = Truhlar's QRRHO (frequency raising)" << std::endl;
-        file << "# 2 = Grimme's entropy interpolation (default)" << std::endl;
-        file << "# 3 = Minenkov's entropy + energy interpolation" << std::endl;
-        file << "ilowfreq = 2" << std::endl;
-        file << std::endl;
+        file << "# Low frequency treatment method" << "\n";
+        file << "# 0 = Standard RRHO (harmonic approximation)" << "\n";
+        file << "# 1 = Truhlar's QRRHO (frequency raising)" << "\n";
+        file << "# 2 = Grimme's entropy interpolation (default)" << "\n";
+        file << "# 3 = Minenkov's entropy + energy interpolation" << "\n";
+        file << "ilowfreq = 2" << "\n";
+        file << "\n";
 
         // Low frequency parameters
-        file << "# Parameters for low frequency treatments" << std::endl;
-        file << "ravib = 100.0" << std::endl;
-        file << "intpvib = 100.0" << std::endl;
-        file << std::endl;
+        file << "# Parameters for low frequency treatments" << "\n";
+        file << "ravib = 100.0" << "\n";
+        file << "intpvib = 100.0" << "\n";
+        file << "\n";
 
         // Calculation mode
-        file << "# Calculation mode" << std::endl;
-        file << "# 0 = Gas phase (include translational/rotational)" << std::endl;
-        file << "# 1 = Condensed phase (remove translational/rotational)" << std::endl;
-        file << "imode = 0" << std::endl;
-        file << std::endl;
+        file << "# Calculation mode" << "\n";
+        file << "# 0 = Gas phase (include translational/rotational)" << "\n";
+        file << "# 1 = Condensed phase (remove translational/rotational)" << "\n";
+        file << "imode = 0" << "\n";
+        file << "\n";
 
         // Imaginary frequency treatment
-        file << "# Imaginary frequency treatment" << std::endl;
-        file << "# Treat imaginary frequencies with |ν| < threshold as real" << std::endl;
-        file << "imagreal = 0.0" << std::endl;
-        file << std::endl;
+        file << "# Imaginary frequency treatment" << "\n";
+        file << "# Treat imaginary frequencies with |ν| < threshold as real" << "\n";
+        file << "imagreal = 0.0" << "\n";
+        file << "\n";
 
         // Concentration
-        file << "# Concentration for phase correction" << std::endl;
-        file << "# conc = 1.0" << std::endl;
-        file << std::endl;
+        file << "# Concentration for phase correction" << "\n";
+        file << "# conc = 1.0" << "\n";
+        file << "\n";
 
         // Mass assignment
-        file << "# Default atomic mass assignment" << std::endl;
-        file << "# 1 = Element average mass" << std::endl;
-        file << "# 2 = Most abundant isotope mass" << std::endl;
-        file << "# 3 = Masses from input file (default)" << std::endl;
-        file << "defmass = 3" << std::endl;
-        file << std::endl;
+        file << "# Default atomic mass assignment" << "\n";
+        file << "# 1 = Element average mass" << "\n";
+        file << "# 2 = Most abundant isotope mass" << "\n";
+        file << "# 3 = Masses from input file (default)" << "\n";
+        file << "defmass = 3" << "\n";
+        file << "\n";
 
         // Point group
-        file << "# Force specific point group (auto-detect if not set)" << std::endl;
-        file << "# PGlabel = C2v" << std::endl;
-        file << std::endl;
+        file << "# Force specific point group (auto-detect if not set)" << "\n";
+        file << "# PGlabel = C2v" << "\n";
+        file << "\n";
 
         // Output options
-        file << "# Output options" << std::endl;
-        file << "# Print vibration contributions: 0=no, 1=yes, -1=to file" << std::endl;
-        file << "prtvib = 0" << std::endl;
-        file << "# Output .otm file: 0=no, 1=yes" << std::endl;
-        file << "outotm = 0" << std::endl;
-        file << std::endl;
+        file << "# Output options" << "\n";
+        file << "# Print vibration contributions: 0=no, 1=yes, -1=to file" << "\n";
+        file << "prtvib = 0" << "\n";
+        file << "# Output .otm file: 0=no, 1=yes" << "\n";
+        file << "outotm = 0" << "\n";
+        file << "\n";
 
         // Mass modifications section
-        file << "# Mass modifications (optional)" << std::endl;
-        file << "# Uncomment and modify the following section to change specific atomic masses" << std::endl;
-        file << "# modmass" << std::endl;
-        file << "# 1 H 1.007825  # Atom 1: Hydrogen with specific mass" << std::endl;
-        file << "# 2 C 12.0      # Atom 2: Carbon-12 isotope" << std::endl;
-        file << "# 3 O 15.994915 # Atom 3: Oxygen-16 isotope" << std::endl;
-        file << std::endl;
+        file << "# Mass modifications (optional)" << "\n";
+        file << "# Uncomment and modify the following section to change specific atomic masses" << "\n";
+        file << "# modmass" << "\n";
+        file << "# 1 H 1.007825  # Atom 1: Hydrogen with specific mass" << "\n";
+        file << "# 2 C 12.0      # Atom 2: Carbon-12 isotope" << "\n";
+        file << "# 3 O 15.994915 # Atom 3: Oxygen-16 isotope" << "\n";
+        file << "\n";
 
         file.close();
-        std::cout << "Default settings.ini file created successfully!" << std::endl;
-        std::cout << "File location: " << filename << std::endl;
-        std::cout << "You can now edit this file to customize your default parameters." << std::endl;
+        std::cout << "Default settings.ini file created successfully!" << "\n";
+        std::cout << "File location: " << filename << "\n";
+        std::cout << "You can now edit this file to customize your default parameters." << "\n";
     }
 
 }  // namespace util

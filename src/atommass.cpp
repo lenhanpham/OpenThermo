@@ -15,9 +15,9 @@
 
 // Define the external arrays from defvar.h
 // Note: Arrays are sized +1 to accommodate 1-based indexing used in the code
-double isomass[nelesupp + 1][maxiso + 1] = {{0.0}};  /**< Isotope masses in atomic mass units */
-double isowei[nelesupp + 1][maxiso + 1] = {{0.0}};   /**< Isotope natural abundances */
-double elemass[nelesupp + 1] = {0.0};               /**< Average atomic masses */
+std::array<std::array<double, maxiso + 1>, nelesupp + 1> isomass = {};  /**< Isotope masses in atomic mass units */
+std::array<std::array<double, maxiso + 1>, nelesupp + 1> isowei = {};   /**< Isotope natural abundances */
+std::array<double, nelesupp + 1> elemass = {0.0};               /**< Average atomic masses */
 
 namespace atommass {
 

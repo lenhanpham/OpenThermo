@@ -28,12 +28,12 @@
 class LoadFile {
 private:
     // Utility functions
-    static bool loclabel(std::ifstream& file, const std::string& label, int skip = 0);
-    static bool loclabelfinal(std::ifstream& file, const std::string& label, int& ncount);
+    static auto loclabel(std::ifstream& file, const std::string& label, int skip = 0) -> bool;
+    static auto loclabelfinal(std::ifstream& file, const std::string& label, int& ncount) -> bool;
     static void skiplines(std::ifstream& file, int n);
-    static double readaftersign(std::ifstream& file, const std::string& sign);
-    static int readaftersign_int(std::ifstream& file, const std::string& sign);
-    static double readaftersign_from_line(const std::string& line, const std::string& sign);
+    static auto readaftersign(std::ifstream& file, const std::string& sign) -> double;
+    static auto readaftersign_int(std::ifstream& file, const std::string& sign) -> int;
+    static auto readaftersign_from_line(const std::string& line, const std::string& sign) -> double;
     static void elename2idx(const std::string& element, int& index);
     static void setatmmass(SystemData& sys);
     

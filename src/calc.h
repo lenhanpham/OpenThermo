@@ -31,7 +31,7 @@ namespace calc {
  * @param filename Path to the file to check
  * @return true if file exists and is accessible, false otherwise
  */
-bool file_exists(const std::string& filename);
+auto file_exists(const std::string& filename) -> bool;
 
 /**
  * @brief Perform ensemble averaging calculations across multiple input files

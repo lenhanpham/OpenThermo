@@ -92,7 +92,7 @@ const int maxiso = 300;
 /** @} */
 
 // Element names (index 0 is Bq, 1-150 are elements, 121-150 are "??")
-const std::string ind2name[nelesupp + 1] = {
+const std::array<std::string, nelesupp +1> ind2name {
     "Bq", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", // 0-10
     "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",                     // 11-18
     "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", // 19-36
@@ -164,8 +164,8 @@ struct SystemData {
 
 // Arrays (to be initialized elsewhere, e.g., initmass)
 // Note: Arrays are sized +1 to accommodate 1-based indexing used in the code
-extern double isomass[nelesupp + 1][maxiso + 1]; // Isotope masses
-extern double isowei[nelesupp + 1][maxiso + 1]; // Isotope composition
-extern double elemass[nelesupp + 1];        // Element masses
+extern std::array<std::array<double, maxiso + 1>, nelesupp + 1> isomass; // Isotope masses
+extern std::array<std::array<double, maxiso + 1>, nelesupp + 1> isowei; // Isotope composition
+extern std::array<double, nelesupp + 1> elemass;        // Element masses
 
 #endif // DEFVAR_H

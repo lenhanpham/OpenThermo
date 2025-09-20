@@ -134,8 +134,8 @@ src/
 
 ### Build Dependencies
 
-- **GNU Make**: 4.0+ (build system)
-- **CMake**: 3.10+ (alternative build system)
+- **GNU Make**: 3.8.1+ (build system, tested)
+- **CMake**: 3.26.5+ (alternative build system, tested)
 - **Standard Library**: C++17 standard library
 
 ### Optional Dependencies

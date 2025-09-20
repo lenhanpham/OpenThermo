@@ -628,22 +628,38 @@ int main(int argc, char* argv[])
                     throw std::runtime_error("Error: Could not open " + scq_filename + " for writing");
                 }
                 file_SCq << "Unit of S, CV and CP is cal/mol/K, q(V=0)/NA and q(bot)/NA are dimensionless\n\n"
-                         << "    T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA\n";
-                for (double T = T1; T <= T2 + Ts / 2.0; T += Ts)
+                         << "    T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA\n";          
+                if (Ts > 0 && Ps > 0)
                 {
-                    for (double P = P1; P <= P2 + Ps / 2.0; P += Ps)
+                    // Calculate the number of temperature steps
+                    // static_cast to int will truncate, so +1 makes it inclusive
+                    const int num_step_T = static_cast<int>((T2 - T1) / Ts) + 1;
+
+                    for (int i = 0; i < num_step_T; ++i)
                     {
-                        double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
-                        calc::calcthermo(sys, T, P, corrU, corrH, corrG, S, CV, CP, QV, Qbot);
-                        file_UHG << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
-                                 << std::setprecision(3) << std::setw(10) << corrU / cal2J << std::setw(10)
-                                 << corrH / cal2J << std::setw(10) << corrG / cal2J << std::setprecision(6)
-                                 << std::setw(17) << corrU / au2kJ_mol + sys.E << std::setw(17)
-                                 << corrH / au2kJ_mol + sys.E << std::setw(17) << corrG / au2kJ_mol + sys.E << "\n";
-                        file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
-                                 << std::setprecision(3) << std::setw(10) << S / cal2J << std::setw(10) << CV / cal2J
-                                 << std::setw(10) << CP / cal2J << std::scientific << std::setprecision(6)
-                                 << std::setw(16) << QV / NA << std::setw(16) << Qbot / NA << "\n";
+                        const double T = T1 + i * Ts; // Calculate T for this iteration
+
+                        // Calculate the number of pressure steps for this temperature
+                        const int num_step_P = static_cast<int>((P2 - P1) / Ps) + 1;
+
+                        for (int j = 0; j < num_step_P; ++j)
+                        {
+                            const double P = P1 + j * Ps; // Calculate P for this iteration
+
+                            double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
+                            calc::calcthermo(sys, T, P, corrU, corrH, corrG, S, CV, CP, QV, Qbot);
+                            file_UHG << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
+                                     << std::setprecision(3) << std::setw(10) << corrU / cal2J << std::setw(10)
+                                     << corrH / cal2J << std::setw(10) << corrG / cal2J << std::setprecision(6)
+                                     << std::setw(17) << corrU / au2kJ_mol + sys.E << std::setw(17)
+                                     << corrH / au2kJ_mol + sys.E << std::setw(17) << corrG / au2kJ_mol + sys.E
+                                     << "\n";
+                            file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10)
+                                     << P << std::setprecision(3) << std::setw(10) << S / cal2J << std::setw(10)
+                                     << CV / cal2J << std::setw(10) << CP / cal2J << std::scientific
+                                     << std::setprecision(6) << std::setw(16) << QV / NA << std::setw(16)
+                                     << Qbot / NA << "\n";
+                        }
                     }
                 }
                 file_UHG.close();

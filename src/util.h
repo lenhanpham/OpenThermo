@@ -29,15 +29,15 @@ namespace util
      * @param B Second matrix.
      * @return Resulting matrix C (m x n).
      */
-    std::vector<std::vector<double>> matmul(const std::vector<std::vector<double>>& A,
-                                            const std::vector<std::vector<double>>& B);
+    auto matmul(const std::vector<std::vector<double>>& A, const std::vector<std::vector<double>>& B)
+        -> std::vector<std::vector<double>>;
 
     /**
      * @brief Compute the transpose of a matrix.
      * @param M Input matrix.
      * @return Transposed matrix.
      */
-    std::vector<std::vector<double>> transpose(const std::vector<std::vector<double>>& M);
+    auto transpose(const std::vector<std::vector<double>>& M) -> std::vector<std::vector<double>>;
 
     /**
      * @brief Diagonalize a symmetric matrix using the Jacobi method.
@@ -92,7 +92,7 @@ namespace util
     /**
      * @brief Parse command-line arguments and update system parameters
      */
-    void loadarguments(SystemData& sys, int argc, char* argv[]);
+    void loadarguments(SystemData& sys, int argc, std::vector<std::string>& argv);
 
     /**
      * @brief Extract string value for a command-line option
@@ -107,12 +107,12 @@ namespace util
     /**
      * @brief Locate a specific label/string in an input file
      */
-    bool loclabel(std::ifstream&     file,
+    auto loclabel(std::ifstream&     file,
                   const std::string& label,
                   int&               nskip,
                   bool               rewind    = true,
                   bool               find_last = false,
-                  int                maxline   = 0);
+                  int                maxline   = 0) -> bool;
 
     /**
      * @brief Modify atomic masses based on user settings

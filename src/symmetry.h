@@ -70,9 +70,9 @@ namespace symmetry
                     const std::array<double, 3>& axis, double sina, double cosa,
                      double delta, int& nc, std::vector<int>& ntrans, double& delta3);
 
-    double symm_dot(const double* a, const double* b, int n);
+    auto symm_dot(const double* a, const double* b, int n) -> double;
     void symm_crossp(const std::array<double, 3>& x, const std::array<double, 3>& y, std::array<double, 3>& z);
-    int symm_igcd(int a, int b);
+    auto symm_igcd(int a, int b) -> int;
 
     void symm_check(int natoms, double delta, const std::vector<int>& nat,
                    const std::vector<std::vector<double>>& coord,
@@ -138,10 +138,16 @@ namespace symmetry
         Vector3D(const std::array<double, 3>& arr) : x(arr[0]), y(arr[1]), z(arr[2]) {}
 
         /** Get pointer to data for external library compatibility */
-        double* data() { return &x; }
+        [[nodiscard]] auto data() -> double*
+        {
+            return &x;
+        }
 
         /** Get const pointer to data */
-        const double* data() const { return &x; }
+        [[nodiscard]] auto data() const -> const double*
+        {
+            return &x;
+        }
     };
 
 

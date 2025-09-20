@@ -28,8 +28,8 @@
 namespace symmetry {
 
 // Forward declarations
-std::array<std::array<int, 2>, 57> initialize_nsgb();
-std::array<std::array<std::array<int, 55>, 4>, 14> initialize_nsymop();
+auto initialize_nsgb() -> std::array<std::array<int, 2>, 57>;
+auto initialize_nsymop() -> std::array<std::array<std::array<int, 55>, 4>, 14>;
 
 // Data common block equivalent
 struct DataCommon {
@@ -43,7 +43,7 @@ struct DataCommon {
 
 // Template function to convert Fortran column-major to C++ row-major
 template<size_t Rows, size_t Cols>
-std::array<std::array<int, Cols>, Rows> convert_fortran_to_cpp(const std::array<int, Rows * Cols>& flat) {
+auto convert_fortran_to_cpp(const std::array<int, Rows * Cols>& flat) -> std::array<std::array<int, Cols>, Rows> {
     std::array<std::array<int, Cols>, Rows> result{};
     for (size_t i = 0; i < Rows; ++i) {
         for (size_t j = 0; j < Cols; ++j) {
@@ -172,7 +172,7 @@ void symm_cshift(int natoms, std::vector<std::vector<double>>& coord, const std:
 /**
  * Helper function to trim whitespace from string (equivalent to Fortran's adjustl)
  */
-std::string trim(const std::string& str) {
+auto trim(const std::string& str) -> std::string {
     size_t first = str.find_first_not_of(" \t\n\r");
     if (first == std::string::npos) return "";
     size_t last = str.find_last_not_of(" \t\n\r");
@@ -182,7 +182,7 @@ std::string trim(const std::string& str) {
 /**
  * Check if pg1 is a subgroup of pg2
  */
-bool issubgroup(const std::string& pg1, const std::string& pg2) {
+auto issubgroup(const std::string& pg1, const std::string& pg2) -> bool {
     int npg;
     
     // Find pg2 in pgsymb array
@@ -318,7 +318,7 @@ void add_Cn(int& nrot, std::vector<std::array<double, 3>>& rotn,
 /**
  * Scalar (dot or inner) product of two vectors: <x|y>=x.y
  */
-double symm_dot(const double* a, const double* b, int n) {
+auto symm_dot(const double* a, const double* b, int n) -> double {
     double result = 0.0;
     for (int i = 0; i < n; i++) {
         result += a[i] * b[i];
@@ -340,7 +340,7 @@ void symm_crossp(const std::array<double, 3>& x, const std::array<double, 3>& y,
 /**
  * Greatest common divisor
  */
-int symm_igcd(int a, int b) {
+auto symm_igcd(int a, int b) -> int {
     while (b != 0) {
         int t = b;
         b = a % b;
@@ -490,7 +490,7 @@ void symm_srotate(int natoms, const std::vector<int>& nat,
  * @param PGlab Reference to string where point group symbol will be stored (e.g., "C1", "D2h")
  * @param nout Output control (0: silent, >=1: print diagnostics)
  */
-std::string symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np, int nout) {
+auto symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np, int nout) -> std::string {
     // Compute principal axis order (ng[i][5], 0-based) for each point group
     std::array<int, SymmetryData::max_pgs> principal_axis{};
     for (int i = 0; i < SymmetryData::max_pgs; ++i) {
@@ -648,7 +648,7 @@ void SymmetryDetector::detectPG(int ishow) {
     std::string PGlabel3; // Used for input and output from PG_eqvatm
 
     if (this->PGlabelinit == "?") { // Not directly specified
-        if (ishow == 1) std::cout << "Detecting point group..." << std::endl;
+        if (ishow == 1) std::cout << "Detecting point group..." << "\n";
 
         for (int i = 0; i < this->ncenter; i++) {
             tmpmat[0][i] = this->a[i].x;
@@ -672,10 +672,10 @@ void SymmetryDetector::detectPG(int ishow) {
         }
 
         if (PGlabel3 == " " || PGlabel3.empty()) {
-            std::cout << "Warning: Failed to detect point group, point group will be regarded as C1" << std::endl;
+            std::cout << "Warning: Failed to detect point group, point group will be regarded as C1" << "\n";
             this->PGlabel = "C1  ";
         } else {
-            if (ishow == 1) std::cout << "Point group has been successfully detected" << std::endl;
+            if (ishow == 1) std::cout << "Point group has been successfully detected" << "\n";
             this->PGlabel = "    "; // Initialize with spaces
             this->PGlabel.replace(0, 3, PGlabel3);
         }
@@ -726,8 +726,8 @@ void SymmetryDetector::PGlabel2rotsym() {
         // Although We can identify 'O' and 'I', rotsym is not available
         // For simplicity in C++, we'll assume rotsym = 1 for unknown cases
         std::cout << "Warning: Rotational symmetry number cannot be identified for point group "
-                  << PGlabel_trimmed << std::endl;
-        std::cout << "Assuming rotational symmetry number to be 1" << std::endl;
+                  << PGlabel_trimmed << "\n";
+        std::cout << "Assuming rotational symmetry number to be 1" << "\n";
         this->rotsym = 1;
     }
 }
@@ -880,7 +880,7 @@ const std::array<int, 966> nrotharm_1d = {
 };
 
 // Function to initialize nrotharm_ at compile time
-std::array<std::array<int, 322>, 3> initialize_nrotharm() {
+auto initialize_nrotharm() -> std::array<std::array<int, 322>, 3> {
     return convert_fortran_to_cpp<3, 322>(nrotharm_1d);
 }
 
@@ -893,7 +893,7 @@ const std::array<std::array<std::array<int, 55>, 4>, 14> nsymop_ = initialize_ns
 
 
 // Function to map point group and irrep indices to linear irsymb index
-int getIrrepSymbolIndex(int point_group_idx, int irrep_idx) {
+auto getIrrepSymbolIndex(int point_group_idx, int irrep_idx) -> int {
     // The mapping uses the nir_ array to find correct starting column for each point group
 
     if (point_group_idx < 0 || point_group_idx >= 55 || irrep_idx < 0) {
@@ -921,7 +921,7 @@ int getIrrepSymbolIndex(int point_group_idx, int irrep_idx) {
 }
 
 // Accessor functions 
-std::string getIrrepSymbol(int point_group_idx, int irrep_idx) {
+auto getIrrepSymbol(int point_group_idx, int irrep_idx) -> std::string {
     int index = getIrrepSymbolIndex(point_group_idx, irrep_idx);
     if (index < 0 || index >= 322) {
         return "";
@@ -930,7 +930,7 @@ std::string getIrrepSymbol(int point_group_idx, int irrep_idx) {
     return irsymb_[index];
 }
 
-int getRotationalHarmonic(int point_group_idx, int irrep_idx) {
+auto getRotationalHarmonic(int point_group_idx, int irrep_idx) -> int {
     // Map to the correct irrep index (similar to irsymb mapping)
     int index = getIrrepSymbolIndex(point_group_idx, irrep_idx);
     if (index < 0 || index >= 322) {
@@ -952,7 +952,7 @@ int getRotationalHarmonic(int point_group_idx, int irrep_idx) {
  * @param harmonic_type Harmonic type (0, 1, or 2)
  * @return Specific harmonic value
  */
-int getRotationalHarmonic(int point_group_idx, int irrep_idx, int harmonic_type) {
+auto getRotationalHarmonic(int point_group_idx, int irrep_idx, int harmonic_type) -> int {
     int index = getIrrepSymbolIndex(point_group_idx, irrep_idx);
     if (index < 0 || index >= 322 || harmonic_type < 0 || harmonic_type >= 3) {
         return 0;
@@ -1161,7 +1161,7 @@ std::array<int, SymmetryData::max_subgroups> SymmetryData::nsgr = {{
  * @brief Function to initialize nsgb_ from 1D Fortran data
  * @return 2D array of subgroup boundaries
  */
-std::array<std::array<int, 2>, 57> initialize_nsgb() {
+auto initialize_nsgb() -> std::array<std::array<int, 2>, 57> {
     return convert_fortran_to_cpp<57, 2>(nsgb_1d);
 }
 
@@ -1178,7 +1178,7 @@ std::array<std::array<int, 2>, 57> initialize_nsgb() {
 
 // Helper function to convert 1D Fortran column-major array to 3D C++ row-major array
 template<size_t Dim1, size_t Dim2, size_t Dim3>
-std::array<std::array<std::array<int, Dim3>, Dim2>, Dim1> convert_fortran_to_cpp_3d(const std::vector<int>& fortran_1d, size_t dim1, size_t dim2, size_t dim3) {
+auto convert_fortran_to_cpp_3d(const std::vector<int>& fortran_1d, size_t dim1, size_t dim2, size_t dim3) -> std::array<std::array<std::array<int, Dim3>, Dim2>, Dim1> {
     // Validate input size
     if (fortran_1d.size() != dim1 * dim2 * dim3) {
         throw std::invalid_argument("Error: Input array size does not match dimensions.");
@@ -1204,7 +1204,7 @@ std::array<std::array<std::array<int, Dim3>, Dim2>, Dim1> convert_fortran_to_cpp
 }
 
 // Function to initialize nsymop_ from 1D Fortran data
-std::array<std::array<std::array<int, 55>, 4>, 14> initialize_nsymop() {
+auto initialize_nsymop() -> std::array<std::array<std::array<int, 55>, 4>, 14> {
     // Fortran 1D initializer (column-major, 14*4*55 = 3080 elements)
     // Expanded from the Fortran data statement, with n*0 replaced by explicit zeros
     const std::vector<int> fortran_1d = {
@@ -1674,15 +1674,15 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     if (nout == 2) {
-        std::cout << "\n-- Equivalence classes of atoms: " << neq << std::endl;
+        std::cout << "\n-- Equivalence classes of atoms: " << neq << "\n";
         for (int i = 0; i < neq; ++i) {
             std::cout << "\n     #" << (i+1) << " (atom " 
-                      << symb[nat[ieq[i][0] - 1] - 1] << ")" << std::endl;
+                      << symb[nat[ieq[i][0] - 1] - 1] << ")" << "\n";
             std::cout << "     ";
             for (int j = 0; j < meq[i]; ++j) {
                 std::cout << std::setw(4) << ieq[i][j];
             }
-            std::cout << std::endl;
+            std::cout << "\n";
         }
     }
     
@@ -1707,7 +1707,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     if (symcen) {
-        if (nout >= 1) std::cout << "\n-- CENTRE OF SYMMETRY: {i}" << std::endl;
+        if (nout >= 1) std::cout << "\n-- CENTRE OF SYMMETRY: {i}" << "\n";
         nsym[0][1] = 1;
     }
     
@@ -1725,7 +1725,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     
     if (icent != 0 && nout == 2) {
         std::cout << "\n-- Atom " << symb[nat[icent - 1] - 1] 
-                  << " (" << icent << ") in the COM" << std::endl;
+                  << " (" << icent << ") in the COM" << "\n";
     }
     nsym[0][2] = icent;
     if (icent > 0) nsym[0][4] = 1;
@@ -1761,12 +1761,12 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
     bool is_linear = linear;
     if (is_linear) {
-        if (nout >= 1) std::cout << "\n-- LINEAR MOLECULE" << std::endl;
+        if (nout >= 1) std::cout << "\n-- LINEAR MOLECULE" << "\n";
 
         if (symcen) {
             if (nout >= 1) {
-                std::cout << "\n-- The structure should belong to the Dinf_h point group." << std::endl;
-                std::cout << "\n-- PLANES OF SYMMETRY --" << std::endl;
+                std::cout << "\n-- The structure should belong to the Dinf_h point group." << "\n";
+                std::cout << "\n-- PLANES OF SYMMETRY --" << "\n";
             }
 
             nsg = 1;
@@ -1779,10 +1779,10 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 symn[k][1] = 0.0;
             }
 
-            if (nout >= 1) std::cout << "\n-- Infinite planes" << std::endl;
-            if (nout == 2) std::cout << "     All atoms included." << std::endl;
+            if (nout >= 1) std::cout << "\n-- Infinite planes" << "\n";
+            if (nout == 2) std::cout << "     All atoms included." << "\n";
 
-            if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << std::endl;
+            if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << "\n";
 
             ncr = 2;
             nsym[2][0] = 2; // C2
@@ -1810,28 +1810,28 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             }
 
             if (nout >= 1) {
-                std::cout << "\n-- Axis #1: C(" << std::fixed << std::setprecision(2) << 0.0 << ")" << std::endl;
+                std::cout << "\n-- Axis #1: C(" << std::fixed << std::setprecision(2) << 0.0 << ")" << "\n";
             }
             if (nout == 2) {
                 std::cout << "  d: " << std::fixed << std::setprecision(5);
                 for (int k = 0; k < 3; ++k) {
                     std::cout << std::setw(12) << symn[k][2];
                 }
-                std::cout << "\n     All atoms included." << std::endl;
+                std::cout << "\n     All atoms included." << "\n";
             }
 
             if (nout >= 1) {
-                std::cout << "\n-- Axis #2: C(" << std::fixed << std::setprecision(2) << 180.0 << ")" << std::endl;
+                std::cout << "\n-- Axis #2: C(" << std::fixed << std::setprecision(2) << 180.0 << ")" << "\n";
             }
             if (nout == 2) {
                 std::cout << "  d: " << std::fixed << std::setprecision(5);
                 for (int k = 0; k < 3; ++k) {
                     std::cout << std::setw(12) << symn[k][3];
                 }
-                std::cout << "\n     Atoms included:" << std::endl;
+                std::cout << "\n     Atoms included:" << "\n";
                 if (icent != 0) {
                     std::cout << "          " << symb[nat[nsym[0][2] - 1] - 1]
-                              << " (" << nsym[0][2] << ")" << std::endl;
+                              << " (" << nsym[0][2] << ")" << "\n";
                 }
             }
 
@@ -1850,12 +1850,12 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             norder = -1;
             np = -1;
 
-            if (nout >= 1) std::cout << "\n-- Number of symmetry operations = infinite" << std::endl;
+            if (nout >= 1) std::cout << "\n-- Number of symmetry operations = infinite" << "\n";
 
         } else {
             if (nout >= 1) {
-                std::cout << "\n-- The structure should belong to the Cinf_v point group." << std::endl;
-                std::cout << "\n-- PLANES OF SYMMETRY --" << std::endl;
+                std::cout << "\n-- The structure should belong to the Cinf_v point group." << "\n";
+                std::cout << "\n-- PLANES OF SYMMETRY --" << "\n";
             }
 
             nsg = 1;
@@ -1868,10 +1868,10 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 symn[k][1] = 0.0;
             }
 
-            if (nout >= 1) std::cout << "\n-- Infinite planes" << std::endl;
-            if (nout == 2) std::cout << "     All atoms included." << std::endl;
+            if (nout >= 1) std::cout << "\n-- Infinite planes" << "\n";
+            if (nout == 2) std::cout << "     All atoms included." << "\n";
 
-            if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << std::endl;
+            if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << "\n";
 
             ncr = 1;
             nsym[2][0] = 2;
@@ -1889,14 +1889,14 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             }
 
             if (nout >= 1) {
-                std::cout << "\n-- Axis #1: C(" << std::fixed << std::setprecision(2) << 0.0 << ")" << std::endl;
+                std::cout << "\n-- Axis #1: C(" << std::fixed << std::setprecision(2) << 0.0 << ")" << "\n";
             }
             if (nout == 2) {
                 std::cout << "  d: " << std::fixed << std::setprecision(5);
                 for (int k = 0; k < 3; ++k) {
                     std::cout << std::setw(12) << symn[k][2];
                 }
-                std::cout << "\n     All atoms included." << std::endl;
+                std::cout << "\n     All atoms included." << "\n";
             }
 
             nsr = 0;
@@ -1904,7 +1904,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             ni = 0;
             np = -1;
 
-            if (nout >= 1) std::cout << "\n-- Number of symmetry operations = infinite" << std::endl;
+            if (nout >= 1) std::cout << "\n-- Number of symmetry operations = infinite" << "\n";
         }
 
         // Skip the rest of the function for linear molecules
@@ -1931,13 +1931,13 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         sigman[nsg - 1][1] = v1[1];
         sigman[nsg - 1][2] = v1[2];
         
-        if (nout >= 1) std::cout << "\n-- PLANAR MOLECULE" << std::endl;
+        if (nout >= 1) std::cout << "\n-- PLANAR MOLECULE" << "\n";
         if (nout == 2) {
             std::cout << "  n: " << std::fixed << std::setprecision(5);
             for (int k = 0; k < 3; ++k) {
                 std::cout << std::setw(12) << v1[k];
             }
-            std::cout << std::endl;
+            std::cout << "\n";
         }
         
         if (symcen && planar) {
@@ -2046,10 +2046,10 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     // Output planes of symmetry
-    if (nout >= 1) std::cout << "\n-- PLANES OF SYMMETRY --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- PLANES OF SYMMETRY --" << "\n";
     
     for (int i = 0; i < nsg; ++i) {
-        if (nout >= 1) std::cout << "\n-- Plane #" << (i + 1) << std::endl;
+        if (nout >= 1) std::cout << "\n-- Plane #" << (i + 1) << "\n";
         
         v1[0] = sigman[i][0];
         v1[1] = sigman[i][1];
@@ -2060,7 +2060,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             for (int k = 0; k < 3; ++k) {
                 std::cout << std::setw(12) << v1[k];
             }
-            std::cout << "\n     Atoms included:" << std::endl;
+            std::cout << "\n     Atoms included:" << "\n";
         }
         
         int m = 0;
@@ -2072,7 +2072,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             if (std::abs(sp) <= delta) {
                 if (nout == 2) {
                     std::cout << "          " << symb[nat[j] - 1] 
-                              << " (" << (j + 1) << ")" << std::endl;
+                              << " (" << (j + 1) << ")" << "\n";
                 }
                 m++;
                 if (std::abs(sp) > delta3) delta3 = std::abs(sp);
@@ -2091,7 +2091,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     // Proper rotations from plane intersections
-    if (nout >= 1) std::cout << "\n-- Proper rotations due to the centre and planes of symmetry --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- Proper rotations due to the centre and planes of symmetry --" << "\n";
     
     for (int i = 0; i < nsg - 1; ++i) {
         v1[0] = sigman[i][0];
@@ -2127,7 +2127,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Rotation #" << (i + 1) << ": C(" 
-                      << std::fixed << std::setprecision(2) << sp << ")" << std::endl;
+                      << std::fixed << std::setprecision(2) << sp << ")" << "\n";
         }
         
         v1[0] = rotn[i][0];
@@ -2139,7 +2139,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             for (int k = 0; k < 3; ++k) {
                 std::cout << std::setw(12) << v1[k];
             }
-            std::cout << "\n     Atoms included:" << std::endl;
+            std::cout << "\n     Atoms included:" << "\n";
         }
         
         for (int j = 0; j < natoms; ++j) {
@@ -2156,7 +2156,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             if (std::abs(vn) <= delta) {
                 if (nout == 2) {
                     std::cout << "          " << symb[nat[j] - 1] 
-                              << " (" << (j + 1) << ")" << std::endl;
+                              << " (" << (j + 1) << ")" << "\n";
                 }
                 m++;
                 if (std::abs(vn) > delta3) delta3 = std::abs(vn);
@@ -2165,7 +2165,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     // Proper rotational axes - single atoms
-    if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- Distinct PROPER ROTATIONAL AXES --" << "\n";
     
     // Cn (for each atom)
     for (int i = 0; i < neq; ++i) {
@@ -2329,7 +2329,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Axis #" << (i + 1) << ": C(" 
-                      << std::fixed << std::setprecision(2) << sp << ")" << std::endl;
+                      << std::fixed << std::setprecision(2) << sp << ")" << "\n";
         }
         
         v1[0] = rotn[i][0];
@@ -2341,7 +2341,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             for (int k = 0; k < 3; ++k) {
                 std::cout << std::setw(12) << v1[k];
             }
-            std::cout << "\n     Atoms included:" << std::endl;
+            std::cout << "\n     Atoms included:" << "\n";
         }
         
         for (int j = 0; j < natoms; ++j) {
@@ -2354,7 +2354,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             if (std::abs(vn) <= delta) {
                 if (nout == 2) {
                     std::cout << "          " << symb[nat[j] - 1] 
-                              << " (" << (j + 1) << ")" << std::endl;
+                              << " (" << (j + 1) << ")" << "\n";
                 }
                 m++;
                 if (std::abs(vn) > delta3) delta3 = std::abs(vn);
@@ -2363,7 +2363,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     }
     
     // Generate all proper rotations
-    if (nout >= 1) std::cout << "\n-- PROPER ROTATIONAL AXES & ROTATIONS --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- PROPER ROTATIONAL AXES & ROTATIONS --" << "\n";
     
     int nsgi = nsg + 1;
     int ii = 0;
@@ -2414,7 +2414,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 nsym[nsgi + ii - 1][4] = m;
                 
                 if (nout >= 1) {
-                    std::cout << "-- #" << (i + 1) << "-" << ii << ": C(" << k << ")" << std::endl;
+                    std::cout << "-- #" << (i + 1) << "-" << ii << ": C(" << k << ")" << "\n";
                 }
                 
                 if (k > 2) {
@@ -2448,7 +2448,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                             
                             if (nout >= 1) {
                                 std::cout << "-- #" << (i + 1) << "-" << ii << ": C(" << k 
-                                          << " ^" << kk << ")" << std::endl;
+                                          << " ^" << kk << ")" << "\n";
                             }
                         }
                     }
@@ -2460,7 +2460,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     ncr = ii;
     
     // Improper rotational axes
-    if (nout >= 1) std::cout << "\n-- IMPROPER ROTATIONAL AXES & ROTATIONS --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- IMPROPER ROTATIONAL AXES & ROTATIONS --" << "\n";
     
     int nsgicn = nsgi + ncr;
     ii = 0;
@@ -2499,7 +2499,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 nsym[nsgicn + ii - 1][4] = m;
                 
                 if (nout >= 1) {
-                    std::cout << "-- #" << (i + 1) << "-" << ii << ": S(" << k << ")" << std::endl;
+                    std::cout << "-- #" << (i + 1) << "-" << ii << ": S(" << k << ")" << "\n";
                 }
                 
                 int kv = k - 1;
@@ -2528,7 +2528,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                         
                         if (nout >= 1) {
                             std::cout << "-- #" << (i + 1) << "-" << ii << ": S(" << k 
-                                      << "^" << kk << ")" << std::endl;
+                                      << "^" << kk << ")" << "\n";
                         }
                     }
                 }
@@ -2541,7 +2541,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     norder = 1 + ni + nsg + ncr + nsr;
     
     if (nout >= 1) {
-        std::cout << "\n-- Number of symmetry operations (including E) = " << norder << std::endl;
+        std::cout << "\n-- Number of symmetry operations (including E) = " << norder << "\n";
     }
     
     // Determination of the principal axis
@@ -2723,23 +2723,23 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         }
     } // end if (!is_linear)
     
-    if (nout >= 1) std::cout << "\n-- SYMMETRY OPERATIONS --" << std::endl;
+    if (nout >= 1) std::cout << "\n-- SYMMETRY OPERATIONS --" << "\n";
     
     // COM and Inversion Center
     if (nout == 2) {
         if (nsym[0][1] == 0) {
             if (nsym[0][2] > 0) {
                 std::cout << "               #1: COM    -- with atom " 
-                          << symb[nat[nsym[0][2] - 1] - 1] << " (#" << nsym[0][2] << ")" << std::endl;
+                          << symb[nat[nsym[0][2] - 1] - 1] << " (#" << nsym[0][2] << ")" << "\n";
             } else {
-                std::cout << "               #1: COM" << std::endl;
+                std::cout << "               #1: COM" << "\n";
             }
         } else if (nsym[0][1] == 1) {
             if (nsym[0][2] > 0) {
                 std::cout << "               #1: INVERSION CENTER  -- with atom " 
-                          << symb[nat[nsym[0][2] - 1] - 1] << " (#" << nsym[0][2] << ")" << std::endl;
+                          << symb[nat[nsym[0][2] - 1] - 1] << " (#" << nsym[0][2] << ")" << "\n";
             } else {
-                std::cout << "               #1: INVERSION CENTER " << std::endl;
+                std::cout << "               #1: INVERSION CENTER " << "\n";
             }
         }
         
@@ -2757,10 +2757,10 @@ void sym_elements(int natoms, const std::vector<int>& nat,
             }
             
             if (nsym[k][4] == 0) {
-                std::cout << "               #" << (k + 1) << ": " << symel << std::endl;
+                std::cout << "               #" << (k + 1) << ": " << symel << "\n";
             } else {
                 std::cout << "               #" << (k + 1) << ": " << symel 
-                          << "     -- with " << nsym[k][4] << " unmoved atoms" << std::endl;
+                          << "     -- with " << nsym[k][4] << " unmoved atoms" << "\n";
             }
         }
         
@@ -2768,26 +2768,26 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         for (int k = nsg + 1; k < nsg + ncr + 1; ++k) {
             if (nsym[k][2] > 1) {
                 std::cout << "               #" << (k + 1) << ": C(" << nsym[k][1] 
-                          << "^" << nsym[k][2] << ")" << std::endl;
+                          << "^" << nsym[k][2] << ")" << "\n";
             } else {
                 if (nsym[k][4] > 0) {
                     if (nsym[k][3] == 2) {
                         std::cout << "               #" << (k + 1) << ": C'(" << nsym[k][1] 
-                                  << ")  -- with " << nsym[k][4] << " unmoved atoms" << std::endl;
+                                  << ")  -- with " << nsym[k][4] << " unmoved atoms" << "\n";
                     } else if (nsym[k][3] == 3) {
                         std::cout << "               #" << (k + 1) << ": C\"(" << nsym[k][1] 
-                                  << ")  -- with " << nsym[k][4] << " unmoved atoms" << std::endl;
+                                  << ")  -- with " << nsym[k][4] << " unmoved atoms" << "\n";
                     } else {
                         std::cout << "               #" << (k + 1) << ": C(" << nsym[k][1] 
-                                  << ")   -- with " << nsym[k][4] << " unmoved atoms" << std::endl;
+                                  << ")   -- with " << nsym[k][4] << " unmoved atoms" << "\n";
                     }
                 } else {
                     if (nsym[k][3] == 2) {
-                        std::cout << "               #" << (k + 1) << ": C'(" << nsym[k][1] << ")" << std::endl;
+                        std::cout << "               #" << (k + 1) << ": C'(" << nsym[k][1] << ")" << "\n";
                     } else if (nsym[k][3] == 3) {
-                        std::cout << "               #" << (k + 1) << ": C\"(" << nsym[k][1] << ")" << std::endl;
+                        std::cout << "               #" << (k + 1) << ": C\"(" << nsym[k][1] << ")" << "\n";
                     } else {
-                        std::cout << "               #" << (k + 1) << ": C(" << nsym[k][1] << ")" << std::endl;
+                        std::cout << "               #" << (k + 1) << ": C(" << nsym[k][1] << ")" << "\n";
                     }
                 }
             }
@@ -2797,13 +2797,13 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         for (int k = nsg + ncr + 1; k < nsg + ncr + nsr + 1; ++k) {
             if (nsym[k][2] > 1) {
                 std::cout << "               #" << (k + 1) << ": S(" << nsym[k][1] 
-                          << "^" << nsym[k][2] << ")" << std::endl;
+                          << "^" << nsym[k][2] << ")" << "\n";
             } else {
                 if (nsym[k][4] > 0) {
                     std::cout << "               #" << (k + 1) << ": S(" << nsym[k][1] 
-                              << ")   -- with " << nsym[k][4] << " unmoved atoms" << std::endl;
+                              << ")   -- with " << nsym[k][4] << " unmoved atoms" << "\n";
                 } else {
-                    std::cout << "               #" << (k + 1) << ": S(" << nsym[k][1] << ")" << std::endl;
+                    std::cout << "               #" << (k + 1) << ": S(" << nsym[k][1] << ")" << "\n";
                 }
             }
         } 
@@ -2830,7 +2830,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 // Dimensions: [322][14]
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-const-variable"
-const double chtab[322][14] = {
+const std::array<std::array<double, 14>, 322> chtab = {{
 //
 // Character tables
 //
@@ -3608,7 +3608,7 @@ const double chtab[322][14] = {
     { 4.0, -1.0, -1.0, 1.0, 0.0, -4.0, 1.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
   //  Hu
     { 5.0, 0.0, 0.0, -1.0, 1.0, -5.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0 },
-};
+}};
 #pragma clang diagnostic pop
 //
 ///**

@@ -751,9 +751,10 @@ namespace calc
                   << " cal/mol/K   =CP\n";
 
         // Total result
-        std::cout << "\n\n                        ---------------------------\n";
-        std::cout << "                        ---------- Total ----------\n";
-        std::cout << "                        ---------------------------\n";
+        std::cout << "\n\n"
+                  << "                       ----------------------------\n"
+                  << "                       -------- Final data --------\n"
+                  << "                       ----------------------------\n";
         std::cout << std::scientific << std::setprecision(6) << " Total q(V=0):    " << std::setw(16)
                   << q_trans * q_rot * qvib_v0 * q_ele << "\n";
         std::cout << " Total q(bot):    " << std::setw(16) << q_trans * q_rot * qvib_bot * q_ele << "\n";
@@ -1012,9 +1013,7 @@ namespace calc
     }
 
 
-    // Missing critical function implementations
-
-    /**
+     /**
      * @brief Calculate thermodynamic properties using current system temperature and pressure
      *
      *

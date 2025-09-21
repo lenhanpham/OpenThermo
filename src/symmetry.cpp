@@ -1178,7 +1178,8 @@ auto initialize_nsgb() -> std::array<std::array<int, 2>, 57> {
 
 // Helper function to convert 1D Fortran column-major array to 3D C++ row-major array
 template<size_t Dim1, size_t Dim2, size_t Dim3>
-auto convert_fortran_to_cpp_3d(const std::vector<int>& fortran_1d, size_t dim1, size_t dim2, size_t dim3) -> std::array<std::array<std::array<int, Dim3>, Dim2>, Dim1> {
+auto convert_fortran_to_cpp_3d(const std::vector<int>& fortran_1d, size_t dim1, size_t dim2, size_t dim3) 
+    -> std::array<std::array<std::array<int, Dim3>, Dim2>, Dim1> {
     // Validate input size
     if (fortran_1d.size() != dim1 * dim2 * dim3) {
         throw std::invalid_argument("Error: Input array size does not match dimensions.");
@@ -1496,7 +1497,7 @@ auto initialize_nsymop() -> std::array<std::array<std::array<int, 55>, 4>, 14> {
 // Assuming element_symbols_ is a member or global array of strings for elements 1-118 or so.
 // For simplicity, we'll use a static array here.
 
-// Additional helpers needed from Fortran
+// Additional helpers needed
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 static void center3(const std::array<double, 3>& p1, const std::array<double, 3>& p2, const std::array<double, 3>& p3, std::array<double, 3>& p0) {
@@ -1512,9 +1513,8 @@ static void normal(const std::array<double, 3>& p1, const std::array<double, 3>&
 }
 #pragma GCC diagnostic pop
 
-/**
- * Determines the equivalence classes defined by the symmetry operations
- */
+
+
 void symclass(int natoms, int nprm, const std::vector<std::vector<int>>& nper,
               int& nseq, std::vector<int>& nccl, std::vector<std::vector<int>>& nscl,
               const std::vector<int>& nat, const std::vector<std::string>& symb, int nout) {
@@ -1587,6 +1587,7 @@ void symclass(int natoms, int nprm, const std::vector<std::vector<int>>& nper,
         }
     }
 }
+
 
 void sym_elements(int natoms, const std::vector<int>& nat,
                  const std::vector<std::vector<double>>& coord,

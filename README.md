@@ -62,7 +62,7 @@ src/
 ├── atommass.h
 ├── calc.cpp
 ├── calc.h
-├── defvar.h
+├── chemsys.h
 ├── help_utils.cpp
 ├── help_utils.h
 ├── loadfile.cpp
@@ -321,6 +321,11 @@ outotm = 0        # Output .otm file: 0=no, 1=yes
 
 # Concentration (for solution phase)
 conc = 1.0
+
+# VASP energy selection
+# false/no/0 = energy  without entropy (default), true/yes/1 = energy(sigma->0)
+extrape = false
+
 
 # Mass modifications (optional section)
 # modmass
@@ -584,13 +589,13 @@ H    1.007825   0.000000   0.000000   1.089000
 
 - **Requirements**: Vibrational analysis output
 - **Features**: Supports molecular and periodic systems
-- **Note**: For condensed phase systems (ipmode=1): contribution of translation and rotation are ignored
+- **Note**: For condensed phase systems (ipmode=1): s of translation and rotation are ignored
 
 ##### VASP (OUTCAR)
 
 - **Requirements**: Vibrational analysis output in OUTCAR, sysmtem information in CONTCAR
 - **Features**: Supports molecular and periodic systems
-- **Note**: For condensed phase systems (ipmode=1): contribution of translation and rotation are ignored
+- **Note**: For condensed phase systems (ipmode=1): contributions of translation and rotation are ignored
 
 
 #### 3. List Files (.txt)

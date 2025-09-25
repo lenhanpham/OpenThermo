@@ -49,13 +49,13 @@ SOURCES = $(SRC_DIR)/main.cpp \
           $(SRC_DIR)/util.cpp \
           $(SRC_DIR)/help_utils.cpp
 
-HEADERS = $(SRC_DIR)/defvar.h \
-          $(SRC_DIR)/atommass.h \
-          $(SRC_DIR)/calc.h \
-          $(SRC_DIR)/loadfile.h \
-          $(SRC_DIR)/symmetry.h \
-          $(SRC_DIR)/util.h \
-          $(SRC_DIR)/help_utils.h
+HEADERS = $(SRC_DIR)/atommass.h \
+           $(SRC_DIR)/calc.h \
+           $(SRC_DIR)/chemsys.h \
+           $(SRC_DIR)/loadfile.h \
+           $(SRC_DIR)/symmetry.h \
+           $(SRC_DIR)/util.h \
+           $(SRC_DIR)/help_utils.h
 
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 TARGET = $(BUILD_DIR)/OpenThermo

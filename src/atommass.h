@@ -12,7 +12,7 @@
 #ifndef ATOMMASS_H
 #define ATOMMASS_H
 
-#include "defvar.h"
+#include "chemsys.h"
 
 /**
  * @brief Namespace containing atomic mass and isotope-related functions

@@ -43,7 +43,7 @@ namespace HelpUtils
         std::cout << "  -sclCV <factor>      Scale factor for heat capacity frequencies (default: 1.0)\n";
         std::cout << "  -ilowfreq <mode>     Low frequency treatment: 0=harmonic, 1=raise, 2=Grimme, 3=Minenkov\n";
         std::cout << "  -ravib <value>       Raising value for low frequencies in cm^-1 (default: 100.0)\n";
-        std::cout << "  -imode <mode>        Calculation mode: 0=gas phase, 1=condensed phase\n";
+        std::cout << "  -ipmode <mode>       Calculation mode: 0=gas phase, 1=condensed phase\n";
         std::cout << "  -imagreal <value>    Treat imaginary freq < value as real (default: 0.0)\n";
         std::cout << "  -conc <string>       Concentration string for phase correction\n";
         std::cout << "  -defmass <type>      Default mass type: 1=element, 2=most abundant isotope, 3=file\n";
@@ -148,13 +148,13 @@ namespace HelpUtils
              "  Frequency value (cm^-1) to which low frequencies are raised when ilowfreq=1\n"
              "  Example: -ravib 50.0\n"
              "  Default: 100.0"},
-            {"imode",
+            {"ipmode",
              "Calculation Mode\n"
-             "  -imode <mode>\n"
+             "  -ipmode <mode>\n"
              "  Calculation mode:\n"
              "    0: Gas phase (include translational/rotational degrees of freedom)\n"
              "    1: Condensed phase (remove translational/rotational contributions)\n"
-             "  Example: -imode 1\n"
+             "  Example: -ipmode 1\n"
              "  Default: 0"},
             {"imagreal",
              "Imaginary Frequency Treatment\n"
@@ -343,7 +343,7 @@ namespace HelpUtils
         std::cout << "ravib = 100.0\n";
         std::cout << "intpvib = 100.0\n\n";
         std::cout << "# Calculation mode and options\n";
-        std::cout << "imode = 0\n";
+        std::cout << "ipmode = 0\n";
         std::cout << "imagreal = 0.0\n";
         std::cout << "conc = 1.0\n";
         std::cout << "defmass = 1\n";

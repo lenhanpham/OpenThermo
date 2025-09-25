@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Build-Passing-brightgreen.svg" alt="Build Status">
 </p>
 
-A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, and CP2K). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
+A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
 
 # Important Note
 
@@ -310,7 +310,7 @@ ravib = 100.0     # Raising threshold for Truhlar method
 intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov
 
 # Calculation options
-imode = 0         # 0=gas phase, 1=condensed phase
+ipmode = 0         # 0=gas phase, 1=condensed phase
 imagreal = 0.0    # Imaginary frequency threshold
 defmass = 3       # Mass assignment: 1=average, 2=abundant, 3=file
 PGlabel = "?"     # Point group (auto-detect if "?")
@@ -337,7 +337,7 @@ conc = 1.0
 | `ilowfreq` | Low frequency treatment method (0=RRHO, 1=Truhlar, 2=Grimme, 3=Minenkov) | `2`           |
 | `defmass`  | Mass assignment mode (1=average, 2=abundant, 3=file)                     | `3`           |
 | `outotm`   | Output .otm file flag (0=no, 1=yes)                                      | `0`           |
-| `imode`    | Calculation mode (0=gas phase, 1=condensed phase)                        | `0`           |
+| `ipmode`   | Calculation mode (0=gas phase, 1=condensed phase)                        | `0`           |
 | `T`        | Temperature in Kelvin                                                    | `298.15`      |
 | `P`        | Pressure in atmospheres                                                  | `1.0`         |
 | `sclZPE`   | ZPE scaling factor                                                       | `1.0`         |
@@ -348,6 +348,7 @@ conc = 1.0
 | `intpvib`  | Interpolation threshold for Grimme/Minenkov (cm⁻¹)                       | `100.0`       |
 | `imagreal` | Imaginary frequency threshold (cm⁻¹)                                     | `0.0`         |
 | `Eexter`   | External electronic energy override (a.u.)                               | `0.0`         |
+| `extrape`  | VASP energy selection (false/no/0=energy  without entropy, true/yes/1=energy(sigma->0) | `false`       |
 | `PGlabel`  | Point group label ("?" for auto-detect)                                  | `"?"`         |
 
 ### Parameter Precedence
@@ -446,14 +447,14 @@ Settings are applied in this order:
 - **Default**: 100.0
 - **Example**: `-ravib 50.0`
 
-#### `-imode <mode>`
+#### `-ipmode <mode>`
 
 - **Description**: Calculation mode
 - **Values**:
   - `0`: Gas phase (include translational/rotational)
   - `1`: Condensed phase (remove translational/rotational)
 - **Default**: 0
-- **Example**: `-imode 1`
+- **Example**: `-ipmode 1`
 
 #### `-imagreal <value>`
 
@@ -583,6 +584,14 @@ H    1.007825   0.000000   0.000000   1.089000
 
 - **Requirements**: Vibrational analysis output
 - **Features**: Supports molecular and periodic systems
+- **Note**: For condensed phase systems (ipmode=1): contribution of translation and rotation are ignored
+
+##### VASP (OUTCAR)
+
+- **Requirements**: Vibrational analysis output in OUTCAR, sysmtem information in CONTCAR
+- **Features**: Supports molecular and periodic systems
+- **Note**: For condensed phase systems (ipmode=1): contribution of translation and rotation are ignored
+
 
 #### 3. List Files (.txt)
 
@@ -788,6 +797,17 @@ modmass
 - **Optional treatment** as real frequencies
 - **Configurable threshold** with `-imagreal` option
 
+### VASP Energy Selection
+
+- **Energy line format**: In VASP OUTCAR files, the energy line contains two values:
+  ```
+  energy  without entropy=      -27.39346935  energy(sigma->0) =      -27.39346935
+  ```
+- **Selection options**:
+  - `extrape = false` (default): Use first energy value (4th token)
+  - `extrape = true`: Use last energy value (final token)
+- **Configuration**: Set in `settings.ini` or use default behavior
+
 ### Batch Processing
 
 **Process multiple files:**
@@ -830,7 +850,7 @@ echo "molecule-3.otm" >> batch.txt
 ./build/OpenThermo ts.out -imagreal 100 -ilowfreq 1 -ravib 50
 
 # Condensed phase calculation
-./OpenThermo crystal.out -imode 1 -conc "1.0 M"
+./OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
 ```
 
 ### Batch Processing Examples

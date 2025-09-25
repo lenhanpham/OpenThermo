@@ -7175,7 +7175,7 @@
  ---------------------------------------------------------------------------------
 
  Unable to Open any file for archive entry.
- 1\1\GINC-GADI-CPU-CLX-1685\FOpt\UwB97XD\6-31+G(d,p)\C15H16N2\NP9048\11
+ 1\1\GINC-GADI-CPU-CLX-1685\FOpt\UwB97XD\6-31+G(d,p)\C15H16N2\XXXXXX\11
  -Nov-2022\0\\# opt(maxcycles=1000) freq=Noraman scf(maxcycle=500) uwb9
  7xd/6-31+G(d,p) scrf=(smd,solvent=acetonitrile)\\OPT + Freq\\0,1\C,0.3
  079338438,0.0028928288,-0.5948312515\N,-0.4477390682,-1.1421917926,-0.

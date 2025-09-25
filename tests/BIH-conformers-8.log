@@ -10519,7 +10519,7 @@
  ---------------------------------------------------------------------------------
 
  Unable to Open any file for archive entry.
- 1\1\GINC-GADI-CPU-CLX-2226\FOpt\UwB97XD\6-31+G(d,p)\C15H16N2\NP9048\07
+ 1\1\GINC-GADI-CPU-CLX-2226\FOpt\UwB97XD\6-31+G(d,p)\C15H16N2\XXXXXX\07
  -Nov-2022\0\\# opt(maxcycles=1000) freq=Noraman scf(maxcycle=500) uwb9
  7xd/6-31+G(d,p) scrf=(smd,solvent=acetonitrile)\\OPT + Freq\\0,1\C,0.3
  073878827,-0.1585318467,0.4664381357\N,-0.4346251458,1.1303089522,0.43

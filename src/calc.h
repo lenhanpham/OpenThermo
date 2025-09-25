@@ -14,7 +14,7 @@
 
 #include <vector>
 #include <string>
-#include "defvar.h" // For SystemData
+#include "chemsys.h" // For SystemData
 
 /**
  * @brief Namespace containing thermochemistry calculation functions

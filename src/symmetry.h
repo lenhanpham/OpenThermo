@@ -13,7 +13,7 @@
 #ifndef SYMMETRY_H
 #define SYMMETRY_H
 
-#include "defvar.h"
+#include "chemsys.h"
 #include <algorithm>
 #include <array>
 #include <stdexcept>

@@ -44,7 +44,7 @@ set(SOURCES
 
 # Header files
 set(HEADERS
-    src/defvar.h
+    src/chemsys.h
     src/atommass.h
     src/calc.h
     src/loadfile.h

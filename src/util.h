@@ -13,15 +13,31 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "defvar.h"  // For SystemData
+#include "chemsys.h"  // For SystemData
 #include <array>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
+
 namespace util
 {
+    /**
+     * @brief Enumeration of supported quantum chemistry programs
+     */
+    enum class QuantumChemistryProgram
+    {
+        Unknown  = 0,
+        Gaussian = 1,
+        Orca     = 2,
+        Gamess   = 3,
+        Nwchem   = 4,
+        Cp2k     = 5,
+        Xtb      = 6,
+        Vasp     = 7,
+        Otm      = 8
+    };
 
     /**
      * @brief Multiply two matrices A (m x p) and B (p x n).
@@ -29,8 +45,8 @@ namespace util
      * @param B Second matrix.
      * @return Resulting matrix C (m x n).
      */
-    auto matmul(const std::vector<std::vector<double>>& A, const std::vector<std::vector<double>>& B)
-        -> std::vector<std::vector<double>>;
+    auto matmul(const std::vector<std::vector<double>>& A,
+                const std::vector<std::vector<double>>& B) -> std::vector<std::vector<double>>;
 
     /**
      * @brief Compute the transpose of a matrix.
@@ -84,10 +100,10 @@ namespace util
      * @param list Optional index list to permute.
      * @param list2 Optional second index list to permute.
      */
-    //void sortr8(std::vector<double>& array,
-    //            const std::string&   mode  = "val",
-    //            std::vector<int>*    list  = nullptr,
-    //            std::vector<int>*    list2 = nullptr);
+    // void sortr8(std::vector<double>& array,
+    //             const std::string&   mode  = "val",
+    //             std::vector<int>*    list  = nullptr,
+    //             std::vector<int>*    list2 = nullptr);
 
     /**
      * @brief Parse command-line arguments and update system parameters
@@ -122,7 +138,7 @@ namespace util
     /**
      * @brief Determine the computational chemistry program that generated the input
      */
-    void deterprog(SystemData& sys, int& iprog);
+    auto deterprog(SystemData& sys) -> QuantumChemistryProgram;
 
     /**
      * @brief Output molecular data to .otm format file

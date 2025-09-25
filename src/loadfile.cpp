@@ -12,11 +12,16 @@
 
 
 #include "loadfile.h"
-#include "defvar.h"
+#include "atommass.h"
+#include "chemsys.h"
 #include <algorithm>
+#include <array>
+#include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -234,13 +239,12 @@ double LoadFile::readaftersign_from_line(const std::string& line, const std::str
         }
         catch (const std::invalid_argument& e)
         {
-            std::cerr << "ERROR: Invalid argument for stod on value_str: '" << value_str << "' - " << e.what()
-                      << std::endl;
+            std::cerr << "ERROR: Invalid argument for stod on value_str: '" << value_str << "' - " << e.what() << '\n';
             throw std::runtime_error("Failed to parse numeric value from: " + value_str);
         }
         catch (const std::out_of_range& e)
         {
-            std::cerr << "ERROR: Out of range for stod on value_str: '" << value_str << "' - " << e.what() << std::endl;
+            std::cerr << "ERROR: Out of range for stod on value_str: '" << value_str << "' - " << e.what() << '\n';
             throw std::runtime_error("Numeric value out of range: " + value_str);
         }
     }
@@ -249,7 +253,7 @@ double LoadFile::readaftersign_from_line(const std::string& line, const std::str
 
 void LoadFile::elename2idx(const std::string& element, int& index)
 {
-    // Convert element name to atomic number using the ind2name array from defvar.h
+    // Convert element name to atomic number using the ind2name array from chemsys.h
     std::string elem = element;
     // Pad single character elements with space for comparison
     if (elem.length() == 1)
@@ -311,7 +315,7 @@ void LoadFile::elename2idx(const std::string& element, int& index)
 
 void LoadFile::setatmmass(SystemData& sys)
 {
-    // Set atomic masses based on atomic numbers using elemass array from defvar.h
+    // Set atomic masses based on atomic numbers using elemass array from chemsys.h
     for (auto& atom : sys.a)
     {
         if (atom.index > 0 && atom.index <= nelesupp)
@@ -477,18 +481,18 @@ void LoadFile::loadgau(SystemData& sys)
     else
     {
         sys.spinmult = 1;
-        std::cout << "Note: \"Multiplicity =\" cannot be found, set spin multiplicity to 1" << std::endl;
+        std::cout << "Note: \"Multiplicity =\" cannot be found, set spin multiplicity to 1" << '\n';
     }
 
     // Load geometry
     loadGaugeom(file, sys);
 
     // Set mass
-    if (sys.defmass == 1 || sys.defmass == 2)
+    if (sys.massmod == 1 || sys.massmod == 2)
     {
         setatmmass(sys);
     }
-    else if (sys.defmass == 3)
+    else if (sys.massmod == 3)
     {
         file.clear();
         file.seekg(0);
@@ -501,9 +505,9 @@ void LoadFile::loadgau(SystemData& sys)
         }
         else
         {
-            std::cerr << "Error: Unable to find atomic mass information!" << std::endl;
-            std::cerr << "If you have used #T for your freq task, you should use # instead" << std::endl;
-            std::cerr << "Press ENTER button to exit program" << std::endl;
+            std::cerr << "Error: Unable to find atomic mass information!" << "\n";
+            std::cerr << "If you have used #T for your freq task, you should use # instead" << "\n";
+            std::cerr << "Press ENTER button to exit program" << "\n";
             std::cin.get();
             exit(1);
         }
@@ -553,7 +557,7 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
             file.seekg(0);
             if (!loclabel(file, locstr, 0))
             {
-                std::cerr << "Error: Could not relocate geometry section" << std::endl;
+                std::cerr << "Error: Could not relocate geometry section" << '\n';
                 exit(1);
             }
 
@@ -581,7 +585,7 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
 
             if (sys.ncenter == 0)
             {
-                std::cerr << "Error: No atoms found in geometry section" << std::endl;
+                std::cerr << "Error: No atoms found in geometry section" << '\n';
                 exit(1);
             }
 
@@ -598,7 +602,7 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
             {
                 if (!loclabel(file, locstr, 0))
                 {
-                    std::cerr << "Error: Could not navigate to geometry section " << iload << std::endl;
+                    std::cerr << "Error: Could not navigate to geometry section " << iload << '\n';
                     exit(1);
                 }
                 // This matches: read(ifileid,*)
@@ -617,7 +621,7 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
                 if (!(file >> inouse1 >> sys.a[iatm].index >> inouse2 >> sys.a[iatm].x >> sys.a[iatm].y >>
                       sys.a[iatm].z))
                 {
-                    std::cerr << "Error: Failed to read atom " << (iatm + 1) << " coordinates" << std::endl;
+                    std::cerr << "Error: Failed to read atom " << (iatm + 1) << " coordinates" << '\n';
                     exit(1);
                 }
             }
@@ -630,8 +634,8 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
             // No geometry found with this orientation
             if (itime == 2)
             {
-                std::cerr << "Error: Failed to load geometry from this file!" << std::endl;
-                std::cerr << "Press ENTER button to exit" << std::endl;
+                std::cerr << "Error: Failed to load geometry from this file!" << '\n';
+                std::cerr << "Press ENTER button to exit" << '\n';
                 std::cin.get();
                 exit(1);
             }
@@ -756,14 +760,14 @@ void LoadFile::loadCP2K(SystemData& sys)
             }
             catch (...)
             {
-                std::cout << "Warning: Failed to parse spin multiplicity, defaulting to 1." << std::endl;
+                std::cout << "Warning: Failed to parse spin multiplicity, defaulting to 1." << '\n';
                 sys.spinmult = 1;
             }
         }
     }
     else
     {
-        std::cout << "Note: Unable to find spin multiplicity information, assume to be singlet" << std::endl;
+        std::cout << "Note: Unable to find spin multiplicity information; assume to be singlet" << '\n';
         sys.spinmult = 1;
     }
 
@@ -780,8 +784,8 @@ void LoadFile::loadCP2K(SystemData& sys)
         {
             std::cout << "Warning: Unable to find \"Electronic energy (U)\" from the input file, electronic energy is "
                          "thus set to zero. "
-                      << "You should directly specify it via \"E\" parameter in settings.ini" << std::endl;
-            std::cout << "Press ENTER button to continue" << std::endl;
+                      << "You should directly specify it via \"E\" parameter in settings.ini" << '\n';
+            std::cout << "Press ENTER button to continue" << '\n';
             std::cin.get();
         }
         sys.E = 0;
@@ -815,8 +819,8 @@ void LoadFile::loadCP2K(SystemData& sys)
     {
         std::cerr << "Error: Unable to find atom information! Please make sure that PRINT_LEVEL has been set to MEDIUM "
                      "or higher."
-                  << std::endl;
-        std::cerr << "Press ENTER to exit..." << std::endl;
+                  << '\n';
+        std::cerr << "Press ENTER to exit..." << '\n';
         std::cin.get();
         exit(1);
     }
@@ -884,7 +888,7 @@ void LoadFile::loadCP2K(SystemData& sys)
     }
 
     // Apply default masses if requested
-    if (sys.defmass == 1 || sys.defmass == 2)
+    if (sys.massmod == 1 || sys.massmod == 2)
     {
         setatmmass(sys);
     }
@@ -942,19 +946,20 @@ void LoadFile::loadCP2K(SystemData& sys)
     }
     else
     {
-        std::cerr << "No vibrational frequencies found in CP2K output." << std::endl;
+        std::cerr << "No vibrational frequencies found in CP2K output." << '\n';
     }
 
     // ==================== Set Point Group ====================
     if (sys.PGlabelinit == "?")
     {
-        if (sys.imode == 1)
+        if (sys.ipmode == 1)
         {
             sys.PGlabelinit = "C1";
-            std::cout << "Note: In the case of dealing with CP2K output file with imode=1, point group is not "
-                         "automatically detected but simply set to C1. "
-                      << "If you need to use other point group, please manually set \"PGlabel\" in settings.ini"
-                      << std::endl;
+            std::cout
+                << "Note: When using CP2K to treat periodic systems or solid states (ipmode=1), OpenThermo does not "
+                   "automatically detect point group and simply set it to C1."
+                << "You might want to use other point group, and it can be set manually via \"PGlabel\" in settings.ini"
+                << '\n';
         }
     }
 
@@ -962,7 +967,6 @@ void LoadFile::loadCP2K(SystemData& sys)
 }
 
 // ORCA
-
 void LoadFile::loadorca(SystemData& sys)
 {
     std::ifstream file(sys.inputfile);
@@ -976,7 +980,7 @@ void LoadFile::loadorca(SystemData& sys)
     int ncount;
     if (!loclabelfinal(file, "FINAL SINGLE POINT ENERGY", ncount))
     {
-        std::cerr << "Error: FINAL SINGLE POINT ENERGY not found in ORCA file" << std::endl;
+        std::cerr << "Error: FINAL SINGLE POINT ENERGY not found in ORCA file" << '\n';
         throw std::runtime_error("Energy section not found");
     }
     std::string line;
@@ -1017,13 +1021,13 @@ void LoadFile::loadorca(SystemData& sys)
         }
         catch (const std::runtime_error& e)
         {
-            std::cerr << "Warning: Failed to parse spin multiplicity: " << e.what() << std::endl;
+            std::cerr << "Warning: Failed to parse spin multiplicity: " << e.what() << '\n';
             sys.spinmult = 1;
         }
     }
     else
     {
-        std::cerr << "Note: Ideal value S not found, assuming singlet (spin multiplicity = 1)" << std::endl;
+        std::cerr << "Note: Ideal value S not found, assuming singlet (spin multiplicity = 1)" << '\n';
         sys.spinmult = 1;
     }
 
@@ -1031,11 +1035,11 @@ void LoadFile::loadorca(SystemData& sys)
     loadORCAgeom(file, sys);
 
     // Set mass - CRITICAL FIX: Exact pattern matching and positioning
-    if (sys.defmass == 1 || sys.defmass == 2)
+    if (sys.massmod == 1 || sys.massmod == 2)
     {
         setatmmass(sys);
     }
-    else if (sys.defmass == 3)
+    else if (sys.massmod == 3)
     {
         file.clear();
         file.seekg(0);
@@ -1117,7 +1121,7 @@ void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
     }
     catch (const std::runtime_error& e)
     {
-        std::cerr << "Error: Failed to parse number of atoms: " << e.what() << std::endl;
+        std::cerr << "Error: Failed to parse number of atoms: " << e.what() << '\n';
         throw;
     }
 
@@ -1138,7 +1142,7 @@ void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
         std::string loadArgs;
         if (!(file >> loadArgs >> sys.a[i].x >> sys.a[i].y >> sys.a[i].z))
         {
-            std::cerr << "Error: Failed to read coordinates for atom " << (i + 1) << std::endl;
+            std::cerr << "Error: Failed to read coordinates for atom " << (i + 1) << '\n';
             throw std::runtime_error("Incomplete geometry data");
         }
         elename2idx(loadArgs, sys.a[i].index);
@@ -1151,13 +1155,13 @@ void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
     if (!loclabelfinal(file, "Scaling factor for frequencies =", ncount) || ncount == 0)
     {
         std::cerr << "\nError: Unable to load frequencies from this file! Please check keywords in the ORCA input file"
-                  << std::endl;
-        std::cerr << "\nOr your ORCA is maybe too old (2.x). Please use the recent versions" << std::endl;
+                  << '\n';
+        std::cerr << "\nOr your ORCA is maybe too old (2.x). Please use the recent versions" << '\n';
         // std::cerr << std::endl;
         // std::cerr << "Press ENTER button to exit" << std::endl;
         // std::cin.get();
         throw std::runtime_error("Unable to load frequencies from ORCA file: Scaling factor section not found");
-        std::cerr << "\n" << std::endl;
+        std::cerr << "\n" << '\n';
     }
 
     std::string dummy;
@@ -1195,7 +1199,7 @@ void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
         double             freq_val;
         if (!(iss >> dummy_str >> freq_val))
         {
-            std::cerr << "Error: Failed to parse frequency from line: " << loadArgs << std::endl;
+            std::cerr << "Error: Failed to parse frequency from line: " << loadArgs << '\n';
             throw std::runtime_error("Invalid frequency format");
         }
 
@@ -1237,7 +1241,7 @@ void LoadFile::loadgms(SystemData& sys)
             method.erase(method.find_last_not_of(" \t") + 1);
             std::cout << "Note: " << method << " energy (" << std::fixed << std::setprecision(8) << sys.E
                       << " a.u.) is loaded. If this is not the intended method, the final U, H, G may be misleading"
-                      << std::endl;
+                      << '\n';
         }
         else
         {
@@ -1258,21 +1262,21 @@ void LoadFile::loadgms(SystemData& sys)
     }
     else
     {
-        std::cerr << "Warning: SPIN MULTIPLICITY not found, assuming singlet (spin multiplicity = 1)" << std::endl;
+        std::cerr << "Warning: SPIN MULTIPLICITY not found, assuming singlet (spin multiplicity = 1)" << '\n';
         sys.spinmult = 1;
     }
 
     // Load geometry
-    loadgmsgeom(file, sys);
+    loadGmsgeom(file, sys);
 
     // Set mass
     file.clear();
     file.seekg(0);  // Rewind to start
-    if (sys.defmass == 1 || sys.defmass == 2)
+    if (sys.massmod == 1 || sys.massmod == 2)
     {
         setatmmass(sys);
     }
-    else if (sys.defmass == 3)
+    else if (sys.massmod == 3)
     {
         file.clear();
         file.seekg(0);  // Rewind to start
@@ -1385,7 +1389,7 @@ void LoadFile::loadgms(SystemData& sys)
                     // std::cerr << "Debug (Mass): Available elements in mass_data:" << std::endl;
                     for (const auto& [sym, mass] : mass_data)
                     {
-                        std::cerr << "  '" << sym << "'" << std::endl;
+                        std::cerr << "  '" << sym << "'" << '\n';
                     }
                     // std::cerr << "Debug (Mass): Looking for: '" << expected_element_symbol << "' (original: '"
                     //           << ind2name[sys.a[i].index] << "')" << std::endl;
@@ -1403,11 +1407,11 @@ void LoadFile::loadgms(SystemData& sys)
     // Load frequencies
     file.clear();
     file.seekg(0);  // Rewind to start
-    loadgmsfreq(file, sys);
+    loadGmsfreq(file, sys);
     file.close();
 }
 
-void LoadFile::loadgmsgeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);  // Rewind to start
@@ -1479,7 +1483,7 @@ void LoadFile::loadgmsgeom(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadgmsfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGmsfreq(std::ifstream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);  // Rewind to start
@@ -1565,11 +1569,11 @@ void LoadFile::loadnw(SystemData& sys)
         {
             sys.E = readaftersign(file, "=");
             std::cout << "Note: SCF energy is loaded. If the theoretical method presently used is other one, "
-                      << "the finally printed total U, H, G will be misleading" << std::endl;
+                      << "the finally printed total U, H, G will be misleading" << '\n';
         }
         else
         {
-            std::cout << "Warning: Unable to load electronic energy, thus it is set to zero" << std::endl;
+            std::cout << "Warning: Unable to load electronic energy, thus it is set to zero" << '\n';
             sys.E = 0;
         }
     }
@@ -1583,14 +1587,14 @@ void LoadFile::loadnw(SystemData& sys)
     }
 
     // Load geometry
-    loadnwgeom(file, sys);
+    loadNwgeom(file, sys);
 
     // Set mass
-    if (sys.defmass == 1 || sys.defmass == 2)
+    if (sys.massmod == 1 || sys.massmod == 2)
     {
         setatmmass(sys);
     }
-    else if (sys.defmass == 3)
+    else if (sys.massmod == 3)
     {
         file.clear();
         file.seekg(0);
@@ -1617,7 +1621,7 @@ void LoadFile::loadnw(SystemData& sys)
 
                 if (!(iss >> element_symbol >> atom_number >> x >> y >> z >> mass))
                 {
-                    std::cerr << "Warning: Failed to parse mass line " << (atoms_read + 1) << ": " << line << std::endl;
+                    std::cerr << "Warning: Failed to parse mass line " << (atoms_read + 1) << ": " << line << '\n';
                     parse_failed = true;
                     break;
                 }
@@ -1632,7 +1636,7 @@ void LoadFile::loadnw(SystemData& sys)
             if (atoms_read != sys.ncenter || parse_failed)
             {
                 std::cerr << "Warning: Mass section incomplete or corrupt. Falling back to default atomic masses."
-                          << std::endl;
+                          << '\n';
                 setatmmass(sys);  // ← SAFETY: Don’t lose your atoms!
             }
         }
@@ -1643,11 +1647,11 @@ void LoadFile::loadnw(SystemData& sys)
     }
 
     // Load frequencies
-    loadnwfreq(file, sys);
+    loadNwfreq(file, sys);
     file.close();
 }
 
-void LoadFile::loadnwgeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);
@@ -1739,7 +1743,7 @@ void LoadFile::loadnwgeom(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadnwfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadNwfreq(std::ifstream& file, SystemData& sys)
 {
     if (loclabel(file, "Projected Derivative Dipole Moments"))
     {
@@ -1853,7 +1857,7 @@ void LoadFile::loadxtb(SystemData& sys)
                   << "If you want to let OpenThermo load electronic energy from a xtb output file, "
                   << "input its path now, e.g. D:\\ltwd\\xtb.out. If you press ENTER button directly, then electronic "
                      "energy will simply be set to 0"
-                  << std::endl;
+                  << '\n';
 
         while (true)
         {
@@ -1879,21 +1883,21 @@ void LoadFile::loadxtb(SystemData& sys)
                         {
                             sys.E = std::stod(line.substr(36));
                             std::cout << "Loaded electronic energy: " << std::fixed << std::setprecision(10) << sys.E
-                                      << " Hartree" << std::endl;
+                                      << " Hartree" << '\n';
                         }
                         xtbfile.close();
                         break;
                     }
                     else
                     {
-                        std::cout << "Error: Unable to locate \"total energy\"! Input again" << std::endl;
+                        std::cout << "Error: Unable to locate \"total energy\"! Input again" << '\n';
                         xtbfile.close();
                         continue;
                     }
                 }
                 else
                 {
-                    std::cout << "Cannot find the file, input again!" << std::endl;
+                    std::cout << "Cannot find the file, input again!" << '\n';
                 }
             }
         }
@@ -1933,15 +1937,474 @@ void LoadFile::loadxtb(SystemData& sys)
         }
     }
 
-    if (sys.defmass == 3)
+    if (sys.massmod == 3)
     {
-        std::cout << "Note: defmass=3 is meaningless for present case because input file does not record atomic mass. "
-                     "Now set atomic masses to element mass (defmass=1)"
-                  << std::endl;
-        sys.defmass = 1;
+        std::cout << "Note: massmod=3 is meaningless for present case because input file does not record atomic mass. "
+                     "Now set atomic masses to element mass (massmod=1)"
+                  << '\n';
+        sys.massmod = 1;
     }
     setatmmass(sys);
 
     loadGaufreq(file, sys);
     file.close();
+}
+
+// VASP
+void LoadFile::loadvasp(SystemData& sys)
+{
+    std::ifstream file(sys.inputfile);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Cannot open input file: " + sys.inputfile);
+    }
+
+    // Determine if it's CONTCAR or OUTCAR based on content
+    // Check for OUTCAR-specific patterns first
+    bool           isOUTCAR = false;
+    std::string    checkLine;
+    std::streampos originalPos = file.tellg();
+    while (std::getline(file, checkLine))
+    {
+        if (checkLine.find("VRHFIN") != std::string::npos || checkLine.find("POMASS") != std::string::npos ||
+            checkLine.find("FREE ENERGIE OF THE ION-ELECTRON SYSTEM") != std::string::npos)
+        {
+            isOUTCAR = true;
+            break;
+        }
+    }
+    file.clear();
+    file.seekg(originalPos);
+
+    if (isOUTCAR)
+    {
+        // OUTCAR - load geometry, energy, and frequencies
+        loadVASPgeom(file, sys, true);
+        file.clear();
+        file.seekg(0);
+        loadVASPEnergy(file, sys);
+        file.clear();
+        file.seekg(0);
+        loadVASPfreq(file, sys);
+    }
+    else
+    {
+        // Assume CONTCAR - load geometry
+        loadVASPgeom(file, sys, false);
+        // For CONTCAR, try to load energy and frequencies from OUTCAR in the same directory
+        std::filesystem::path contcarPath = sys.inputfile;
+        std::filesystem::path outcarPath  = contcarPath.parent_path() / "OUTCAR";
+        if (std::filesystem::exists(outcarPath))
+        {
+            std::ifstream outcarFile(outcarPath);
+            if (outcarFile.is_open())
+            {
+                loadVASPEnergy(outcarFile, sys);
+                outcarFile.clear();
+                outcarFile.seekg(0);
+                loadVASPfreq(outcarFile, sys);
+                outcarFile.close();
+            }
+        }
+        else
+        {
+            // For CONTCAR, set default atomic masses if no OUTCAR found
+            setatmmass(sys);
+        }
+    }
+
+
+    // Set default multiplicity for VASP (usually singlet)
+    if (sys.spinmult == 0)
+    {
+        sys.spinmult = 1;
+    }
+
+    // ==================== Set Point Group ====================
+    if (sys.PGlabelinit == "?")
+    {
+        if (sys.ipmode == 1)
+        {
+            sys.PGlabelinit = "C1";
+            std::cout
+                << "Note: When using VASP to treat periodic systems or solid states (ipmode=1), OpenThermo does not "
+                   "automatically detect point group and simply set it to C1."
+                << "You might want to use other point group, and it can be set manually via \"PGlabel\" in settings.ini"
+                << '\n';
+        }
+    }
+
+    file.close();
+}
+
+void LoadFile::loadVASPgeom(std::ifstream& file, SystemData& sys, bool isOUTCAR)
+{
+    if (isOUTCAR)
+    {
+        // OUTCAR case: read geometry from OUTCAR, elements from CONTCAR, masses from OUTCAR
+        std::filesystem::path outcarPath  = sys.inputfile;
+        std::filesystem::path contcarPath = outcarPath.parent_path() / "CONTCAR";
+
+        if (!std::filesystem::exists(contcarPath))
+        {
+            throw std::runtime_error("CONTCAR file not found in the same directory as OUTCAR: " + contcarPath.string());
+        }
+
+        // Read CONTCAR for elements and atom counts
+        std::ifstream contcarFile(contcarPath);
+        if (!contcarFile.is_open())
+        {
+            throw std::runtime_error("Cannot open CONTCAR file: " + contcarPath.string());
+        }
+
+        // Skip first 5 lines
+        for (int i = 0; i < 5; ++i)
+        {
+            std::string dummy;
+            std::getline(contcarFile, dummy);
+        }
+
+        // Read element names (line 6)
+        std::string elemLine;
+        std::getline(contcarFile, elemLine);
+        std::istringstream       elemIss(elemLine);
+        std::vector<std::string> elements;
+        std::string              elem;
+        while (elemIss >> elem)
+        {
+            // Remove trailing slash if present
+            if (!elem.empty() && elem.back() == '/')
+                elem.pop_back();
+            elements.push_back(elem);
+        }
+
+        // Read atom counts (line 7)
+        std::string countLine;
+        std::getline(contcarFile, countLine);
+        std::istringstream countIss(countLine);
+        std::vector<int>   counts;
+        int                count;
+        sys.ncenter = 0;
+        while (countIss >> count)
+        {
+            counts.push_back(count);
+            sys.ncenter += count;
+        }
+
+        if (elements.size() != counts.size())
+        {
+            throw std::runtime_error("Mismatch between number of elements and counts in CONTCAR");
+        }
+
+        contcarFile.close();
+
+        // Read masses from OUTCAR
+        std::map<std::string, double> massMap;
+        file.clear();
+        file.seekg(0);
+        std::string line;
+        while (std::getline(file, line))
+        {
+            if (line.find("POMASS") != std::string::npos)
+            {
+                size_t pos = line.find("=");
+                if (pos != std::string::npos)
+                {
+                    std::string massStr = line.substr(pos + 1);
+                    // Find the mass value before ';'
+                    size_t semiPos = massStr.find(';');
+                    if (semiPos != std::string::npos)
+                    {
+                        massStr = massStr.substr(0, semiPos);
+                    }
+                    try
+                    {
+                        double mass = std::stod(massStr);
+                        // Find the element name before POMASS
+                        size_t      pomassPos    = line.find("POMASS");
+                        std::string beforePomass = line.substr(0, pomassPos);
+                        // Find the element symbol (usually 2 characters before POMASS)
+                        std::istringstream iss(beforePomass);
+                        std::string        token;
+                        std::string        elemSymbol;
+                        while (iss >> token)
+                        {
+                            elemSymbol = token;
+                        }
+                        // Remove trailing colon if present
+                        if (!elemSymbol.empty() && elemSymbol.back() == ':')
+                            elemSymbol.pop_back();
+                        massMap[elemSymbol] = mass;
+                    }
+                    catch (const std::invalid_argument&)
+                    {
+                        // Skip invalid mass
+                    }
+                }
+            }
+        }
+
+        // Read geometry from OUTCAR
+        file.clear();
+        file.seekg(0);
+        int ncount;
+        if (!loclabelfinal(file, "POSITION", ncount) || ncount == 0)
+        {
+            throw std::runtime_error("POSITION section not found in OUTCAR");
+        }
+
+        // Skip header lines
+        skiplines(file, 2);  // Skip "POSITION" line and "TOTAL-FORCE" line
+
+        std::vector<std::array<double, 3>> coordinates;
+        while (std::getline(file, line))
+        {
+            if (line.find("----") != std::string::npos)
+                break;
+            if (line.empty())
+                continue;
+
+            std::istringstream iss(line);
+            double             x, y, z;
+            if (iss >> x >> y >> z)
+            {
+                coordinates.push_back({x, y, z});
+            }
+        }
+
+        if (coordinates.size() != static_cast<size_t>(sys.ncenter))
+        {
+            throw std::runtime_error("Number of coordinates (" + std::to_string(coordinates.size()) +
+                                     ") does not match number of atoms (" + std::to_string(sys.ncenter) + ")");
+        }
+
+        // Assign elements and masses
+        sys.a.resize(sys.ncenter);
+        int atomIdx = 0;
+        for (size_t i = 0; i < elements.size(); ++i)
+        {
+            for (int j = 0; j < counts[i]; ++j)
+            {
+                sys.a[atomIdx].x = coordinates[atomIdx][0];
+                sys.a[atomIdx].y = coordinates[atomIdx][1];
+                sys.a[atomIdx].z = coordinates[atomIdx][2];
+
+                elename2idx(elements[i], sys.a[atomIdx].index);
+
+                auto massIt = massMap.find(elements[i]);
+                if (massIt != massMap.end())
+                {
+                    sys.a[atomIdx].mass = massIt->second;
+                }
+                else
+                {
+                    // Use default mass if not found
+                    if (sys.a[atomIdx].index > 0 && sys.a[atomIdx].index <= nelesupp)
+                    {
+                        sys.a[atomIdx].mass = elemass[sys.a[atomIdx].index];
+                    }
+                    else
+                    {
+                        sys.a[atomIdx].mass = 1.0;
+                    }
+                }
+
+                atomIdx++;
+            }
+        }
+    }
+    else
+    {
+        // CONTCAR case: read geometry from CONTCAR, use default masses
+        file.clear();
+        file.seekg(0);
+
+        // Skip comment
+        std::string dummy;
+        std::getline(file, dummy);
+
+        // Skip scaling
+        std::getline(file, dummy);
+
+        // Read lattice vectors
+        std::array<std::array<double, 3>, 3> lattice;
+        for (auto& row : lattice)
+        {
+            std::getline(file, dummy);
+            std::istringstream iss(dummy);
+            iss >> row[0] >> row[1] >> row[2];
+        }
+
+        // Read element names
+        std::string elemLine;
+        std::getline(file, elemLine);
+        std::istringstream       elemIss(elemLine);
+        std::vector<std::string> elements;
+        std::string              elem;
+        while (elemIss >> elem)
+        {
+            if (!elem.empty() && elem.back() == '/')
+                elem.pop_back();
+            elements.push_back(elem);
+        }
+
+        // Read atom counts
+        std::string countLine;
+        std::getline(file, countLine);
+        std::istringstream countIss(countLine);
+        std::vector<int>   counts;
+        int                count;
+        sys.ncenter = 0;
+        while (countIss >> count)
+        {
+            counts.push_back(count);
+            sys.ncenter += count;
+        }
+
+        if (elements.size() != counts.size())
+        {
+            throw std::runtime_error("Mismatch between number of elements and counts in CONTCAR");
+        }
+
+        // Read coordinate type
+        std::string coordType;
+        std::getline(file, coordType);
+
+        sys.a.resize(sys.ncenter);
+        int atomIdx = 0;
+        for (size_t i = 0; i < elements.size(); ++i)
+        {
+            for (int j = 0; j < counts[i]; ++j)
+            {
+                std::string coordLine;
+                std::getline(file, coordLine);
+                std::istringstream iss(coordLine);
+                double             fx, fy, fz;
+                iss >> fx >> fy >> fz;
+
+                elename2idx(elements[i], sys.a[atomIdx].index);
+
+                // Convert Direct to Cartesian
+                sys.a[atomIdx].x = fx * lattice[0][0] + fy * lattice[1][0] + fz * lattice[2][0];
+                sys.a[atomIdx].y = fx * lattice[0][1] + fy * lattice[1][1] + fz * lattice[2][1];
+                sys.a[atomIdx].z = fx * lattice[0][2] + fy * lattice[1][2] + fz * lattice[2][2];
+
+                atomIdx++;
+            }
+        }
+
+        // Use default masses
+        setatmmass(sys);
+    }
+}
+
+void LoadFile::loadVASPEnergy(std::ifstream& file, SystemData& sys)
+{
+    int ncount;
+    if (loclabelfinal(file, "energy  without entropy", ncount) && ncount > 0)
+    {
+        // The file pointer is at the beginning of the "energy  without entropy" line
+        std::string energy_line;
+        std::getline(file, energy_line);
+
+        // Read the whole line and split it to get the value at the fourth position
+        // Line format: "  energy  without entropy=      -27.39346935  energy(sigma->0) =      -27.39346935"
+        std::istringstream       iss(energy_line);
+        std::string              token;
+        std::vector<std::string> tokens;
+
+        while (iss >> token)
+        {
+            tokens.push_back(token);
+        }
+
+        if (tokens.size() >= 4)
+        {
+            try
+            {
+                size_t energy_index = (sys.vasp_energy_select == 1) ? tokens.size() - 1
+                                                                    : 3;  // Last token if extrape=true, else 4th token
+                double energy_eV    = std::stod(tokens[energy_index]);
+                sys.E               = energy_eV / 27.2114;  // Convert eV to Hartree
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cerr << "Warning: Invalid energy value '" << tokens[3] << "'. Setting energy to 0." << std::endl;
+                sys.E = 0.0;
+            }
+            catch (const std::out_of_range& e)
+            {
+                std::cerr << "Warning: Energy value out of range. Setting energy to 0." << std::endl;
+                sys.E = 0.0;
+            }
+        }
+        else
+        {
+            std::cerr << "Warning: Unexpected format in energy line. Expected at least 4 tokens, got " << tokens.size()
+                      << ". Setting energy to 0." << std::endl;
+            sys.E = 0.0;
+        }
+    }
+    else
+    {
+        std::cerr << "Warning: Unable to find energy section in VASP file, setting to 0" << '\n';
+        sys.E = 0.0;
+    }
+}
+
+void LoadFile::loadVASPfreq(std::ifstream& file, SystemData& sys)
+{
+    std::vector<double> allFreqs;
+    std::string         freqLine;
+
+    while (std::getline(file, freqLine))
+    {
+        if (freqLine.find("cm-1") != std::string::npos)
+        {
+            // Split line into tokens
+            std::vector<std::string> tokens;
+            std::istringstream       iss(freqLine);
+            std::string              token;
+            while (iss >> token)
+            {
+                tokens.push_back(token);
+            }
+
+            // Find "cm-1" token and extract frequency from previous token
+            for (size_t i = 0; i < tokens.size(); ++i)
+            {
+                if (tokens[i] == "cm-1" && i > 0)
+                {
+                    try
+                    {
+                        double freq = std::stod(tokens[i - 1]);
+                        if (freq > 1e-3)  // Skip near-zero frequencies
+                            allFreqs.push_back(freq);
+                    }
+                    catch (const std::invalid_argument&)
+                    {
+                        // Skip invalid numbers
+                    }
+                    break;  // Only one frequency per line
+                }
+            }
+        }
+    }
+
+    sys.nfreq = allFreqs.size();
+    if (sys.nfreq > 0)
+    {
+        sys.wavenum.resize(sys.nfreq);
+        sys.freq.resize(sys.nfreq);
+
+        for (int i = 0; i < sys.nfreq; ++i)
+        {
+            sys.wavenum[i] = allFreqs[i];
+            sys.freq[i]    = allFreqs[i] * wave2freq;  // Convert cm⁻¹ to Hz
+        }
+    }
+    else
+    {
+        std::cerr << "No vibrational frequencies found in VASP file." << '\n';
+    }
 }

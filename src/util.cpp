@@ -11,7 +11,7 @@
  */
 
 #include "util.h"
-#include "defvar.h"   // For SystemData and related types
+#include "chemsys.h"  // For SystemData and related types
 #include <algorithm>  // for std::swap
 #include <array>
 #include <cmath>  // for atan, sin, cos, abs
@@ -50,8 +50,8 @@ namespace util
      * @note UNUSED: Only
      * called internally within util.cpp - no external usage
      */
-    auto matmul(const std::vector<std::vector<double>>& A, const std::vector<std::vector<double>>& B)
-        -> std::vector<std::vector<double>> 
+    auto matmul(const std::vector<std::vector<double>>& A,
+                const std::vector<std::vector<double>>& B) -> std::vector<std::vector<double>>
     {
         size_t m = A.size();
         if (m == 0)
@@ -95,7 +95,7 @@ namespace util
      *
      * @note UNUSED: Only called internally within util.cpp - no external usage
      */
-    auto transpose(const std::vector<std::vector<double>>& M) -> std::vector<std::vector<double>> 
+    auto transpose(const std::vector<std::vector<double>>& M) -> std::vector<std::vector<double>>
     {
         if (M.empty())
             return {};
@@ -465,13 +465,13 @@ namespace util
                 if (!(iss >> sys.ravib))
                     throw std::runtime_error("Error: Invalid value for -ravib");
             }
-            else if (inputArgs == "-imode")
+            else if (inputArgs == "-ipmode")
             {
                 if (++iarg >= argc)
-                    throw std::runtime_error("Error: Missing value for -imode");
+                    throw std::runtime_error("Error: Missing value for -ipmode");
                 std::istringstream iss(argv[iarg]);
-                if (!(iss >> sys.imode))
-                    throw std::runtime_error("Error: Invalid value for -imode");
+                if (!(iss >> sys.ipmode))
+                    throw std::runtime_error("Error: Invalid value for -ipmode");
             }
             else if (inputArgs == "-imagreal")
             {
@@ -500,7 +500,7 @@ namespace util
                 if (++iarg >= argc)
                     throw std::runtime_error("Error: Missing value for -defmass");
                 std::istringstream iss(argv[iarg]);
-                if (!(iss >> sys.defmass))
+                if (!(iss >> sys.massmod))
                     throw std::runtime_error("Error: Invalid value for -defmass");
             }
             else if (inputArgs == "-PGlabel")
@@ -803,7 +803,7 @@ namespace util
                         throw std::runtime_error("Error: Invalid value for imagreal in settings.ini");
                 }
             }
-            get_option_str(file, "imode", inputArgs);
+            get_option_str(file, "ipmode", inputArgs);
             if (!inputArgs.empty())
             {
                 // Find the position of '='
@@ -820,8 +820,8 @@ namespace util
                         valueStr = valueStr.substr(0, end + 1);
 
                     std::istringstream iss(valueStr);
-                    if (!(iss >> sys.imode))
-                        throw std::runtime_error("Error: Invalid value for imode in settings.ini");
+                    if (!(iss >> sys.ipmode))
+                        throw std::runtime_error("Error: Invalid value for ipmode in settings.ini");
                 }
             }
             get_option_str(file, "conc", inputArgs);
@@ -884,8 +884,42 @@ namespace util
                         valueStr = valueStr.substr(0, end + 1);
 
                     std::istringstream iss(valueStr);
-                    if (!(iss >> sys.defmass))
+                    if (!(iss >> sys.massmod))
                         throw std::runtime_error("Error: Invalid value for defmass in settings.ini");
+                }
+            }
+            get_option_str(file, "extrape", inputArgs);
+            if (!inputArgs.empty())
+            {
+                // Find the position of '='
+                size_t eqPos = inputArgs.find('=');
+                if (eqPos != std::string::npos)
+                {
+                    std::string valueStr = inputArgs.substr(eqPos + 1);
+                    // Remove leading/trailing whitespace
+                    size_t start = valueStr.find_first_not_of(" \t");
+                    if (start != std::string::npos)
+                        valueStr = valueStr.substr(start);
+                    size_t end = valueStr.find_last_not_of(" \t");
+                    if (end != std::string::npos)
+                        valueStr = valueStr.substr(0, end + 1);
+
+                    // Convert to lowercase for case-insensitive comparison
+                    std::transform(valueStr.begin(), valueStr.end(), valueStr.begin(), ::tolower);
+
+                    if (valueStr == "true" || valueStr == "yes" || valueStr == "1")
+                    {
+                        sys.vasp_energy_select = 1;
+                    }
+                    else if (valueStr == "false" || valueStr == "no" || valueStr == "0")
+                    {
+                        sys.vasp_energy_select = 0;
+                    }
+                    else
+                    {
+                        throw std::runtime_error(
+                            "Error: Invalid value for extrape in settings.ini. Use true/yes/1 or false/no/0");
+                    }
                 }
             }
             file.close();
@@ -961,10 +995,8 @@ namespace util
      *
      * Status: HEAVILY USED - 8 calls in sub.cpp alone
      */
-    auto loclabel(std::ifstream& file, 
-                  const std::string& label,
-                  int& nskip, bool rewind, 
-                  bool find_last, int maxline) -> bool
+    auto loclabel(std::ifstream& file, const std::string& label, int& nskip, bool rewind, bool find_last, int maxline)
+        -> bool
     {
         std::string line;
         if (rewind)
@@ -1059,7 +1091,7 @@ namespace util
                     if (inputArgs.find('.') == std::string::npos)
                     {
                         // Integer (isotope)
-                        int                isotmp;
+                        int isotmp;
                         std::istringstream iss_iso(inputArgs);
                         if (!(iss_iso >> isotmp))
                         {
@@ -1093,7 +1125,7 @@ namespace util
     }
 
     // Determine the program that generated the input file
-    void deterprog(SystemData& sys, int& iprog)
+    auto deterprog(SystemData& sys) -> QuantumChemistryProgram
     {
         std::ifstream file(sys.inputfile);
         if (!file.is_open())
@@ -1104,43 +1136,42 @@ namespace util
         int nskip;
         if (loclabel(file, "generated by the xtb code", nskip, true, false, 200))
         {
-            iprog = 6;  // xtb g98.out
             file.close();
-            return;
+            return QuantumChemistryProgram::Xtb;  // xtb g98.out
         }
         if (loclabel(file, "Gaussian, Inc", nskip, true, false, 200) ||
             loclabel(file, "Entering Gaussian System", nskip, true, false, 200))
         {
-            iprog = 1;  // Gaussian
             file.close();
-            return;
+            return QuantumChemistryProgram::Gaussian;  // Gaussian
         }
         if (loclabel(file, "O   R   C   A", nskip, true, false, 200))
         {
-            iprog = 2;  // ORCA
             file.close();
-            return;
+            return QuantumChemistryProgram::Orca;  // ORCA
         }
         if (loclabel(file, "GAMESS VERSION ", nskip, true, false, 200))
         {
-            iprog = 3;  // GAMESS-US
             file.close();
-            return;
+            return QuantumChemistryProgram::Gamess;  // GAMESS-US
         }
         if (loclabel(file, "Northwest Computational Chemistry Package", nskip, true, false, 200))
         {
-            iprog = 4;  // NWChem
             file.close();
-            return;
+            return QuantumChemistryProgram::Nwchem;  // NWChem
         }
         if (loclabel(file, "CP2K|", nskip, true, false, 200))
         {
-            iprog = 5;  // CP2K
             file.close();
-            return;
+            return QuantumChemistryProgram::Cp2k;  // CP2K
         }
-        iprog = 0;  // Undetermined
+        if (loclabel(file, "vasp", nskip, true, false, 200))
+        {
+            file.close();
+            return QuantumChemistryProgram::Vasp;  // VASP
+        }
         file.close();
+        return QuantumChemistryProgram::Unknown;  // Undetermined
     }
 
     // Output data to .otm file
@@ -1169,7 +1200,7 @@ namespace util
         file << std::fixed << std::setprecision(10) << std::setw(20) << sys.E << "\n";
 
         // Write wavenumbers
-        file << "*wavenum  //Wavenumbers (cm-1). Negative value means imaginary frequency\n";
+        file << "*wavenum  //Wavenumbers (cm-1).\n";
         if (sys.nfreq != static_cast<int>(sys.wavenum.size()))
         {
             file.close();
@@ -1181,7 +1212,7 @@ namespace util
         }
 
         // Write atoms
-        file << "*atoms  //Information of all atoms: Name, mass (amu), X, Y, Z (Angstrom)\n";
+        file << "*atoms  //System infor: Name, mass (amu), X, Y, Z (Angstrom)\n";
         if (sys.ncenter != static_cast<int>(sys.a.size()))
         {
             file.close();
@@ -1281,7 +1312,7 @@ namespace util
         file << "# Calculation mode" << "\n";
         file << "# 0 = Gas phase (include translational/rotational)" << "\n";
         file << "# 1 = Condensed phase (remove translational/rotational)" << "\n";
-        file << "imode = 0" << "\n";
+        file << "ipmode = 0" << "\n";
         file << "\n";
 
         // Imaginary frequency treatment
@@ -1300,7 +1331,7 @@ namespace util
         file << "# 1 = Element average mass" << "\n";
         file << "# 2 = Most abundant isotope mass" << "\n";
         file << "# 3 = Masses from input file (default)" << "\n";
-        file << "defmass = 3" << "\n";
+        file << "massmod = 3" << "\n";
         file << "\n";
 
         // Point group
@@ -1314,6 +1345,13 @@ namespace util
         file << "prtvib = 0" << "\n";
         file << "# Output .otm file: 0=no, 1=yes" << "\n";
         file << "outotm = 0" << "\n";
+        file << "\n";
+
+        // VASP energy selection
+        file << "# VASP energy selection" << "\n";
+        file << "# Select which energy to use from OUTCAR 'energy without entropy' line" << "\n";
+        file << "# false/no/0 = energy  without entropy (default), true/yes/1 = energy(sigma->0)" << "\n";
+        file << "extrape = false" << "\n";
         file << "\n";
 
         // Mass modifications section

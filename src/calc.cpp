@@ -11,7 +11,7 @@
  */
 
 #include "calc.h"
-#include "defvar.h"
+#include "chemsys.h"
 #include "loadfile.h"
 #include "symmetry.h"
 #include "util.h"
@@ -111,14 +111,13 @@ namespace calc
             sys.inputfile = filelist[ifile];
             if (!file_exists(sys.inputfile))
             {
-                std::cerr << "Error: Unable to find " << sys.inputfile << std::endl;
-                std::cerr << "Press ENTER button to exit program" << std::endl;
+                std::cerr << "Error: Unable to find " << sys.inputfile << "\n";
+                std::cerr << "Press ENTER button to exit program" << "\n";
                 std::cin.get();
                 std::exit(1);
             }
 
-            std::cout << "Processing " << sys.inputfile << "... (" << (ifile + 1) << " of " << nfile << " )"
-                      << std::endl;
+            std::cout << "Processing " << sys.inputfile << "... (" << (ifile + 1) << " of " << nfile << " )" << "\n";
 
             size_t otm_pos = sys.inputfile.find(".otm");
             if (otm_pos != std::string::npos)
@@ -127,24 +126,25 @@ namespace calc
             }
             else
             {
-                int iprog;
-                deterprog(sys, iprog);
-                if (iprog < 1 || iprog > 6)
+                auto pcprog = deterprog(sys);
+                if (pcprog == QuantumChemistryProgram::Unknown)
                 {
                     throw std::runtime_error("Invalid program type for file " + sys.inputfile);
                 }
-                if (iprog == 1)
+                if (pcprog == QuantumChemistryProgram::Gaussian)
                     LoadFile::loadgau(sys);
-                else if (iprog == 2)
+                else if (pcprog == QuantumChemistryProgram::Orca)
                     LoadFile::loadorca(sys);
-                else if (iprog == 3)
+                else if (pcprog == QuantumChemistryProgram::Gamess)
                     LoadFile::loadgms(sys);
-                else if (iprog == 4)
+                else if (pcprog == QuantumChemistryProgram::Nwchem)
                     LoadFile::loadnw(sys);
-                else if (iprog == 5)
+                else if (pcprog == QuantumChemistryProgram::Cp2k)
                     LoadFile::loadCP2K(sys);
-                else if (iprog == 6)
+                else if (pcprog == QuantumChemistryProgram::Xtb)
                     LoadFile::loadxtb(sys);
+                else if (pcprog == QuantumChemistryProgram::Vasp)
+                    LoadFile::loadvasp(sys);
 
                 modmass(sys);
                 sys.nelevel = 1;
@@ -158,7 +158,7 @@ namespace calc
             if (sys.Eexter != 0.0)
             {
                 sys.E = sys.Eexter;
-                std::cout << "Note: The electronic energy specified by Eexter will be used" << std::endl;
+                std::cout << "Note: The electronic energy specified by Eexter will be used" << "\n";
             }
             else if (Elist[ifile] != 0.0)
             {
@@ -169,7 +169,7 @@ namespace calc
                 Elist[ifile] = sys.E;
                 if (sys.E != 0.0)
                 {
-                    std::cout << "Note: The electronic energy extracted from file will be used" << std::endl;
+                    std::cout << "Note: The electronic energy extracted from file will be used" << "\n";
                 }
             }
 
@@ -213,7 +213,7 @@ namespace calc
                     {
                         sys.wavenum[j] = std::abs(sys.wavenum[j]);
                         std::cout << "Note: Imaginary frequency " << sys.wavenum[j] << " cm^-1 set to real frequency!"
-                                  << std::endl;
+                                  << "\n";
                     }
                 }
             }
@@ -245,11 +245,11 @@ namespace calc
             sys.wavenum.clear();
         }
 
-        std::cout << std::endl;
+        std::cout << "\n";
         double qall = 0.0;
         double Gmin = *std::min_element(Glist.begin(), Glist.end());
-        std::cout << "#System       U               H               G             S          CV" << std::endl;
-        std::cout << "             a.u.            a.u.            a.u.        J/mol/K     J/mol/K" << std::endl;
+        std::cout << "#System       U               H               G             S          CV" << "\n";
+        std::cout << "             a.u.            a.u.            a.u.        J/mol/K     J/mol/K" << "\n";
         for (int ifile = 0; ifile < nfile; ++ifile)
         {
             double dG = (Glist[ifile] - Gmin) * au2kJ_mol * 1000.0;  // Relative free energy in J/mol
@@ -257,10 +257,10 @@ namespace calc
             std::cout << std::fixed << std::setprecision(6) << std::setw(5) << (ifile + 1) << std::setw(16)
                       << Ulist[ifile] << std::setw(16) << Hlist[ifile] << std::setw(16) << Glist[ifile]
                       << std::setprecision(3) << std::setw(12) << Slist[ifile] << std::setw(12) << CVlist[ifile]
-                      << std::endl;
+                      << "\n";
         }
 
-        std::cout << std::endl;
+        std::cout << "\n";
         for (int ifile = 0; ifile < nfile; ++ifile)
         {
             double dG  = (Glist[ifile] - Gmin) * au2kJ_mol * 1000.0;
@@ -268,7 +268,7 @@ namespace calc
             std::cout << " System" << std::setw(5) << (ifile + 1) << "     Relative G=" << std::fixed
                       << std::setprecision(3) << std::setw(9) << (Glist[ifile] - Gmin) * au2kJ_mol
                       << " kJ/mol     Boltzmann weight=" << std::setprecision(3) << std::setw(8) << wei[ifile] * 100.0
-                      << " %" << std::endl;
+                      << " %" << "\n";
         }
 
         double weiE = 0.0, weiU = 0.0, weiH = 0.0, weiS = 0.0, weiCV = 0.0;
@@ -288,32 +288,32 @@ namespace calc
         }
         weiS += confS;
         double weiG = weiH - sys.T * weiS / 1000.0 / au2kJ_mol;
-        std::cout << std::endl;
-        std::cout << "Conformation weighted data:" << std::endl;
+        std::cout << "\n";
+        std::cout << "Conformation weighted data:" << "\n";
         std::cout << " Electronic energy: " << std::fixed << std::setprecision(6) << std::setw(16) << weiE << " a.u."
-                  << std::endl;
-        std::cout << " U: " << std::setw(16) << weiU << " a.u." << std::endl;
-        std::cout << " H: " << std::setw(16) << weiH << " a.u." << std::endl;
-        std::cout << " G: " << std::setw(16) << weiG << " a.u." << std::endl;
+                  << "\n";
+        std::cout << " U: " << std::setw(16) << weiU << " a.u." << "\n";
+        std::cout << " H: " << std::setw(16) << weiH << " a.u." << "\n";
+        std::cout << " G: " << std::setw(16) << weiG << " a.u." << "\n";
         std::cout << " S: " << std::fixed << std::setprecision(3) << std::setw(13) << weiS
-                  << " J/mol/K    Conformation entropy:" << std::setw(10) << confS << " J/mol/K" << std::endl;
-        std::cout << " CV:" << std::setw(13) << weiCV << " J/mol/K" << std::endl;
-        std::cout << " CP:" << std::setw(13) << weiCV + R << " J/mol/K" << std::endl;
+                  << " J/mol/K    Conformation entropy:" << std::setw(10) << confS << " J/mol/K" << "\n";
+        std::cout << " CV:" << std::setw(13) << weiCV << " J/mol/K" << "\n";
+        std::cout << " CP:" << std::setw(13) << weiCV + R << " J/mol/K" << "\n";
 
         if (sys.concstr != "0")
         {
             double concnow = 0.0, concspec = std::stod(sys.concstr), Gconc;
             getGconc(sys, concnow, concspec, Gconc);
-            std::cout << std::endl;
+            std::cout << "\n";
             std::cout << " Present concentration (estimated by ideal gas model):" << std::fixed << std::setprecision(6)
-                      << std::setw(10) << concnow << " mol/L" << std::endl;
+                      << std::setw(10) << concnow << " mol/L" << "\n";
             std::cout << " Concentration specified by \"conc\" parameter:" << std::setw(12) << concspec << " mol/L"
-                      << std::endl;
+                      << "\n";
             std::cout << " delta-G of conc. change:" << std::fixed << std::setprecision(3) << std::setw(11) << Gconc
                       << " kJ/mol" << std::setw(11) << Gconc / cal2J << " kcal/mol" << std::setprecision(6)
-                      << std::setw(11) << Gconc / au2kJ_mol << " a.u." << std::endl;
+                      << std::setw(11) << Gconc / au2kJ_mol << " a.u." << "\n";
             std::cout << " Weighted Gibbs free energy at specified concentration: " << std::fixed
-                      << std::setprecision(7) << std::setw(19) << (weiG + Gconc / au2kJ_mol) << " a.u." << std::endl;
+                      << std::setprecision(7) << std::setw(19) << (weiG + Gconc / au2kJ_mol) << " a.u." << "\n";
         }
     }
 
@@ -360,7 +360,7 @@ namespace calc
         double q_ele = 1.0, U_ele = 0.0, CV_ele = 0.0, S_ele = 0.0;
 
         // Translation contribution
-        if (sys.imode == 0)
+        if (sys.ipmode == 0)
         {
             double P_Pa = sys.P * atm2Pa;
             q_trans =
@@ -371,7 +371,7 @@ namespace calc
             H_trans  = 5.0 / 2.0 * R * sys.T / 1000.0;
             S_trans  = R * (std::log(q_trans / NA) + 5.0 / 2.0);
         }
-        else if (sys.imode == 1)
+        else if (sys.ipmode == 1)
         {
             q_trans  = 1.0;
             CV_trans = 0.0;
@@ -382,7 +382,7 @@ namespace calc
         }
 
         // Rotation contribution
-        if (sys.imode == 0)
+        if (sys.ipmode == 0)
         {
             double sum_inert = sys.inert[0] + sys.inert[1] + sys.inert[2];
             if (sum_inert < 1e-10)
@@ -417,7 +417,7 @@ namespace calc
                 }
             }
         }
-        else if (sys.imode == 1)
+        else if (sys.ipmode == 1)
         {
             q_rot  = 1.0;
             U_rot  = 0.0;
@@ -514,9 +514,10 @@ namespace calc
         double thermU, thermH, thermG, CV_tot, CP_tot, S_tot;
 
         // Translation contribution
-        if (sys.imode == 0)
+        if (sys.ipmode == 0)
         {
-            std::cout << "\nNote: Only for translation, U is different to H, and CV is different to CP\n" << std::endl;
+            std::cout << "\nNote: Only for translation, U is different to H, and CV is different to CP\n"
+                      << "\n";
             std::cout << "                        ------- Translation -------\n"
                       << "                        ---------------------------\n";
             double P_Pa = sys.P * atm2Pa;
@@ -541,9 +542,9 @@ namespace calc
             std::cout << " Translational CP:" << std::setw(10) << CP_trans << " J/mol/K" << std::setw(10)
                       << CP_trans / cal2J << " cal/mol/K\n";
         }
-        else if (sys.imode == 1)
+        else if (sys.ipmode == 1)
         {
-            std::cout << "\nTranslation contribution is ignored since imode=1\n";
+            std::cout << "\nTranslation contribution is ignored since ipmode=1\n";
             q_trans  = 1.0;
             CV_trans = 0.0;
             CP_trans = 0.0;
@@ -553,7 +554,7 @@ namespace calc
         }
 
         // Rotation contribution
-        if (sys.imode == 0)
+        if (sys.ipmode == 0)
         {
             std::cout << "\n                        -------- Rotation --------\n"
                       << "                        --------------------------\n";
@@ -599,9 +600,9 @@ namespace calc
             std::cout << " Rotational CV:" << std::setw(10) << CV_rot << " J/mol/K" << std::setw(10) << CV_rot / cal2J
                       << " cal/mol/K   =CP\n";
         }
-        else if (sys.imode == 1)
+        else if (sys.ipmode == 1)
         {
-            std::cout << "\nRotation contribution is ignored since imode=1\n";
+            std::cout << "\nRotation contribution is ignored since ipmode=1\n";
             q_rot  = 1.0;
             U_rot  = 0.0;
             CV_rot = 0.0;
@@ -1013,32 +1014,32 @@ namespace calc
     }
 
 
-     /**
-     * @brief Calculate thermodynamic properties using current system temperature and pressure
-     *
-     *
-     * Convenience overload that calls the main calcthermo function using the
-     * temperature and pressure values
-     * stored in the SystemData structure.
-     *
-     * @param sys SystemData structure with molecular data and T/P
-     * parameters
-     * @param corrU [out] Thermal correction to internal energy (kJ/mol)
-     * @param corrH [out]
-     * Thermal correction to enthalpy (kJ/mol)
-     * @param corrG [out] Thermal correction to Gibbs energy (kJ/mol)
+    /**
+    * @brief Calculate thermodynamic properties using current system temperature and pressure
+    *
+    *
+    * Convenience overload that calls the main calcthermo function using the
+    * temperature and pressure values
+    * stored in the SystemData structure.
+    *
+    * @param sys SystemData structure with molecular data and T/P
+    * parameters
+    * @param corrU [out] Thermal correction to internal energy (kJ/mol)
+    * @param corrH [out]
+    * Thermal correction to enthalpy (kJ/mol)
+    * @param corrG [out] Thermal correction to Gibbs energy (kJ/mol)
 
-     * * @param S [out] Total entropy (J/mol·K)
-     * @param CV [out] Constant volume heat capacity (J/mol·K)
-     *
-     * @param CP [out] Constant pressure heat capacity (J/mol·K)
-     * @param QV [out] Vibrational partition function
+    * * @param S [out] Total entropy (J/mol·K)
+    * @param CV [out] Constant volume heat capacity (J/mol·K)
+    *
+    * @param CP [out] Constant pressure heat capacity (J/mol·K)
+    * @param QV [out] Vibrational partition function
 
-     * * @param Qbot [out] Bottom partition function (rotational + electronic)
-     *
-     * @note Delegates to the full
-     * calcthermo function with sys.T and sys.P
-     */
+    * * @param Qbot [out] Bottom partition function (rotational + electronic)
+    *
+    * @note Delegates to the full
+    * calcthermo function with sys.T and sys.P
+    */
     void calcthermo(SystemData& sys,
                     double&     corrU,
                     double&     corrH,

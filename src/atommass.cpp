@@ -11,9 +11,9 @@
  */
 
 #include "atommass.h"
-#include "defvar.h"
+#include "chemsys.h"
 
-// Define the external arrays from defvar.h
+// Define the external arrays from chemsys.h
 // Note: Arrays are sized +1 to accommodate 1-based indexing used in the code
 std::array<std::array<double, maxiso + 1>, nelesupp + 1> isomass = {};  /**< Isotope masses in atomic mass units */
 std::array<std::array<double, maxiso + 1>, nelesupp + 1> isowei = {};   /**< Isotope natural abundances */

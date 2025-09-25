@@ -5,13 +5,13 @@
  * @date 2025
  *
  * This file contains the main function that orchestrates the entire OpenThermo
- * calculation workflow, including input parsing, molecular data loading,
+ * calculation workflow, including input parsing, molecular data Reading,
  * thermochemistry calculations, and result output.
  */
 
 #include "atommass.h"
 #include "calc.h"
-#include "defvar.h"
+#include "chemsys.h"
 #include "help_utils.h"
 #include "loadfile.h"
 #include "symmetry.h"
@@ -26,7 +26,6 @@
 #include <string>
 #include <vector>
 
-using namespace util;
 
 /**
  * @brief Extract basename without extension from a file path
@@ -64,18 +63,16 @@ auto main(int argc, char* argv[]) -> int
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 
         // Print program information
-        std::cout
-            << "  " << "                                                                                   \n"
-            << "  " << " ***********************************************************************  " << " \n"
-            << "  " << " Please cite this github project if you use OpenThermo for your research  " << " \n"
-            << "  " << " ***********************************************************************  " << " \n"
-            << "# " << "--------------------------------------------------------------------------" << "#\n"
-            << "# " << "OpenThermo: A general program for calculating molecular thermochemistry   " << "#\n"
-            << "# " << "Version 0.001.0  Release date: 2025                                       " << "#\n"
-            << "# " << "Developer: Le Nhan Pham                                                   " << "#\n"
-            << "# " << "https://github.com/lenhanpham/openthermo                                  " << "#\n"
-            << "# " << "--------------------------------------------------------------------------"
-            << "#\n";
+        std::cout << "  " << "                                                                                   \n"
+                  << "  " << " ***********************************************************************  " << " \n"
+                  << "  " << " Please cite this github project if you use OpenThermo for your research  " << " \n"
+                  << "  " << " ***********************************************************************  " << " \n"
+                  << "# " << "--------------------------------------------------------------------------" << "#\n"
+                  << "# " << "OpenThermo: A general program for calculating molecular thermochemistry   " << "#\n"
+                  << "# " << "Version 0.001.0  Release date: 2025                                       " << "#\n"
+                  << "# " << "Developer: Le Nhan Pham                                                   " << "#\n"
+                  << "# " << "https://github.com/lenhanpham/openthermo                                  " << "#\n"
+                  << "# " << "--------------------------------------------------------------------------" << "#\n";
 
 
         // Handle help options before any other processing
@@ -106,7 +103,7 @@ auto main(int argc, char* argv[]) -> int
             {
                 try
                 {
-                    create_default_settings_file();
+                    util::create_default_settings_file();
                 }
                 catch (const std::exception& e)
                 {
@@ -143,12 +140,12 @@ auto main(int argc, char* argv[]) -> int
         }
         else
         {
-            loadsettings(sys);
+            util::loadsettings(sys);
         }
         if (narg > 1)
         {
             std::vector<std::string> args(argv, argv + argc);
-            loadarguments(sys, argc, args);
+            util::loadarguments(sys, argc, args);
         }
 
         // Print running parameters
@@ -185,8 +182,8 @@ auto main(int argc, char* argv[]) -> int
         }
         if (sys.concstr != "0")
         {
-            std::cout << " Concentration: " << std::fixed << std::setprecision(3) << std::setw(12) << std::stod(sys.concstr)
-                      << " mol/L\n";
+            std::cout << " Concentration: " << std::fixed << std::setprecision(3) << std::setw(12)
+                      << std::stod(sys.concstr) << " mol/L\n";
         }
 
         std::cout << " Scale factor of vibrational frequencies for ZPE:       " << std::fixed << std::setprecision(4)
@@ -303,16 +300,15 @@ auto main(int argc, char* argv[]) -> int
         }
         else
         {
-            int iprog = 0;
             if (sys.inputfile.find(".otm") != std::string::npos)
             {
-                std::cout << "\n Loading data from " << sys.inputfile << "\n";
+                std::cout << "\n Reading data from " << sys.inputfile << "\n";
                 LoadFile::loadotm(sys);
             }
             else
             {
-                deterprog(sys, iprog);
-                if (iprog == 0)
+                auto qcprog = util::deterprog(sys);
+                if (qcprog == util::QuantumChemistryProgram::Unknown)
                 {
                     std::cout
                         << " Error: Unable to identify the program that generated this file, press ENTER to exit\n"
@@ -321,47 +317,52 @@ auto main(int argc, char* argv[]) -> int
                     std::exit(1);
                 }
                 std::cout << "\n";
-                if (sys.defmass == 1)
+                if (sys.massmod == 1)
                     std::cout << " Default atomic masses: Element\n";
-                if (sys.defmass == 2)
+                if (sys.massmod == 2)
                     std::cout << " Default atomic masses: Most abundant isotope\n";
-                if (sys.defmass == 3)
-                    std::cout << " Default atomic masses: Same as the output file\n";
-                if (iprog == 1)
+                if (sys.massmod == 3)
+                    std::cout << " Default atomic masses: Read from the output file\n";
+                if (qcprog == util::QuantumChemistryProgram::Gaussian)
                 {
-                    std::cout << "Loading Gaussian output file...\n";
+                    std::cout << "Reading Gaussian output file...\n";
                     LoadFile::loadgau(sys);
                 }
-                else if (iprog == 2)
+                else if (qcprog == util::QuantumChemistryProgram::Orca)
                 {
-                    std::cout << "Loading ORCA output file...\n";
+                    std::cout << "Reading ORCA output file...\n";
                     LoadFile::loadorca(sys);
                 }
-                else if (iprog == 3)
+                else if (qcprog == util::QuantumChemistryProgram::Gamess)
                 {
-                    std::cout << "Loading GAMESS-US output file...\n";
+                    std::cout << "Reading GAMESS-US output file...\n";
                     LoadFile::loadgms(sys);
                 }
-                else if (iprog == 4)
+                else if (qcprog == util::QuantumChemistryProgram::Nwchem)
                 {
-                    std::cout << "Loading NWChem output file...\n";
+                    std::cout << "Reading NWChem output file...\n";
                     LoadFile::loadnw(sys);
                 }
-                else if (iprog == 5)
+                else if (qcprog == util::QuantumChemistryProgram::Cp2k)
                 {
-                    std::cout << "Loading CP2K output file...\n";
+                    std::cout << "Reading CP2K output file...\n";
                     LoadFile::loadCP2K(sys);
-                    if (sys.imode == 0)
+                    if (sys.ipmode == 0)
                     {
                         std::cout << " Note: If your system is a crystal, slab or adsorbate, you may need to set "
-                                     "\"imode\" in settings.ini to 1, "
+                                     "\"ipmode\" in settings.ini to 1, "
                                   << "so that translation and rotation contributions will be removed\n\n";
                     }
                 }
-                else if (iprog == 6)
+                else if (qcprog == util::QuantumChemistryProgram::Xtb)
                 {
-                    std::cout << "Loading xtb g98.out file...\n";
+                    std::cout << "Reading xtb g98.out file...\n";
                     LoadFile::loadxtb(sys);
+                }
+                else if (qcprog == util::QuantumChemistryProgram::Vasp)
+                {
+                    std::cout << "Reading VASP output file...\n";
+                    LoadFile::loadvasp(sys);
                 }
                 // Debug modmass
                 // std::cout << "Before modmass:\n";
@@ -370,7 +371,7 @@ auto main(int argc, char* argv[]) -> int
                 //    std::cout << "Atom " << i + 1 << " mass: " << std::fixed << std::setprecision(6) << sys.a[i].mass
                 //              << " amu\n";
                 //}
-                modmass(sys);
+                util::modmass(sys);
                 // Debug modmass
                 // std::cout << "After modmass:\n";
                 // for (int i = 0; i < sys.ncenter; ++i)
@@ -388,7 +389,7 @@ auto main(int argc, char* argv[]) -> int
                     sys.edegen[0] = 1;
                 }
                 if (sys.outotm == 1)
-                    outotmfile(sys);
+                    util::outotmfile(sys);
             }
             if (sys.Eexter != 0.0)
             {
@@ -431,7 +432,7 @@ auto main(int argc, char* argv[]) -> int
                 }
             }
             // Debug GAMESS
-            // std::cout << "Debug: After loading, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
+            // std::cout << "Debug: After Reading, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
             //          << "\n";
             // End Debug GAMESS
 
@@ -443,9 +444,13 @@ auto main(int argc, char* argv[]) -> int
                 std::exit(1);
             }
             symmetry::SymmetryDetector symDetector;
-            symDetector.PGlabelinit = "?";  // Enable automatic symmetry detection
-            symDetector.ncenter     = sys.a.size();
-            symDetector.a           = sys.a;
+            symDetector.PGlabelinit = sys.PGlabelinit;
+            if (symDetector.PGlabelinit == "?")
+            {
+                // else keep "?" for automatic detection
+            }
+            symDetector.ncenter = sys.a.size();
+            symDetector.a       = sys.a;
             symDetector.a_index.resize(sys.a.size());
             for (size_t i = 0; i < sys.a.size(); ++i)
             {
@@ -511,7 +516,7 @@ auto main(int argc, char* argv[]) -> int
             std::cout << " Total mass: " << std::fixed << std::setprecision(6) << std::setw(16) << sys.totmass
                       << " amu\n\n"
                       << " Point group: " << sys.PGlabel << "\n";
-            if (sys.imode == 0)
+            if (sys.ipmode == 0)
             {
                 std::cout << " Rotational symmetry number: " << std::setw(3) << sys.rotsym << "\n";
 
@@ -563,7 +568,7 @@ auto main(int argc, char* argv[]) -> int
             }
             else
             {
-                std::cout << "Rotation information is not shown here since imode=1\n";
+                std::cout << "Rotation information is not shown here since ipmode=1\n";
             }
             if (sys.nfreq > 0)
             {
@@ -629,7 +634,7 @@ auto main(int argc, char* argv[]) -> int
                     throw std::runtime_error("Error: Could not open " + scq_filename + " for writing");
                 }
                 file_SCq << "Unit of S, CV and CP is cal/mol/K, q(V=0)/NA and q(bot)/NA are dimensionless\n\n"
-                         << "    T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA\n";          
+                         << "    T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA\n";
                 if (Ts > 0 && Ps > 0)
                 {
                     // Calculate the number of temperature steps
@@ -638,14 +643,14 @@ auto main(int argc, char* argv[]) -> int
 
                     for (int i = 0; i < num_step_T; ++i)
                     {
-                        const double T = T1 + i * Ts; // Calculate T for this iteration
+                        const double T = T1 + i * Ts;  // Calculate T for this iteration
 
                         // Calculate the number of pressure steps for this temperature
                         const int num_step_P = static_cast<int>((P2 - P1) / Ps) + 1;
 
                         for (int j = 0; j < num_step_P; ++j)
                         {
-                            const double P = P1 + j * Ps; // Calculate P for this iteration
+                            const double P = P1 + j * Ps;  // Calculate P for this iteration
 
                             double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
                             calc::calcthermo(sys, T, P, corrU, corrH, corrG, S, CV, CP, QV, Qbot);
@@ -653,13 +658,12 @@ auto main(int argc, char* argv[]) -> int
                                      << std::setprecision(3) << std::setw(10) << corrU / cal2J << std::setw(10)
                                      << corrH / cal2J << std::setw(10) << corrG / cal2J << std::setprecision(6)
                                      << std::setw(17) << corrU / au2kJ_mol + sys.E << std::setw(17)
-                                     << corrH / au2kJ_mol + sys.E << std::setw(17) << corrG / au2kJ_mol + sys.E
-                                     << "\n";
-                            file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10)
-                                     << P << std::setprecision(3) << std::setw(10) << S / cal2J << std::setw(10)
+                                     << corrH / au2kJ_mol + sys.E << std::setw(17) << corrG / au2kJ_mol + sys.E << "\n";
+                            file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
+                                     << std::setprecision(3) << std::setw(10) << S / cal2J << std::setw(10)
                                      << CV / cal2J << std::setw(10) << CP / cal2J << std::scientific
-                                     << std::setprecision(6) << std::setw(16) << QV / NA << std::setw(16)
-                                     << Qbot / NA << "\n";
+                                     << std::setprecision(6) << std::setw(16) << QV / NA << std::setw(16) << Qbot / NA
+                                     << "\n";
                         }
                     }
                 }
@@ -692,7 +696,8 @@ auto main(int argc, char* argv[]) -> int
     catch (const std::exception& e)
     {
         std::cerr << "\nError: " << e.what() << "\n";
-        std::cerr << "Program terminated due to an error." << "\n" << "\n";
+        std::cerr << "Program terminated due to an error." << "\n"
+                  << "\n";
         if (argc == 1)
         {  // No arguments provided
             std::cout << "Press ENTER to exit" << "\n";

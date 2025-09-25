@@ -724,8 +724,8 @@ void SymmetryDetector::PGlabel2rotsym() {
         this->rotsym = this->rotsym * 2;
     } else {
         // Although We can identify 'O' and 'I', rotsym is not available
-        // For simplicity in C++, we'll assume rotsym = 1 for unknown cases
-        std::cout << "Warning: Rotational symmetry number cannot be identified for point group "
+        // For simplicity, we'll assume rotsym = 1 for unknown cases
+        std::cout << "Warning: Rotational symmetry number cannot be identified for this point group "
                   << PGlabel_trimmed << "\n";
         std::cout << "Assuming rotational symmetry number to be 1" << "\n";
         this->rotsym = 1;

@@ -346,11 +346,13 @@ namespace HelpUtils
         std::cout << "ipmode = 0\n";
         std::cout << "imagreal = 0.0\n";
         std::cout << "conc = 1.0\n";
-        std::cout << "defmass = 1\n";
+        std::cout << "massmod = 1\n";
         std::cout << "PGlabel = \"?\"\n\n";
         std::cout << "# Output options\n";
         std::cout << "prtvib = 0\n";
         std::cout << "outotm = 0\n\n";
+        std::cout << "# VASP energy selection\n";
+        std::cout << "extrape = false \n\n";
         std::cout << "# Mass modifications (optional section)\n";
         std::cout << "# modmass should match exactly the index order of atoms in quantum chemical outputs\n";
         std::cout << "# 1 1.007825  # Atom index, element, mass\n";

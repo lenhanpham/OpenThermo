@@ -589,7 +589,7 @@ H    1.007825   0.000000   0.000000   1.089000
 
 - **Requirements**: Vibrational analysis output
 - **Features**: Supports molecular and periodic systems
-- **Note**: For condensed phase systems (ipmode=1): s of translation and rotation are ignored
+- **Note**: For condensed phase systems (ipmode=1): contributions of translation and rotation are ignored
 
 ##### VASP (OUTCAR)
 

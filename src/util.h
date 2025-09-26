@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 
 namespace util
@@ -26,7 +27,7 @@ namespace util
     /**
      * @brief Enumeration of supported quantum chemistry programs
      */
-    enum class QuantumChemistryProgram
+    enum class QuantumChemistryProgram : std::uint8_t
     {
         Unknown  = 0,
         Gaussian = 1,

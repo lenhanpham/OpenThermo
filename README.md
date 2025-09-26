@@ -76,7 +76,7 @@ src/
 
 ### Development Status
 
-- **Version**: 0.001.0
+- **Version**: 0.001.1
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
 - **Testing**: Comprehensive test suite with sample files
@@ -86,7 +86,7 @@ src/
 
 ### Core Functionality
 
-- **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K
+- **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP
 - **Advanced Thermochemistry**: Standard RRHO and quasi-RRHO treatments for low-frequency modes
 - **Statistical Mechanics**: Rigorous implementation of partition functions and thermodynamic properties
 - **Symmetry Analysis**: Automatic point group detection and rotational symmetry number calculation
@@ -305,14 +305,14 @@ sclS = 1.0        # Entropy scaling
 sclCV = 1.0       # Heat capacity scaling
 
 # Low frequency treatment
-ilowfreq = 2      # 0=RRHO, 1=Truhlar, 2=Grimme, 3=Minenkov
+lowvibmeth = Grimme  # 0/Harmonic=RRHO, 1/Truhlar, 2/Grimme, 3/Minenkov
 ravib = 100.0     # Raising threshold for Truhlar method
 intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov
 
 # Calculation options
 ipmode = 0         # 0=gas phase, 1=condensed phase
 imagreal = 0.0    # Imaginary frequency threshold
-defmass = 3       # Mass assignment: 1=average, 2=abundant, 3=file
+massmod = 3       # Mass assignment: 1=average, 2=abundant, 3=file
 PGlabel = "?"     # Point group (auto-detect if "?")
 
 # Output options
@@ -335,26 +335,36 @@ extrape = false
 
 ### Parameters
 
-| Parameter  | Meaning                                                                  | Default Value |
-| ---------- | ------------------------------------------------------------------------ | ------------- |
-| `conc`     | Concentration string for solution phase Gibbs energy corrections         | `0`           |
-| `prtvib`   | Print vibration contributions (0=no, 1=screen, -1=file)                  | `0`           |
-| `ilowfreq` | Low frequency treatment method (0=RRHO, 1=Truhlar, 2=Grimme, 3=Minenkov) | `2`           |
-| `defmass`  | Mass assignment mode (1=average, 2=abundant, 3=file)                     | `3`           |
-| `outotm`   | Output .otm file flag (0=no, 1=yes)                                      | `0`           |
-| `ipmode`   | Calculation mode (0=gas phase, 1=condensed phase)                        | `0`           |
-| `T`        | Temperature in Kelvin                                                    | `298.15`      |
-| `P`        | Pressure in atmospheres                                                  | `1.0`         |
-| `sclZPE`   | ZPE scaling factor                                                       | `1.0`         |
-| `sclheat`  | Thermal energy scaling factor                                            | `1.0`         |
-| `sclS`     | Entropy scaling factor                                                   | `1.0`         |
-| `sclCV`    | Heat capacity scaling factor                                             | `1.0`         |
-| `ravib`    | Raising threshold for Truhlar method (cm⁻¹)                              | `100.0`       |
-| `intpvib`  | Interpolation threshold for Grimme/Minenkov (cm⁻¹)                       | `100.0`       |
-| `imagreal` | Imaginary frequency threshold (cm⁻¹)                                     | `0.0`         |
-| `Eexter`   | External electronic energy override (a.u.)                               | `0.0`         |
-| `extrape`  | VASP energy selection (false/no/0=energy  without entropy, true/yes/1=energy(sigma->0) | `false`       |
-| `PGlabel`  | Point group label ("?" for auto-detect)                                  | `"?"`         |
+| Parameter    | Meaning                                                                  | Default Value |
+| ----------   | ------------------------------------------------------------------------ | ------------- |
+| `conc`       | Concentration string for solution phase Gibbs energy corrections         | `0`           |
+| `prtvib`     | Print vibration contributions (0=no, 1=screen, -1=file)                  | `0`           |
+| `lowvibmeth` | Low frequency treatment method                                           | `2`           |
+| `massmod`    | Mass assignment mode (1=average, 2=abundant, 3=file)                     | `3`           |
+| `outotm`     | Output .otm file flag (0=no, 1=yes)                                      | `0`           |
+| `ipmode`     | Calculation mode (0=gas phase, 1=condensed phase)                        | `0`           |
+| `T`          | Temperature in Kelvin                                                    | `298.15`      |
+| `P`          | Pressure in atmospheres                                                  | `1.0`         |
+| `sclZPE`     | ZPE scaling factor                                                       | `1.0`         |
+| `sclheat`    | Thermal energy scaling factor                                            | `1.0`         |
+| `sclS`       | Entropy scaling factor                                                   | `1.0`         |
+| `sclCV`      | Heat capacity scaling factor                                             | `1.0`         |
+| `ravib`      | Raising threshold for Truhlar method (cm⁻¹)                              | `100.0`       |
+| `intpvib`    | Interpolation threshold for Grimme/Minenkov (cm⁻¹)                       | `100.0`       |
+| `imagreal`   | Imaginary frequency threshold (cm⁻¹)                                     | `0.0`         |
+| `Eexter`     | External electronic energy override (a.u.)                               | `0.0`         |
+| `extrape`    | VASP electronic energy selection                                         | `false`       |
+| `PGlabel`    | Point group label ("?" for auto-detect)                                  | `"?"`         |
+
+**Details for `extrape`:**
+- `false/no/0` → energy without entropy  
+- `true/yes/1` → energy (σ→0)
+
+**Details for `lowvibmeth`:**
+- 0/Harmonic = Rigid-Rotor Harmonic Oscillator approximation (RRHO)
+- 1/Truhlar =  Truhlar's QRRHO method
+- 2/Grimme = Grimme's method
+- 3/Minenkov = Minenkov's method
 
 ### Parameter Precedence
 
@@ -434,16 +444,16 @@ Settings are applied in this order:
 
 ### Low Frequency Treatment Options
 
-#### `-ilowfreq <mode>`
+#### `-lowvibmeth <mode>`
 
 - **Description**: Low frequency treatment method
 - **Values**:
-  - `0`: Standard RRHO (harmonic approximation)
-  - `1`: Truhlar's QRRHO (frequency raising)
-  - `2`: Grimme's entropy interpolation (default)
-  - `3`: Minenkov's entropy + energy interpolation
-- **Default**: 2
-- **Example**: `-ilowfreq 1`
+  - `0` or `Harmonic`: Standard RRHO (harmonic approximation)
+  - `1` or `Truhlar`: Truhlar's QRRHO (frequency raising)
+  - `2` or `Grimme`: Grimme's entropy interpolation
+  - `3` or `Minenkov`: Minenkov's entropy + energy interpolation
+- **Default**: Grimme
+- **Example**: `-lowvibmeth 1` or `-lowvibmeth Truhlar`
 
 #### `-ravib <value>`
 
@@ -470,7 +480,7 @@ Settings are applied in this order:
 
 ### Mass and Symmetry Options
 
-#### `-defmass <type>`
+#### `-massmod <type>`
 
 - **Description**: Default atomic mass assignment
 - **Values**:
@@ -478,7 +488,7 @@ Settings are applied in this order:
   - `2`: Most abundant isotope mass
   - `3`: Masses from input file (default)
 - **Default**: 3
-- **Example**: `-defmass 2`
+- **Example**: `-massmod 2`
 
 #### `-PGlabel <label>`
 
@@ -532,7 +542,7 @@ Settings are applied in this order:
 - **Description**: Show help for specific option
 - **Examples**:
   - `--help-T` (temperature help)
-  - `--help-ilowfreq` (low frequency help)
+  - `--help-lowvibmeth` (low frequency help)
   - `--help-input` (input formats help)
 
 ## Input File Formats
@@ -729,7 +739,7 @@ H    1.007825   0.000000   0.000000   1.089000
 
 ### Quasi-RRHO Treatments
 
-#### 1. Truhlar's QRRHO Method (`ilowfreq = 1`)
+#### 1. Truhlar's QRRHO Method (`lowvibmeth = 1`)
 
 **Frequency raising approach:**
 
@@ -738,7 +748,7 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Mathematical**: Replace ν < ν_threshold with ν_threshold
 - **Advantage**: Simple and computationally efficient
 
-#### 2. Grimme's Interpolation (`ilowfreq = 2`)
+#### 2. Grimme's Interpolation (`lowvibmeth = Grimme`)
 
 **Entropy interpolation between RRHO and free rotor:**
 
@@ -747,7 +757,7 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Free rotor entropy**: `S_free = R [ 1/2 + ln(√(8π³I kT / h²)) ]`
 - **Threshold**: Configurable via `intpvib` parameter
 
-#### 3. Minenkov's Interpolation (`ilowfreq = 3`)
+#### 3. Minenkov's Interpolation (`lowvibmeth = 3`)
 
 **Extended Grimme's method with energy interpolation:**
 
@@ -839,20 +849,20 @@ echo "molecule-3.otm" >> batch.txt
 ./build/OpenThermo methane.out -T 300 -P 2.0
 
 # High precision calculation
-./build/OpenThermo benzene.otm -T 298.15 -ilowfreq 2 -sclZPE 0.98
+./build/OpenThermo benzene.otm -T 298.15 -lowvibmeth 2 -sclZPE 0.98
 ```
 
 ### Advanced Calculations
 
 ```bash
 # Temperature scan with Grimme's method
-./build/OpenThermo molecule.log -T 200 400 25 -ilowfreq 2
+./build/OpenThermo molecule.log -T 200 400 25 -lowvibmeth 2
 
 # Pressure scan with custom scaling
 ./build/OpenThermo molecule.log -P 0.1 10 0.5 -sclS 0.99 -sclCV 0.99
 
 # Transition state calculation
-./build/OpenThermo ts.out -imagreal 100 -ilowfreq 1 -ravib 50
+./build/OpenThermo ts.out -imagreal 100 -lowvibmeth 1 -ravib 50
 
 # Condensed phase calculation
 ./OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
@@ -866,7 +876,7 @@ ls *.log > files.txt
 ./OpenThermo files.txt
 
 # Custom analysis for multiple molecules
-./OpenThermo molecules.txt -T 298 -ilowfreq 3 -prtvib 1 -outotm 1
+./OpenThermo molecules.txt -T 298 -lowvibmeth 3 -prtvib 1 -outotm 1
 ```
 
 ### Settings File Examples
@@ -875,13 +885,13 @@ ls *.log > files.txt
 # Standard thermochemistry
 T = 298.15
 P = 1.0
-ilowfreq = 2
+lowvibmeth = Grimme
 sclZPE = 1.0
 
 # High-precision calculation
 T = 298.15
 P = 1.0
-ilowfreq = 3
+lowvibmeth = Minenkov
 sclZPE = 0.98
 sclheat = 0.99
 sclS = 0.99
@@ -890,7 +900,7 @@ sclCV = 0.99
 # Low temperature analysis
 T = 100
 P = 1.0
-ilowfreq = 1
+lowvibmeth = 1
 ravib = 50.0
 ```
 
@@ -962,7 +972,7 @@ ravib = 50.0
 
 #### Compare Results
 
-- Use different low frequency treatments (`ilowfreq 0,1,2,3`)
+- Use different low frequency treatments (`lowvibmeth 0,1,2,3`)
 - Compare with literature values
 - Validate against experimental data
 

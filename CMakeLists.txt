@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(OpenThermo VERSION 0.000.1 LANGUAGES CXX)
+project(OpenThermo VERSION 0.001.1 LANGUAGES CXX)
 
 # Prevent in-source builds
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)

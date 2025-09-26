@@ -63,16 +63,24 @@ auto main(int argc, char* argv[]) -> int
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 
         // Print program information
-        std::cout << "  " << "                                                                                 \n"
-                  << "  " << " ***********************************************************************  " << " \n"
-                  << "  " << " Please cite this github project if you use OpenThermo for your research  " << " \n"
-                  << "  " << " ***********************************************************************  " << " \n"
-                  << "# " << "--------------------------------------------------------------------------" << "#\n"
-                  << "# " << "OpenThermo: A general program for calculating molecular thermochemistry   " << "#\n"
-                  << "# " << "Version 0.001.1  Release date: 2025                                       " << "#\n"
-                  << "# " << "Developer: Le Nhan Pham                                                   " << "#\n"
-                  << "# " << "https://github.com/lenhanpham/openthermo                                  " << "#\n"
-                  << "# " << "--------------------------------------------------------------------------" << "#\n";
+        std::cout << "  " << "                                                                                    \n"
+                  << "  " << "   ***********************************************************************    " << " \n"
+                  << "  " << "                                OPENTHERMO                                    " << " \n"
+                  << "  " << "   ***********************************************************************    " << " \n"
+                  << "# " << "------------------------------------------------------------------------------" << "#\n"
+                  << "# " << "Version 0.001.1  Release date: 2025                                           " << "#\n"
+                  << "# " << "Developer: Le Nhan Pham                                                       " << "#\n"
+                  << "# " << "https://github.com/lenhanpham/openthermo                                      " << "#\n"
+                  << "# " << "------------------------------------------------------------------------------" << "#\n";
+
+        std::cout << "  " << "                                                                                     \n"
+                  << "  " << "                                                                              " << " \n"
+                  << "  " << "Please cite this preprint if you use OpenThermo for your research             " << " \n"
+                  << "  " << "                                                                              " << " \n"
+                  << "# " << "------------------------------------------------------------------------------" << "#\n"
+                  << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of          "<< "#\n"
+                  << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363"<< "#\n"
+                  << "# " << "------------------------------------------------------------------------------" << "#\n";
 
 
         // Handle help options before any other processing

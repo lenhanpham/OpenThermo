@@ -262,7 +262,7 @@ namespace HelpUtils
         std::cout << "     - Both CONTCAR and OUTCAR are needed \n\n";        
         //std::cout << "   xtb (g98.out):\n";
         //std::cout << "     - xtb frequency analysis output in Gaussian format\n\n";
-        std::cout << "3. List Files (.txt):\n";
+        std::cout << "3. List Files (text file):\n";
         std::cout << "   Text file containing paths to multiple input files (one per line)\n";
         std::cout << "   Useful for batch processing of multiple molecules\n\n";
         std::cout << "File Detection:\n";

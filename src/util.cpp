@@ -988,7 +988,7 @@ namespace util
         }
         else
         {
-            std::cout << "\nWarning: settings.ini cannot be found in either current folder or the directory defined by "
+            std::cout << "\nWarning: settings.ini could not be found in either current directory or the directory defined by "
                          "openthermopath environment, "
                       << "thus default parameters are used!\n";
         }
@@ -1212,7 +1212,7 @@ namespace util
             file.close();
             return QuantumChemistryProgram::Orca;  // ORCA
         }
-        if (loclabel(file, "GAMESS VERSION ", nskip, true, false, 200))
+        if (loclabel(file, "GAMESS", nskip, true, false, 200))
         {
             file.close();
             return QuantumChemistryProgram::Gamess;  // GAMESS-US

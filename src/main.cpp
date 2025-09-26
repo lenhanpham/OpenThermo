@@ -5,7 +5,7 @@
  * @date 2025
  *
  * This file contains the main function that orchestrates the entire OpenThermo
- * calculation workflow, including input parsing, molecular data Reading,
+ * calculation workflow, including input parsing, molecular data Processing,
  * thermochemistry calculations, and result output.
  */
 
@@ -63,24 +63,24 @@ auto main(int argc, char* argv[]) -> int
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 
         // Print program information
-        std::cout << "  " << "                                                                                    \n"
-                  << "  " << "   ***********************************************************************    " << " \n"
-                  << "  " << "                                OPENTHERMO                                    " << " \n"
-                  << "  " << "   ***********************************************************************    " << " \n"
-                  << "# " << "------------------------------------------------------------------------------" << "#\n"
-                  << "# " << "Version 0.001.1  Release date: 2025                                           " << "#\n"
-                  << "# " << "Developer: Le Nhan Pham                                                       " << "#\n"
-                  << "# " << "https://github.com/lenhanpham/openthermo                                      " << "#\n"
-                  << "# " << "------------------------------------------------------------------------------" << "#\n";
+        std::cout << "  " << "                                                                                     \n"
+                  << "  " << "   ***********************************************************************     " << " \n"
+                  << "  " << "                                OPENTHERMO                                     " << " \n"
+                  << "  " << "   ***********************************************************************     " << " \n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
+                  << "# " << "Version 0.001.1  Release date: 2025                                            " << "#\n"
+                  << "# " << "Developer: Le Nhan Pham                                                        " << "#\n"
+                  << "# " << "https://github.com/lenhanpham/openthermo                                       " << "#\n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
 
         std::cout << "  " << "                                                                                     \n"
-                  << "  " << "                                                                              " << " \n"
-                  << "  " << "Please cite this preprint if you use OpenThermo for your research             " << " \n"
-                  << "  " << "                                                                              " << " \n"
-                  << "# " << "------------------------------------------------------------------------------" << "#\n"
-                  << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of          "<< "#\n"
-                  << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363"<< "#\n"
-                  << "# " << "------------------------------------------------------------------------------" << "#\n";
+                  << "  " << "                                                                               " << " \n"
+                  << "  " << "Please cite this preprint if you use OpenThermo for your research              " << " \n"
+                  << "  " << "                                                                               " << " \n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
+                  << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of           " << "#\n"
+                  << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363 " << "#\n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
 
 
         // Handle help options before any other processing
@@ -144,7 +144,7 @@ auto main(int argc, char* argv[]) -> int
         }
         if (sys.inoset == 1)
         {
-            std::cout << "Do not try to load settings from settings.ini because of \"-noset\" argument\n";
+            std::cout << "Setting parameters from settings.ini are ignored because of \"-noset\" argument\n";
         }
         else
         {
@@ -194,11 +194,11 @@ auto main(int argc, char* argv[]) -> int
                       << std::stod(sys.concstr) << " mol/L\n";
         }
 
-        std::cout << " Scale factor of vibrational frequencies for ZPE:       " << std::fixed << std::setprecision(4)
+        std::cout << " Scaling factor of vibrational frequencies for ZPE:       " << std::fixed << std::setprecision(4)
                   << std::setw(8) << sys.sclZPE << "\n"
-                  << " Scale factor of vibrational frequencies for U(T)-U(0): " << std::setw(8) << sys.sclheat << "\n"
-                  << " Scale factor of vibrational frequencies for S(T):      " << std::setw(8) << sys.sclS << "\n"
-                  << " Scale factor of vibrational frequencies for CV:        " << std::setw(8) << sys.sclCV << "\n";
+                  << " Scaling factor of vibrational frequencies for U(T)-U(0): " << std::setw(8) << sys.sclheat << "\n"
+                  << " Scaling factor of vibrational frequencies for S(T):      " << std::setw(8) << sys.sclS << "\n"
+                  << " Scaling factor of vibrational frequencies for CV:        " << std::setw(8) << sys.sclCV << "\n";
         if (sys.lowVibTreatment == LowVibTreatment::Harmonic)
         {
             std::cout << "Low frequencies treatment: Harmonic approximation\n";
@@ -237,7 +237,7 @@ auto main(int argc, char* argv[]) -> int
         {
             std::cout << "\nInput file path, e.g. D:\\your_dir\\your_calc.log\n"
                       << " OpenThermo supports Gaussian, ORCA, GAMESS-US, NWChem, CP2K, and VASP "
-                         "supported\n";
+                         "\n";
             while (true)
             {
                 std::getline(std::cin, sys.inputfile);
@@ -272,104 +272,65 @@ auto main(int argc, char* argv[]) -> int
                   << std::ctime(&start_now_time);  // << "\n";
 
         // Process input file
-        if (sys.inputfile.find(".txt") != std::string::npos)
+        if (sys.inputfile.find(".otm") != std::string::npos)
         {
-            // Read filelist from .txt file
-            std::vector<std::string> filelist;
-            std::ifstream            txtfile(sys.inputfile);
-            std::string              line;
-            while (std::getline(txtfile, line))
-            {
-                line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
-                if (!line.empty())
-                {
-                    std::ifstream check(line);
-                    if (check.good())
-                    {
-                        filelist.push_back(line);
-                    }
-                    else
-                    {
-                        std::cout << "Warning: Skipping invalid file path in " << sys.inputfile << ": " << line << "\n";
-                    }
-                    check.close();
-                }
-            }
-            txtfile.close();
-            if (filelist.empty())
-            {
-                std::cout << "Error: No valid file paths found in " << sys.inputfile << "\n";
-                std::exit(1);
-            }
-            std::vector<double> Elist(filelist.size(), 0.0), Ulist(filelist.size(), 0.0), Hlist(filelist.size(), 0.0),
-                Glist(filelist.size(), 0.0), Slist(filelist.size(), 0.0), CVlist(filelist.size(), 0.0),
-                CPlist(filelist.size(), 0.0), QVlist(filelist.size(), 0.0), Qbotlist(filelist.size(), 0.0);
-            calc::ensemble(sys, filelist, Elist, Ulist, Hlist, Glist, Slist, CVlist, CPlist, QVlist, Qbotlist);
+            std::cout << "\n Processing data from " << sys.inputfile << "\n";
+            LoadFile::loadotm(sys);
         }
         else
         {
-            if (sys.inputfile.find(".otm") != std::string::npos)
+            auto qcprog = util::deterprog(sys);
+            if (qcprog != util::QuantumChemistryProgram::Unknown)
             {
-                std::cout << "\n Reading data from " << sys.inputfile << "\n";
-                LoadFile::loadotm(sys);
-            }
-            else
-            {
-                auto qcprog = util::deterprog(sys);
-                if (qcprog == util::QuantumChemistryProgram::Unknown)
-                {
-                    std::cout
-                        << " Error: Unable to identify the program that generated this file, press ENTER to exit\n"
-                        << "PS: If your input file is a list file, you must use .txt as suffix\n";
-                    std::cin.get();
-                    std::exit(1);
-                }
                 std::cout << "\n";
                 if (sys.massmod == 1)
-                    std::cout << " Default atomic masses: Element\n";
+                    std::cout << " Atomic masses used: Element\n";
                 if (sys.massmod == 2)
-                    std::cout << " Default atomic masses: Most abundant isotope\n";
+                    std::cout << " Atomic masses used: Most abundant isotope\n";
                 if (sys.massmod == 3)
-                    std::cout << " Default atomic masses: Read from the output file\n";
+                    std::cout << " Atomic masses used: Read from quantum chemical output\n";
                 if (qcprog == util::QuantumChemistryProgram::Gaussian)
                 {
-                    std::cout << "Reading Gaussian output file...\n";
+                    std::cout << "Processing Gaussian output file...\n";
                     LoadFile::loadgau(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Orca)
                 {
-                    std::cout << "Reading ORCA output file...\n";
+                    std::cout << "Processing ORCA output file...\n";
                     LoadFile::loadorca(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Gamess)
                 {
-                    std::cout << "Reading GAMESS-US output file...\n";
+                    std::cout << "Processing GAMESS-US output file...\n";
                     LoadFile::loadgms(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Nwchem)
                 {
-                    std::cout << "Reading NWChem output file...\n";
+                    std::cout << "Processing NWChem output file...\n";
                     LoadFile::loadnw(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Cp2k)
                 {
-                    std::cout << "Reading CP2K output file...\n";
+                    std::cout << "Processing CP2K output file...\n";
                     LoadFile::loadCP2K(sys);
                     if (sys.ipmode == 0)
                     {
-                        std::cout << " Note: If your system is a crystal, slab or adsorbate, you may need to set "
-                                     "\"ipmode\" in settings.ini to 1, "
-                                  << "so that translation and rotation contributions will be removed\n\n";
+                        std::cout << " Note: If your system is not isolated (periodic crystals, slabs or adsorbate on "
+                                     "surface), \n"
+                                     "you may want to set"
+                                     "\"ipmode\" = 1 settings.ini in order to ignore translation and rotation "
+                                     "contributions. \n"
+                                  << "This is typical for condensed materials calculations with CP2K and VASP \n\n";
                     }
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Xtb)
                 {
-                    std::cout << "Reading xtb g98.out file...\n";
+                    std::cout << "Processing xtb g98.out file...\n";
                     LoadFile::loadxtb(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Vasp)
                 {
-                    std::cout << "Reading VASP output file...\n";
+                    std::cout << "Processing VASP output file...\n";
                     LoadFile::loadvasp(sys);
                 }
                 // Debug modmass
@@ -399,6 +360,63 @@ auto main(int argc, char* argv[]) -> int
                 if (sys.outotm == 1)
                     util::outotmfile(sys);
             }
+            else
+            {
+                // Check if it's a list file (.list or .txt)
+                bool is_list_file = (sys.inputfile.find(".list") != std::string::npos) ||
+                                    (sys.inputfile.find(".txt") != std::string::npos);
+                if (is_list_file)
+                {
+                    std::cout << "Processing list file...\n";
+                    std::vector<std::string> filelist;
+                    std::ifstream            listfile(sys.inputfile);
+                    if (!listfile.is_open())
+                    {
+                        throw std::runtime_error("Unable to open list file: " + sys.inputfile);
+                    }
+                    std::string line;
+                    while (std::getline(listfile, line))
+                    {
+                        // Trim whitespace
+                        line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char ch) {
+                                       return !std::isspace(ch);
+                                   }));
+                        line.erase(std::find_if(line.rbegin(),
+                                                line.rend(),
+                                                [](unsigned char ch) {
+                                                    return !std::isspace(ch);
+                                                })
+                                       .base(),
+                                   line.end());
+                        if (!line.empty())
+                        {
+                            filelist.push_back(line);
+                        }
+                    }
+                    listfile.close();
+                    if (filelist.empty())
+                    {
+                        throw std::runtime_error("List file is empty or contains no valid file paths");
+                    }
+                    // Process batch
+                    size_t              nfile = filelist.size();
+                    std::vector<double> Elist(nfile), Ulist(nfile), Hlist(nfile), Glist(nfile), Slist(nfile),
+                        CVlist(nfile), CPlist(nfile), QVlist(nfile), Qbotlist(nfile);
+                    calc::ensemble(sys, filelist, Elist, Ulist, Hlist, Glist, Slist, CVlist, CPlist, QVlist, Qbotlist);
+                    // Batch processing complete, skip single file processing
+                    return 0;
+                }
+                else
+                {
+                    std::cerr << "Error: Unable to identify the quantum chemical program that generated this file.\n";
+                    std::cerr << "Supported programs: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, xTB, and "
+                                 "OpenThermo (.otm)\n";
+                    std::cerr << "Maybe an old version or newly updated version of supported quantum chemical programs genereted this file \n";
+                    std::cerr << "For batch processing, use a list file with .list or .txt extension containing file "
+                                 "paths.\n";
+                    throw std::runtime_error("Unknown file format");
+                }
+            }
             if (sys.Eexter != 0.0)
             {
                 sys.E = sys.Eexter;
@@ -406,7 +424,7 @@ auto main(int argc, char* argv[]) -> int
             }
             else if (sys.E != 0.0)
             {
-                std::cout << "Note: The electronic energy extracted from inputted file will be used\n";
+                std::cout << "Note: The electronic energy extracted from input file will be used\n";
             }
 
             if (sys.imagreal != 0.0)
@@ -440,7 +458,7 @@ auto main(int argc, char* argv[]) -> int
                 }
             }
             // Debug GAMESS
-            // std::cout << "Debug: After Reading, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
+            // std::cout << "Debug: After Processing, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
             //          << "\n";
             // End Debug GAMESS
 

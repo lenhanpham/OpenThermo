@@ -1,0 +1,733 @@
+ DBCSR| CPU Multiplication driver                                           BLAS
+ DBCSR| Multrec recursion limit                                              512
+ DBCSR| Multiplication stack size                                           1000
+ DBCSR| Maximum elements for images                                    UNLIMITED
+ DBCSR| Multiplicative factor virtual images                                   1
+ DBCSR| Use multiplication densification                                       T
+ DBCSR| Multiplication size stacks                                             3
+ DBCSR| Use memory pool for CPU allocation                                     F
+ DBCSR| OMP: Current number of threads                                        36
+ DBCSR| OMP: Max number of threads                                            36
+ DBCSR| Split modifier for TAS multiplication algorithm                  1.0E+00
+
+
+  **** **** ******  **  PROGRAM STARTED AT               2021-02-10 06:40:31.444
+ ***** ** ***  *** **   PROGRAM STARTED ON                                2696v3
+ **    ****   ******    PROGRAM STARTED BY                                  root
+ ***** **    ** ** **   PROGRAM PROCESS ID                                  2749
+  **** **  *******  **  PROGRAM STARTED IN                             /root/tmp
+
+ CP2K| version string:                                          CP2K version 8.1
+ CP2K| source code revision number:                                  git:0b61f2f
+ CP2K| cp2kflags: omp libint fftw3 libxc spglib check_diag libvori libbqb       
+ CP2K| is freely available from                            https://www.cp2k.org/
+ CP2K| Program compiled at                          Sun Jan  3 17:23:55 CET 2021
+ CP2K| Program compiled on                                   merlin-l-001.psi.ch
+ CP2K| Program compiled for                        Linux-x86-64-gfortran-generic
+ CP2K| Data directory path                   /scratch/krack/github/cp2k-8.1/data
+ CP2K| Input file name                                                     t.inp
+
+ GLOBAL| Force Environment number                                              1
+ GLOBAL| Basis set file name                                           BASIS_SET
+ GLOBAL| Potential file name                                           POTENTIAL
+ GLOBAL| MM Potential file name                                     MM_POTENTIAL
+ GLOBAL| Coordinate file name                                      __STD_INPUT__
+ GLOBAL| Method name                                                        CP2K
+ GLOBAL| Project name                                                        CO2
+ GLOBAL| Preferred FFT library                                             FFTW3
+ GLOBAL| Preferred diagonalization lib.                                       SL
+ GLOBAL| Run type                                           VIBRATIONAL_ANALYSIS
+ GLOBAL| All-to-all communication in single precision                          F
+ GLOBAL| FFTs using library dependent lengths                                  F
+ GLOBAL| Global print level                                               MEDIUM
+ GLOBAL| MPI I/O enabled                                                       T
+ GLOBAL| Total number of message passing processes                             1
+ GLOBAL| Number of threads for this process                                   36
+ GLOBAL| This output is from process                                           0
+ GLOBAL| CPU model name                Intel(R) Xeon(R) CPU E5-2696 v3 @ 2.30GHz
+
+ MEMORY| system memory details [Kb]
+ MEMORY|                        rank 0           min           max       average
+ MEMORY| MemTotal            264033996     264033996     264033996     264033996
+ MEMORY| MemFree             261648148     261648148     261648148     261648148
+ MEMORY| Buffers                  7396          7396          7396          7396
+ MEMORY| Cached                 280564        280564        280564        280564
+ MEMORY| Slab                   173600        173600        173600        173600
+ MEMORY| SReclaimable            57800         57800         57800         57800
+ MEMORY| MemLikelyFree       261993908     261993908     261993908     261993908
+
+
+ *** Fundamental physical constants (SI units) ***
+
+ *** Literature: B. J. Mohr and B. N. Taylor,
+ ***             CODATA recommended values of the fundamental physical
+ ***             constants: 2006, Web Version 5.1
+ ***             http://physics.nist.gov/constants
+
+ Speed of light in vacuum [m/s]                             2.99792458000000E+08
+ Magnetic constant or permeability of vacuum [N/A**2]       1.25663706143592E-06
+ Electric constant or permittivity of vacuum [F/m]          8.85418781762039E-12
+ Planck constant (h) [J*s]                                  6.62606896000000E-34
+ Planck constant (h-bar) [J*s]                              1.05457162825177E-34
+ Elementary charge [C]                                      1.60217648700000E-19
+ Electron mass [kg]                                         9.10938215000000E-31
+ Electron g factor [ ]                                     -2.00231930436220E+00
+ Proton mass [kg]                                           1.67262163700000E-27
+ Fine-structure constant                                    7.29735253760000E-03
+ Rydberg constant [1/m]                                     1.09737315685270E+07
+ Avogadro constant [1/mol]                                  6.02214179000000E+23
+ Boltzmann constant [J/K]                                   1.38065040000000E-23
+ Atomic mass unit [kg]                                      1.66053878200000E-27
+ Bohr radius [m]                                            5.29177208590000E-11
+
+ *** Conversion factors ***
+
+ [u] -> [a.u.]                                              1.82288848426455E+03
+ [Angstrom] -> [Bohr] = [a.u.]                              1.88972613288564E+00
+ [a.u.] = [Bohr] -> [Angstrom]                              5.29177208590000E-01
+ [a.u.] -> [s]                                              2.41888432650478E-17
+ [a.u.] -> [fs]                                             2.41888432650478E-02
+ [a.u.] -> [J]                                              4.35974393937059E-18
+ [a.u.] -> [N]                                              8.23872205491840E-08
+ [a.u.] -> [K]                                              3.15774647902944E+05
+ [a.u.] -> [kJ/mol]                                         2.62549961709828E+03
+ [a.u.] -> [kcal/mol]                                       6.27509468713739E+02
+ [a.u.] -> [Pa]                                             2.94210107994716E+13
+ [a.u.] -> [bar]                                            2.94210107994716E+08
+ [a.u.] -> [atm]                                            2.90362800883016E+08
+ [a.u.] -> [eV]                                             2.72113838565563E+01
+ [a.u.] -> [Hz]                                             6.57968392072181E+15
+ [a.u.] -> [1/cm] (wave numbers)                            2.19474631370540E+05
+ [a.u./Bohr**2] -> [1/cm]                                   5.14048714338585E+03
+ 
+
+ CELL_TOP| Volume [angstrom^3]:                                      1000.000000
+ CELL_TOP| Vector a [angstrom    10.000     0.000     0.000   |a| =    10.000000
+ CELL_TOP| Vector b [angstrom     0.000    10.000     0.000   |b| =    10.000000
+ CELL_TOP| Vector c [angstrom     0.000     0.000    10.000   |c| =    10.000000
+ CELL_TOP| Angle (b,c), alpha [degree]:                                90.000000
+ CELL_TOP| Angle (a,c), beta  [degree]:                                90.000000
+ CELL_TOP| Angle (a,b), gamma [degree]:                                90.000000
+ CELL_TOP| Numerically orthorhombic:                                         YES
+
+ GENERATE|  Preliminary Number of Bonds generated:                             0
+ GENERATE|  Achieved consistency in connectivity generation.
+
+ CELL| Volume [angstrom^3]:                                          1000.000000
+ CELL| Vector a [angstrom]:      10.000     0.000     0.000   |a| =    10.000000
+ CELL| Vector b [angstrom]:       0.000    10.000     0.000   |b| =    10.000000
+ CELL| Vector c [angstrom]:       0.000     0.000    10.000   |c| =    10.000000
+ CELL| Angle (b,c), alpha [degree]:                                    90.000000
+ CELL| Angle (a,c), beta  [degree]:                                    90.000000
+ CELL| Angle (a,b), gamma [degree]:                                    90.000000
+ CELL| Numerically orthorhombic:                                             YES
+
+ CELL_REF| Volume [angstrom^3]:                                      1000.000000
+ CELL_REF| Vector a [angstrom    10.000     0.000     0.000   |a| =    10.000000
+ CELL_REF| Vector b [angstrom     0.000    10.000     0.000   |b| =    10.000000
+ CELL_REF| Vector c [angstrom     0.000     0.000    10.000   |c| =    10.000000
+ CELL_REF| Angle (b,c), alpha [degree]:                                90.000000
+ CELL_REF| Angle (a,c), beta  [degree]:                                90.000000
+ CELL_REF| Angle (a,b), gamma [degree]:                                90.000000
+ CELL_REF| Numerically orthorhombic:                                         YES
+
+ *** WARNING in qs_kind_types.F:2026 :: Information provided in the input ***
+ *** file regarding BASIS for KIND <C> will be ignored!                   ***
+
+
+ *** WARNING in qs_kind_types.F:2026 :: Information provided in the input ***
+ *** file regarding BASIS for KIND <O> will be ignored!                   ***
+
+
+
+                  #####   #####        #          ####### ######   
+                 #     # #     #      #              #    #     #  
+                 #     # #           #    ##   ##    #    #     #  
+                 #     #  #####     #      ## ##     #    ######   
+                 #   # #       #   #        ###      #    #     #  
+                 #    #  #     #  #        ## ##     #    #     #  
+                  #### #  #####  #        ##   ##    #    ######   
+                                                                   
+                                 Version 1.0                       
+                            J. Hutter and A. Hehn                  
+                                                                   
+
+
+ xTB| Parameter file                               /sob/cp2k/data/xTB_parameters
+ xTB| Basis expansion STO-NG                                                   6
+ xTB| Basis expansion STO-NG for Hydrogen                                      4
+ xTB| Halogen interaction potential                                            T
+ xTB| Halogen interaction potential cutoff radius                         20.000
+ xTB| Nonbonded interactions                                                   F
+ xTB| D3 Dispersion: Parameter                          /sob/cp2k/data/dftd3.dat
+ xTB| Huckel constants ks kp kd                        1.850     2.250     2.000
+ xTB| Huckel constants ksp k2sh                                  2.080     2.850
+ xTB| Mataga-Nishimoto exponent                                            2.000
+ xTB| Repulsion potential exponent                                         1.500
+ xTB| Coordination number scaling kcn(s) kcn(p) kc     0.006    -0.003    -0.005
+ xTB| Electronegativity scaling                                           -0.007
+ xTB| Halogen potential scaling kxr kx2                          1.300     0.440
+
+
+ vdW POTENTIAL|                                                   Pair Potential
+ vdW POTENTIAL|          DFT-D3 (Version 3.1)
+ vdW POTENTIAL|          Potential Form: S. Grimme et al, JCP 132: 154104 (2010)
+ vdW POTENTIAL|          BJ Damping: S. Grimme et al, JCC 32: 1456 (2011)
+ vdW POTENTIAL|          Cutoff Radius [Bohr]:                             15.00
+ vdW POTENTIAL|          s6 Scaling Factor:                               1.0000
+ vdW POTENTIAL|          a1 Damping Factor:                               0.6300
+ vdW POTENTIAL|          s8 Scaling Factor:                               2.4000
+ vdW POTENTIAL|          a2 Damping Factor:                               5.0000
+ vdW POTENTIAL|          Cutoff for CN calculation:                   0.1000E-05
+
+
+ ATOMIC KIND INFORMATION
+
+  1. Atomic kind: C                                     Number of atoms:       1
+
+     Orbital Basis Set                                             Carbon_STO-6G
+
+       Number of orbital shell sets:                                           2
+       Number of orbital shells:                                               2
+       Number of primitive Cartesian functions:                               12
+       Number of Cartesian basis functions:                                    4
+       Number of spherical basis functions:                                    4
+       Norm type:                                                              2
+
+       Normalised Cartesian orbitals:
+
+                        Set   Shell   Orbital            Exponent    Coefficient
+
+                          1       1    1s              106.389717      -0.098009
+                                                        19.510792      -0.136761
+                                                         5.482954      -0.131524
+                                                         0.784075       0.198719
+                                                         0.355861       0.184582
+                                                         0.169708       0.032281
+
+                          2       1    2px              19.697346       0.468713
+                                                         5.136667       0.567024
+                                                         1.837949       0.579088
+                                                         0.768298       0.415233
+                                                         0.351318       0.154691
+                                                         0.166091       0.015897
+                          2       1    2py              19.697346       0.468713
+                                                         5.136667       0.567024
+                                                         1.837949       0.579088
+                                                         0.768298       0.415233
+                                                         0.351318       0.154691
+                                                         0.166091       0.015897
+                          2       1    2pz              19.697346       0.468713
+                                                         5.136667       0.567024
+                                                         1.837949       0.579088
+                                                         0.768298       0.415233
+                                                         0.351318       0.154691
+                                                         0.166091       0.015897
+
+     AE Potential information for                                         Carbon
+
+       Description:                                       Bare Coulomb Potential
+                                                             Valence charge only
+
+       Gaussian exponent of the core charge distribution:               3.373250
+       Electronic configuration (s p d ...):                       2   2   0   0
+
+  2. Atomic kind: O                                     Number of atoms:       2
+
+     Orbital Basis Set                                             Oxygen_STO-6G
+
+       Number of orbital shell sets:                                           2
+       Number of orbital shells:                                               2
+       Number of primitive Cartesian functions:                               12
+       Number of Cartesian basis functions:                                    4
+       Number of spherical basis functions:                                    4
+       Norm type:                                                              2
+
+       Normalised Cartesian orbitals:
+
+                        Set   Shell   Orbital            Exponent    Coefficient
+
+                          1       1    1s              152.287697      -0.128260
+                                                        27.928015      -0.178972
+                                                         7.848375      -0.172119
+                                                         1.122335       0.260054
+                                                         0.509385       0.241553
+                                                         0.242923       0.042244
+
+                          2       1    2px              27.203421       0.701741
+                                                         7.094099       0.848929
+                                                         2.538336       0.866990
+                                                         1.061073       0.621673
+                                                         0.485195       0.231598
+                                                         0.229383       0.023801
+                          2       1    2py              27.203421       0.701741
+                                                         7.094099       0.848929
+                                                         2.538336       0.866990
+                                                         1.061073       0.621673
+                                                         0.485195       0.231598
+                                                         0.229383       0.023801
+                          2       1    2pz              27.203421       0.701741
+                                                         7.094099       0.848929
+                                                         2.538336       0.866990
+                                                         1.061073       0.621673
+                                                         0.485195       0.231598
+                                                         0.229383       0.023801
+
+     AE Potential information for                                         Oxygen
+
+       Description:                                       Bare Coulomb Potential
+                                                             Valence charge only
+
+       Gaussian exponent of the core charge distribution:               3.753049
+       Electronic configuration (s p d ...):                       2   4   0   0
+
+
+ MOLECULE KIND INFORMATION
+
+
+ All atoms are their own molecule, skipping detailed information
+
+
+ TOTAL NUMBERS AND MAXIMUM NUMBERS
+
+  Total number of            - Atomic kinds:                                   2
+                             - Atoms:                                          3
+                             - Shell sets:                                     6
+                             - Shells:                                         6
+                             - Primitive Cartesian functions:                 36
+                             - Cartesian basis functions:                     12
+                             - Spherical basis functions:                     12
+
+  Maximum angular momentum of the orbital basis functions:                     1
+
+
+ MODULE QUICKSTEP:  ATOMIC COORDINATES IN angstrom
+
+  Atom  Kind  Element       X           Y           Z          Z(eff)       Mass
+
+       1     1 C    6    5.000000    5.000000    5.000000      4.0000      12.0107
+       2     2 O    8    5.000000    5.000000    6.169156      6.0000      15.9994
+       3     2 O    8    5.000000    5.000000    3.830844      6.0000      15.9994
+
+
+
+
+ SCF PARAMETERS         Density guess:                                    ATOMIC
+                        --------------------------------------------------------
+                        max_scf:                                             200
+                        max_scf_history:                                       0
+                        max_diis:                                              4
+                        --------------------------------------------------------
+                        eps_scf:                                        1.00E-07
+                        eps_scf_history:                                0.00E+00
+                        eps_diis:                                       1.00E-01
+                        eps_eigval:                                     1.00E-05
+                        --------------------------------------------------------
+                        level_shift [a.u.]:                                 0.00
+                        --------------------------------------------------------
+                        No outer SCF
+
+ PW_GRID| Information for grid number                                          1
+ PW_GRID| Cutoff [a.u.]                                                      1.0
+ PW_GRID| spherical cutoff:                                                   NO
+ PW_GRID|   Bounds   1             -4       4                Points:           9
+ PW_GRID|   Bounds   2             -4       4                Points:           9
+ PW_GRID|   Bounds   3             -4       4                Points:           9
+ PW_GRID| Volume element (a.u.^3)   9.257         Volume (a.u.^3)      6748.3346
+ PW_GRID| Grid span                                                    FULLSPACE
+
+ POISSON| Solver                                                         WAVELET
+ POISSON| Wavelet| Scaling function                                           40
+ POISSON| Periodicity                                                       NONE
+
+ RS_GRID| Information for grid number                                          1
+ RS_GRID|   Bounds   1             -4       4                Points:           9
+ RS_GRID|   Bounds   2             -4       4                Points:           9
+ RS_GRID|   Bounds   3             -4       4                Points:           9
+
+ *******************************************************************************
+ *******************************************************************************
+ **                                                                           **
+ **  #  #   #    #                  #     #                      ##           **
+ **  #  #        ###   # ##   ###  ####         ##   # #    ###   #           **
+ **  #  #   #    #  #  ##    #  #   #     #    #  #  ## #  #  #   #           **
+ **   ##    #    #  #  #     # ##   #     #    #  #  #  #  # ##   #           **
+ **   ##    #    ###   #      # #    ##   #     ##   #  #   # #  ###          **
+ **                                                                           **
+ **   ##               ##                 #                                   **
+ **  #  #  # #    ###   #    #  #   ###         ###                           **
+ **  #  #  ## #  #  #   #    #  #  ##     #    ##                             **
+ **  ####  #  #  # ##   #     ###    ##   #      ##  N. Replicas:           1 **
+ **  #  #  #  #   # #  ###      #  ###    #    ###   N. Procs/Rep:          1 **
+ **                           ##                                              **
+ **                                       T. Laino  and F. Schiffmann         **
+ **                                       2008 - 2015                         **
+ *******************************************************************************
+ *******************************************************************************
+
+ REPLICA| layout of the replica grid, number of groups                         1
+ REPLICA| layout of the replica grid, size of each group                       1
+ REPLICA| MPI process to grid (group,rank) correspondence:
+  (   0 :    0,   0)
+
+ VIB| Vibrational Analysis Info
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: X + DX
+ VIB|                                     Total Energy:            -11.542154516
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.001681677     -0.000000000      0.000000001           
+ VIB|      O                       0.000840839      0.000000000     -0.062151820           
+ VIB|      O                       0.000840838      0.000000000      0.062151819           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: Y + DY
+ VIB|                                     Total Energy:            -11.542154516
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000     -0.001681677     -0.000000000           
+ VIB|      O                      -0.000000000      0.000840838     -0.062151814           
+ VIB|      O                       0.000000000      0.000840838      0.062151814           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: Z + DZ
+ VIB|                                     Total Energy:            -11.542071374
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000000000     -0.000000000     -0.018311927           
+ VIB|      O                      -0.000000000      0.000000000     -0.052802727           
+ VIB|      O                       0.000000000     -0.000000000      0.071114655           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: X + DX
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000840850      0.000000000      0.000018813           
+ VIB|      O                      -0.000561088      0.000000000     -0.062155752           
+ VIB|      O                      -0.000279762     -0.000000000      0.062136939           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: Y + DY
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000000000      0.000840850      0.000018806           
+ VIB|      O                      -0.000000000     -0.000561088     -0.062155752           
+ VIB|      O                      -0.000000000     -0.000279762      0.062136946           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: Z + DZ
+ VIB|                                     Total Energy:            -11.541493503
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000      0.000000000      0.008977802           
+ VIB|      O                       0.000000000     -0.000000000     -0.071689373           
+ VIB|      O                       0.000000000     -0.000000000      0.062711571           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: X + DX
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000840850     -0.000000000     -0.000018801           
+ VIB|      O                      -0.000279762      0.000000000     -0.062136938           
+ VIB|      O                      -0.000561088     -0.000000000      0.062155739           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: Y + DY
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000000000      0.000840850     -0.000018803           
+ VIB|      O                       0.000000000     -0.000279762     -0.062136959           
+ VIB|      O                      -0.000000000     -0.000561088      0.062155762           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: Z + DZ
+ VIB|                                     Total Energy:            -11.542734999
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000001      0.000000001      0.009334294           
+ VIB|      O                      -0.000000000      0.000000000     -0.061552428           
+ VIB|      O                       0.000000001     -0.000000001      0.052218134           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: X - DX
+ VIB|                                     Total Energy:            -11.542154516
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.001681677     -0.000000000      0.000000000           
+ VIB|      O                      -0.000840838     -0.000000000     -0.062151818           
+ VIB|      O                      -0.000840839      0.000000000      0.062151818           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: Y - DY
+ VIB|                                     Total Energy:            -11.542154516
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000000001      0.001681677      0.000000004           
+ VIB|      O                      -0.000000001     -0.000840838     -0.062151809           
+ VIB|      O                      -0.000000000     -0.000840838      0.062151805           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    1  coordinate: Z - DZ
+ VIB|                                     Total Energy:            -11.542071374
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000      0.000000000      0.018311928           
+ VIB|      O                       0.000000000     -0.000000000     -0.071114654           
+ VIB|      O                       0.000000000     -0.000000000      0.052802726           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: X - DX
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000840850      0.000000000      0.000018812           
+ VIB|      O                       0.000561088      0.000000000     -0.062155750           
+ VIB|      O                       0.000279762     -0.000000000      0.062136938           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: Y - DY
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000     -0.000840850      0.000018812           
+ VIB|      O                       0.000000000      0.000561088     -0.062155751           
+ VIB|      O                       0.000000000      0.000279762      0.062136939           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    2  coordinate: Z - DZ
+ VIB|                                     Total Energy:            -11.542734999
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                       0.000000000     -0.000000000     -0.009334332           
+ VIB|      O                      -0.000000000      0.000000000     -0.052218125           
+ VIB|      O                      -0.000000000     -0.000000000      0.061552457           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: X - DX
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000840850      0.000000000     -0.000018818           
+ VIB|      O                       0.000279762     -0.000000000     -0.062136941           
+ VIB|      O                       0.000561088      0.000000000      0.062155759           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: Y - DY
+ VIB|                                     Total Energy:            -11.542160119
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000001     -0.000840850     -0.000018822           
+ VIB|      O                      -0.000000000      0.000279762     -0.062136919           
+ VIB|      O                       0.000000001      0.000561088      0.062155741           
+ VIB| REPLICA Nr.    1- Energy and Forces for particle:    3  coordinate: Z - DZ
+ VIB|                                     Total Energy:            -11.541493503
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000      0.000000000     -0.008977800           
+ VIB|      O                      -0.000000000      0.000000000     -0.062711573           
+ VIB|      O                       0.000000000     -0.000000000      0.071689372           
+ VIB| 
+  Minimum Structure - Energy and Forces:
+ VIB|                                     Total Energy:            -11.542162924
+ VIB|    ATOM                            X                Y                Z
+ VIB|      C                      -0.000000000      0.000000000     -0.000000008           
+ VIB|      O                      -0.000000000      0.000000000     -0.062136948           
+ VIB|      O                       0.000000000     -0.000000001      0.062136956           
+ VIB| Hessian in cartesian coordinates
+
+                    1            2            3            4            5
+     1  C        7.680936     0.000002    -0.000000    -3.327534    -0.000000
+     2  C       -0.000000     7.680935     0.000000     0.000000    -3.327534
+     3  C       -0.000002     0.000009    83.638385    -0.000001     0.000011
+     4  O       -3.327488    -0.000001     0.000000     1.923832     0.000000
+     5  O       -0.000000    -3.327487    -0.000000     0.000000     1.923832
+     6  O        0.000005     0.000010   -36.233304     0.000002     0.000001
+     7  O       -3.327488    -0.000000     0.000000     0.959235     0.000000
+     8  O        0.000001    -3.327488     0.000000    -0.000000     0.959235
+     9  O       -0.000003    -0.000017   -36.233307    -0.000001    -0.000011
+
+                    6            7            8            9
+     1  C        0.000000    -3.327533    -0.000002     0.000001
+     2  C       -0.000000     0.000000    -3.327533    -0.000001
+     3  C      -36.233713    -0.000034    -0.000037   -36.233635
+     4  O       -0.000000     0.959235    -0.000001     0.000000
+     5  O        0.000000    -0.000000     0.959236    -0.000001
+     6  O       33.381051    -0.000004     0.000069    -1.987211
+     7  O       -0.000000     1.923832     0.000003    -0.000002
+     8  O        0.000000     0.000000     1.923831     0.000001
+     9  O       -1.987159     0.000034    -0.000037    33.381034
+ VIB| Cartesian Low frequencies ----0.25292E-03-0.28365E-04-0.27182E-04 0.96459    
+ VIB| Cartesian Low frequencies --- 0.96460      10.564      10.564      35.368    
+ VIB| Cartesian Low frequencies ---  115.03    
+ VIB| Eigenvectors before removal of rotations and translations
+
+                    1            2            3            4            5
+     1  C        0.028910     0.430656    -0.294304     0.000000    -0.000000
+     2  C       -0.039310     0.295716     0.428861    -0.000001    -0.000000
+     3  C        0.520128    -0.001587     0.048771     0.000010     0.000002
+     4  O        0.033357     0.497044    -0.339672     0.454605     0.541604
+     5  O       -0.045362     0.341302     0.494972    -0.541604     0.454604
+     6  O        0.600310    -0.001832     0.056289     0.000011     0.000003
+     7  O        0.033378     0.497043    -0.339672    -0.454605    -0.541604
+     8  O       -0.045380     0.341302     0.494971     0.541603    -0.454605
+     9  O        0.600309    -0.001832     0.056290     0.000012     0.000002
+
+                    6            7            8            9
+     1  C       -0.542105     0.658185     0.000000    -0.000000
+     2  C        0.658185     0.542105     0.000000    -0.000000
+     3  C       -0.000001    -0.000000    -0.000000    -0.852693
+     4  O        0.234850    -0.285137     0.000000     0.000000
+     5  O       -0.285138    -0.234850    -0.000000    -0.000000
+     6  O       -0.000000     0.000000    -0.707106     0.369402
+     7  O        0.234850    -0.285137     0.000000     0.000000
+     8  O       -0.285137    -0.234850    -0.000001     0.000001
+     9  O       -0.000001    -0.000000     0.707107     0.369401
+ VIB| Frequencies after removal of the rotations and translations
+ VIB| Internal  Low frequencies ---  10.564      10.564      35.368      115.03    
+
+ VIB|                        NORMAL MODES - CARTESIAN DISPLACEMENTS
+ VIB|
+ VIB|                         1                    2                    3
+ VIB|Frequency (cm^-1)   713.344181           713.344328          1305.242276
+ VIB|Intensities           0.000000             0.000000             0.000000
+ VIB|Red.Masses (a.u.)    12.887538            12.887538            15.999400
+ VIB|Frc consts (a.u.)     0.008544             0.008544             0.118889
+  ATOM  EL             X     Y     Z        X     Y     Z        X     Y     Z  
+     1  C             0.56 -0.68  0.00     0.68  0.56 -0.00    -0.00  0.00 -0.00
+     2  O            -0.21  0.26 -0.00    -0.26 -0.21  0.00     0.00 -0.00 -0.71
+     3  O            -0.21  0.26  0.00    -0.26 -0.21 -0.00     0.00 -0.00  0.71
+
+
+ VIB|                         4
+ VIB|Frequency (cm^-1)  2353.935437
+ VIB|Intensities           0.000000
+ VIB|Red.Masses (a.u.)    12.887538
+ VIB|Frc consts (a.u.)     1.013026
+  ATOM  EL             X     Y     Z        X     Y     Z        X     Y     Z  
+     1  C             0.00  0.00  0.88
+     2  O            -0.00 -0.00 -0.33
+     3  O            -0.00 -0.00 -0.33
+
+
+
+ VIB|                        NORMAL MODES - THERMOCHEMICAL DATA
+ VIB|
+ VIB|              Symmetry number:                                                 1
+ VIB|              Temperature [K]:                                            298.15
+ VIB|              Pressure [Pa]:                                           101325.00
+
+
+ VIB|              Electronic energy (U) [kJ/mol]:                    -30303.94433871
+ VIB|              Zero-point correction [kJ/mol]:                        30.42023521
+ VIB|              Entropy [kJ/(mol K)]:                                   0.21907903
+ VIB|              Enthalpy correction (H-U) [kJ/mol]:                    39.68968142
+ VIB|              Gibbs energy correction [kJ/mol]:                     -25.62873178
+ VIB|              Heat capacity [kJ/(mol*K)]:                             0.03644887
+
+
+
+ -------------------------------------------------------------------------------
+ -                                                                             -
+ -                                DBCSR STATISTICS                             -
+ -                                                                             -
+ -------------------------------------------------------------------------------
+ COUNTER                                    TOTAL       BLAS       SMM       ACC
+ flops     4 x     4 x     8               273408     100.0%      0.0%      0.0%
+ flops     4 x     8 x    12               732672     100.0%      0.0%      0.0%
+ flops     8 x     8 x     8               847872     100.0%      0.0%      0.0%
+ flops     8 x     8 x    12               889344     100.0%      0.0%      0.0%
+ flops     4 x     8 x     4              1092096     100.0%      0.0%      0.0%
+ flops     4 x     8 x     8              1104384     100.0%      0.0%      0.0%
+ flops inhomo. stacks                           0       0.0%      0.0%      0.0%
+ flops total                         4.939776E+06     100.0%      0.0%      0.0%
+ flops max/rank                      4.939776E+06     100.0%      0.0%      0.0%
+ matmuls inhomo. stacks                         0       0.0%      0.0%      0.0%
+ matmuls total                               9852     100.0%      0.0%      0.0%
+ number of processed stacks                  6474     100.0%      0.0%      0.0%
+ average stack size                                     1.5       0.0       0.0
+ marketing flops                     5.105664E+06
+ -------------------------------------------------------------------------------
+ # multiplications                           3115
+ max memory usage/rank              61.378560E+06
+ # max total images/rank                        1
+ # max 3D layers                                1
+ # MPI messages exchanged                       0
+ -------------------------------------------------------------------------------
+
+ -------------------------------------------------------------------------------
+ -                                                                             -
+ -                                GRID STATISTICS                              -
+ -                                                                             -
+ -------------------------------------------------------------------------------
+ LP    KERNEL             BACKEND                              COUNT     PERCENT
+ -------------------------------------------------------------------------------
+
+ MEMORY| Estimated peak process memory [MiB]                                  59
+
+ -------------------------------------------------------------------------------
+ ----                             MULTIGRID INFO                            ----
+ -------------------------------------------------------------------------------
+ total grid count     :           600              cutoff [a.u.]            1.00
+
+ -------------------------------------------------------------------------------
+ -                                                                             -
+ -                           R E F E R E N C E S                               -
+ -                                                                             -
+ -------------------------------------------------------------------------------
+ 
+ CP2K version 8.1, the CP2K developers group (2020).
+ CP2K is freely available from https://www.cp2k.org/ .
+
+ Kuehne,Thomas D.; Iannuzzi,Marcella; Del Ben,Mauro;
+ Rybkin,Vladimir V.; Seewald,Patrick; Stein,Frederick; Laino,Teodoro;
+ Khaliullin,Rustam Z.; Schuett,Ole; Schiffmann,Florian; Golze,Dorothea;
+ Wilhelm,Jan; Chulkov,Sergey; Bani-Hashemian,Mohammad Hossein;
+ Weber,Valery; Borstnik,Urban; Taillefumier,Mathieu;
+ Jakobovits,Alice Shoshana; Lazzaro,Alfio; Pabst,Hans; Mueller,Tiziano;
+ Schade,Robert; Guidon,Manuel; Andermatt,Samuel; Holmberg,Nico;
+ Schenter,Gregory K.; Hehn,Anna; Bussy,Augustin; Belleflamme,Fabian;
+ Tabacchi,Gloria; Gloess,Andreas; Lass,Michael; Bethune,Iain;
+ Mundy,Christopher J.; Plessl,Christian; Watkins,Matt;
+ VandeVondele,Joost; Krack,Matthias; Hutter,Juerg. 
+ The Journal of Chemical Physics, 152 (19), (2020). 
+ CP2K: An electronic structure and molecular dynamics software package -
+ Quickstep: Efficient and accurate electronic structure calculations.
+ https://doi.org/10.1063/5.0007045
+
+ Grimme, S; Bannwarth, C; Shushkov, P. 
+ Journal of Chemical Theory and Computation, 13, 1989 (2017). 
+ A Robust and Accurate Tight-Binding Quantum Chemical Method for
+ Structures, Vibrational Frequencies, and Noncovalent Interactions of
+ Large Molecular Systems Parametrized for All spd-Block Elements (Z = 1-86).
+ https://doi.org/10.1021/acs.jctc.7b00118
+
+ Goerigk, Lars; Hansen, Andreas; Bauer, Christoph; Ehrlich, Stephan;
+ Najibi, Asim; Grimme, Stefan. , 19 (48), (2017). 
+ A look at the density functional theory zoo with the advanced GMTKN55 database
+ for general main group thermochemistry, kinetics and noncovalent interactions.
+ https://doi.org/10.1039/C7CP04913G
+
+ Schuett, Ole; Messmer, Peter; Hutter, Juerg; VandeVondele, Joost. 
+ Electronic Structure Calculations on Graphics Processing Units, John
+ Wiley & Sons, Ltd, 173-190 (2016). 
+ GPU-Accelerated Sparse Matrix-Matrix Multiplication for
+ Linear Scaling Density Functional Theory.
+ https://doi.org/10.1002/9781118670712.ch8
+
+ Borstnik, U; VandeVondele, J; Weber, V; Hutter, J. 
+ PARALLEL COMPUTING, 40 (5-6), 47-58 (2014). 
+ Sparse matrix multiplication: The distributed block-compressed sparse
+ row library.
+ https://doi.org/10.1016/j.parco.2014.03.012
+
+ Hutter, J; Iannuzzi, M; Schiffmann, F; VandeVondele, J. 
+ WIREs Comput Mol Sci., 4 (1), 15-25 (2014). 
+ CP2K: atomistic simulations of condensed matter systems.
+ https://doi.org/10.1002/wcms.1159
+
+ Grimme, S; Ehrlich, S; Goerigk, L. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 32, 1456 (2011). 
+ Effect of the damping function in dispersion corrected density functional theory.
+ https://doi.org/10.1002/jcc.21759
+
+ Grimme, S; Antony, J; Ehrlich, S; Krieg, H. 
+ JOURNAL OF CHEMICAL PHYSICS, 132 (15), 154104 (2010). 
+ A consistent and accurate ab initio parametrization of density
+ functional dispersion correction (DFT-D) for the 94 elements H-Pu.
+ https://doi.org/10.1063/1.3382344
+
+ Kuhne, TD; Krack, M; Mohamed, FR; Parrinello, M. 
+ PHYSICAL REVIEW LETTERS, 98 (6), 066401 (2007). 
+ Efficient and accurate Car-Parrinello-like approach to
+ Born-Oppenheimer molecular dynamics.
+ https://doi.org/10.1103/PhysRevLett.98.066401
+
+ Frigo, M; Johnson, SG. 
+ PROCEEDINGS OF THE IEEE, 93 (2), 216-231 (2005). 
+ The design and implementation of FFTW3.
+ https://doi.org/10.1109/JPROC.2004.840301
+
+ Kolafa, J. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 25 (3), 335-342 (2004). 
+ Time-reversible always stable predictor-corrector method for molecular dynamics of polarizable molecules.
+ https://doi.org/10.1002/jcc.10385
+
+ VandeVondele, J; Hutter, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 118 (10), 4365-4369 (2003). 
+ An efficient orbital transformation method for electronic structure
+ calculations.
+ https://doi.org/10.1063/1.1543154
+
+
+ -------------------------------------------------------------------------------
+ -                                                                             -
+ -                                T I M I N G                                  -
+ -                                                                             -
+ -------------------------------------------------------------------------------
+ SUBROUTINE                       CALLS  ASD         SELF TIME        TOTAL TIME
+                                MAXIMUM       AVERAGE  MAXIMUM  AVERAGE  MAXIMUM
+ CP2K                                 1  1.0    0.019    0.019    9.767    9.767
+ vb_anal                              1  2.0    9.589    9.589    9.658    9.658
+ -------------------------------------------------------------------------------
+
+ The number of warnings for this run is : 4
+ 
+ -------------------------------------------------------------------------------
+  **** **** ******  **  PROGRAM ENDED AT                 2021-02-10 06:40:41.385
+ ***** ** ***  *** **   PROGRAM RAN ON                                    2696v3
+ **    ****   ******    PROGRAM RAN BY                                      root
+ ***** **    ** ** **   PROGRAM PROCESS ID                                  2749
+  **** **  *******  **  PROGRAM STOPPED IN                             /root/tmp

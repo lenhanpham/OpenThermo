@@ -188,7 +188,16 @@ double LoadFile::readaftersign(std::ifstream& file, const std::string& sign)
     size_t pos = line.find(sign);
     if (pos == std::string::npos)
     {
-        throw std::runtime_error("Sign '" + sign + "' not found in line: " + line);
+        // Try reading the next line if sign not found in current line
+        if (!std::getline(file, line))
+        {
+            throw std::runtime_error("Could not read next line for sign: " + sign);
+        }
+        pos = line.find(sign);
+        if (pos == std::string::npos)
+        {
+            throw std::runtime_error("Sign '" + sign + "' not found in line: " + line);
+        }
     }
     // std::cerr << "DEBUG: readaftersign read line: [" << line << "]" << std::endl;  // ← ADD THIS
 
@@ -452,7 +461,7 @@ void LoadFile::loadotm(SystemData& sys)
 
 void LoadFile::loadgau(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -498,15 +507,52 @@ void LoadFile::loadgau(SystemData& sys)
         file.seekg(0);
         if (loclabel(file, "has atomic number", 0))
         {
-            for (int i = 0; i < sys.ncenter; ++i)
+            std::string line;
+            int         atom_count = 0;
+            while (std::getline(file, line) && atom_count < sys.ncenter)
             {
-                sys.a[i].mass = readaftersign(file, "mass");
+                if (line.find("has atomic number") != std::string::npos)
+                {
+                    // Split line by spaces, take the last token as mass
+                    std::istringstream       iss(line);
+                    std::vector<std::string> tokens;
+                    std::string              token;
+                    while (iss >> token)
+                    {
+                        tokens.push_back(token);
+                    }
+                    if (!tokens.empty())
+                    {
+                        try
+                        {
+                            double mass            = std::stod(tokens.back());
+                            sys.a[atom_count].mass = mass;
+                            atom_count++;
+                        }
+                        catch (const std::invalid_argument&)
+                        {
+                            // Skip lines that don't have a valid mass at the end
+                        }
+                    }
+                }
+            }
+            if (atom_count != sys.ncenter)
+            {
+                std::cerr << "Warning: Found " << atom_count << " mass entries, expected " << sys.ncenter
+                          << ". Using default masses.\n";
+                setatmmass(sys);
             }
         }
         else
         {
-            std::cerr << "Error: Unable to find atomic mass information!" << "\n";
-            std::cerr << "If you have used #T for your freq task, you should use # instead" << "\n";
+            std::cerr << "Error: Unable to find atomic mass data from quantum chemical output file!" << "\n";
+            std::cerr
+                << "Gaussian won't print atomic masses out if #T is used in input route. #, #N, #P should be used"
+                << "\n"
+                << "the parameter modmass can be set to 1 or 2 in settings.in if you do not want to recalculate your "
+                   "system"
+                << "\n"
+                << "Mismatch in thermochemical data may happen due to different type of atomic masses are used \n";
             std::cerr << "Press ENTER button to exit program" << "\n";
             std::cin.get();
             exit(1);
@@ -1139,13 +1185,37 @@ void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
 
     for (int i = 0; i < sys.ncenter; ++i)
     {
-        std::string loadArgs;
-        if (!(file >> loadArgs >> sys.a[i].x >> sys.a[i].y >> sys.a[i].z))
+        std::string line;
+        if (!std::getline(file, line))
         {
-            std::cerr << "Error: Failed to read coordinates for atom " << (i + 1) << '\n';
-            throw std::runtime_error("Incomplete geometry data");
+            throw std::runtime_error("Failed to read coordinates for atom " + std::to_string(i + 1));
         }
-        elename2idx(loadArgs, sys.a[i].index);
+        // Remove trailing \r for Windows compatibility
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+        std::istringstream       iss(line);
+        std::vector<std::string> tokens;
+        std::string              token;
+        while (iss >> token)
+        {
+            tokens.push_back(token);
+        }
+        if (tokens.size() < 4)
+        {
+            throw std::runtime_error("Insufficient tokens in coordinate line for atom " + std::to_string(i + 1) + ": " +
+                                     line);
+        }
+        try
+        {
+            sys.a[i].x = std::stod(tokens[1]);
+            sys.a[i].y = std::stod(tokens[2]);
+            sys.a[i].z = std::stod(tokens[3]);
+            elename2idx(tokens[0], sys.a[i].index);
+        }
+        catch (const std::exception& e)
+        {
+            throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) + ": " + e.what() +
+                                     " from: " + line);
+        }
     }
 }
 
@@ -1218,39 +1288,69 @@ void LoadFile::loadgms(SystemData& sys)
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
 
-    // Load energy
-    int ncount;
-    if (loclabelfinal(file, "FINAL ", ncount))
+    // Load energy - robust method: find last "FINAL" line, read next line, split and take last value
+    file.clear();
+    file.seekg(0);  // Rewind to start
+    std::string    line;
+    std::streampos last_final_pos = -1;
+    while (std::getline(file, line))
     {
-        std::string line;
-        if (!std::getline(file, line))
+        if (line.find("FINAL") != std::string::npos)
         {
-            throw std::runtime_error("Could not read energy line");
+            last_final_pos = file.tellg();
         }
-        size_t pos = line.find("IS ");
-        if (pos != std::string::npos)
-        {
-            std::istringstream iss(line.substr(pos + 3));
-            if (!(iss >> sys.E))
-            {
-                throw std::runtime_error("Failed to parse energy from: " + line);
-            }
-            // Extract method name (e.g., "RHF ENERGY")
-            std::string method = line.substr(0, pos - 1);  // Before "IS "
-            method.erase(0, method.find_first_not_of(" \t"));
-            method.erase(method.find_last_not_of(" \t") + 1);
-            std::cout << "Note: " << method << " energy (" << std::fixed << std::setprecision(8) << sys.E
-                      << " a.u.) is loaded. If this is not the intended method, the final U, H, G may be misleading"
-                      << '\n';
-        }
-        else
-        {
-            throw std::runtime_error("Energy line format not recognized: " + line);
-        }
+    }
+    if (last_final_pos == -1)
+    {
+        throw std::runtime_error("FINAL energy section not found in GAMESS file");
+    }
+    // Seek to the position after the last "FINAL" line
+    file.clear();
+    file.seekg(last_final_pos);
+    if (!std::getline(file, line))
+    {
+        throw std::runtime_error("Could not read energy line after FINAL");
+    }
+    // Split the line by spaces and take the last token as energy
+    std::istringstream       iss(line);
+    std::vector<std::string> tokens;
+    std::string              token;
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+    if (tokens.empty())
+    {
+        throw std::runtime_error("Energy line is empty: " + line);
+    }
+    // The last token should be the energy value
+    std::istringstream energy_iss(tokens.back());
+    if (!(energy_iss >> sys.E))
+    {
+        throw std::runtime_error("Failed to parse energy from last token: " + tokens.back());
+    }
+    // Try to extract method name from the line
+    std::string method = line;
+    // Remove trailing spaces and the energy value
+    method.erase(method.find_last_not_of(" \t") + 1);
+    size_t last_space = method.find_last_of(" \t");
+    if (last_space != std::string::npos)
+    {
+        method = method.substr(0, last_space);
+    }
+    // Clean up method name
+    method.erase(0, method.find_first_not_of(" \t"));
+    method.erase(method.find_last_not_of(" \t") + 1);
+    if (!method.empty())
+    {
+        std::cout << "Note: " << method << " energy (" << std::fixed << std::setprecision(8) << sys.E
+                  << " a.u.) is loaded. If this is not the intended method, the final U, H, G may be misleading"
+                  << '\n';
     }
     else
     {
-        throw std::runtime_error("FINAL energy section not found in GAMESS file");
+        std::cout << "Note: Energy (" << std::fixed << std::setprecision(8) << sys.E
+                  << " a.u.) is loaded from GAMESS file." << '\n';
     }
 
     // Load multiplicity
@@ -1430,50 +1530,114 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
     if (loclabelfinal(file, "COORDINATES OF ALL ATOMS ARE (ANGS)", ncount) && ncount > 0)
     {
         skiplines(file, 3);
-        for (int i = 0; i < sys.ncenter; ++i)
+        for (int i = 0; i < sys.ncenter;)
         {
             std::string line;
             if (!std::getline(file, line))
             {
                 throw std::runtime_error("Failed to read coordinates for atom " + std::to_string(i + 1));
             }
+            // Remove trailing \r for Windows compatibility
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            // Trim whitespace
+            line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char ch) {
+                           return !std::isspace(ch);
+                       }));
+            line.erase(std::find_if(line.rbegin(),
+                                    line.rend(),
+                                    [](unsigned char ch) {
+                                        return !std::isspace(ch);
+                                    })
+                           .base(),
+                       line.end());
+            if (line.empty())
+                continue;  // Skip blank lines
             // std::cerr << "Debug: Geometry line for atom " << i + 1 << ": " << line << std::endl;
-            std::istringstream iss(line);
-            std::string        loadArgs;
-            double             index;  // GAMESS uses float for index (e.g., 6.0)
-            if (!(iss >> loadArgs >> index >> sys.a[i].x >> sys.a[i].y >> sys.a[i].z))
+            std::istringstream       iss(line);
+            std::vector<std::string> tokens;
+            std::string              token;
+            while (iss >> token)
             {
-                throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) +
-                                         " from: " + line);
+                tokens.push_back(token);
             }
-            sys.a[i].index = static_cast<int>(index);  // Convert float to int
+            if (tokens.size() < 5)
+            {
+                throw std::runtime_error("Insufficient tokens in coordinate line for atom " + std::to_string(i + 1) +
+                                         ": " + line);
+            }
+            try
+            {
+                sys.a[i].x     = std::stod(tokens[2]);
+                sys.a[i].y     = std::stod(tokens[3]);
+                sys.a[i].z     = std::stod(tokens[4]);
+                sys.a[i].index = static_cast<int>(std::stod(tokens[1]));  // Atomic number from charge
+            }
+            catch (const std::exception& e)
+            {
+                throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) + ": " +
+                                         e.what() + " from: " + line);
+            }
             // std::cerr << "Debug: Atom " << i + 1 << " index = " << sys.a[i].index << std::endl;
+            ++i;
         }
     }
     else
     {
         file.clear();
         file.seekg(0);
-        if (loclabel(file, "ATOMIC                      COORDINATES (BOHR)"))
+        if (loclabel(file, "COORDINATES (BOHR)"))
         {
             skiplines(file, 2);
-            for (int i = 0; i < sys.ncenter; ++i)
+            for (int i = 0; i < sys.ncenter;)
             {
                 std::string line;
                 if (!std::getline(file, line))
                 {
                     throw std::runtime_error("Failed to read coordinates for atom " + std::to_string(i + 1));
                 }
-                std::istringstream iss(line);
-                std::string        loadArgs;
-                if (!(iss >> loadArgs >> sys.a[i].index >> sys.a[i].x >> sys.a[i].y >> sys.a[i].z))
+                // Remove trailing \r for Windows compatibility
+                line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+                // Trim whitespace
+                line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char ch) {
+                               return !std::isspace(ch);
+                           }));
+                line.erase(std::find_if(line.rbegin(),
+                                        line.rend(),
+                                        [](unsigned char ch) {
+                                            return !std::isspace(ch);
+                                        })
+                               .base(),
+                           line.end());
+                if (line.empty())
+                    continue;  // Skip blank lines
+                std::istringstream       iss(line);
+                std::vector<std::string> tokens;
+                std::string              token;
+                while (iss >> token)
                 {
-                    throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) +
-                                             " from: " + line);
+                    tokens.push_back(token);
+                }
+                if (tokens.size() < 5)
+                {
+                    throw std::runtime_error("Insufficient tokens in coordinate line for atom " +
+                                             std::to_string(i + 1) + ": " + line);
+                }
+                try
+                {
+                    sys.a[i].x     = std::stod(tokens[2]);
+                    sys.a[i].y     = std::stod(tokens[3]);
+                    sys.a[i].z     = std::stod(tokens[4]);
+                    sys.a[i].index = static_cast<int>(std::stod(tokens[1]));  // Atomic number from charge
+                }
+                catch (const std::exception& e)
+                {
+                    throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) + ": " +
+                                             e.what() + " from: " + line);
                 }
                 sys.a[i].x *= b2a;
                 sys.a[i].y *= b2a;
                 sys.a[i].z *= b2a;
+                ++i;
             }
         }
         else

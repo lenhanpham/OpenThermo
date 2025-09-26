@@ -647,7 +647,7 @@ void SymmetryDetector::detectPG(int ishow) {
     std::string PGlabel3; // Used for input and output from PG_eqvatm
 
     if (this->PGlabelinit == "?") { // Not directly specified
-        if (ishow == 1) std::cout << "Detecting point group..." << "\n";
+        if (ishow == 1) std::cout << "Identifying point group..." << "\n";
 
         for (int i = 0; i < this->ncenter; i++) {
             tmpmat[0][i] = this->a[i].x;
@@ -671,10 +671,10 @@ void SymmetryDetector::detectPG(int ishow) {
         }
 
         if (PGlabel3 == " " || PGlabel3.empty()) {
-            std::cout << "Warning: Failed to detect point group, point group will be regarded as C1" << "\n";
+            std::cout << "Warning: Failed to identify point group; C1 will be used " << "\n";
             this->PGlabel = "C1  ";
         } else {
-            if (ishow == 1) std::cout << "Point group has been successfully detected" << "\n";
+            if (ishow == 1) std::cout << "Point group has been successfully identified" << "\n";
             this->PGlabel = "    "; // Initialize with spaces
             this->PGlabel.replace(0, 3, PGlabel3);
         }

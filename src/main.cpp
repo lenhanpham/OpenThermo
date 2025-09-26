@@ -235,8 +235,8 @@ auto main(int argc, char* argv[]) -> int
         }
         if (sys.inputfile.empty())
         {
-            std::cout << "\nInput file path, e.g. C:\\your_dir\\A-rise.otm\n"
-                      << " Output file from frequency analysis task of Gaussian/ORCA/GAMESS-US/NWChem/CP2K is also "
+            std::cout << "\nInput file path, e.g. D:\\your_dir\\your_calc.log\n"
+                      << " OpenThermo supports Gaussian, ORCA, GAMESS-US, NWChem, CP2K, and VASP "
                          "supported\n";
             while (true)
             {

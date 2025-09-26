@@ -587,7 +587,6 @@ auto symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np, int no
 
 /**
  * Get point group
- * This is a reduced version of that in Multiwfn
  */
 void PG_eqvatm(int natoms, const std::vector<int>& nat, 
                std::vector<std::vector<double>>& coord, double delta, std::string& PGlab) {

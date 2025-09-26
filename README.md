@@ -500,7 +500,7 @@ Settings are applied in this order:
 
 - **Description**: Concentration specification
 - **Default**: None
-- **Example**: `-conc "2.5 M"`
+- **Example**: `-conc "2.5"`
 
 ### Output Control Options
 

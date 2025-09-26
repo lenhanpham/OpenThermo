@@ -327,6 +327,58 @@ namespace util
     // }
 
     /**
+     * @brief Parse low vibrational frequency treatment method
+     *
+     * Accepts both integer values (0-3)
+     * and string names for backward compatibility
+     * and user convenience.
+     *
+     * @param str Input string to
+     * parse
+     * @return LowVibTreatment enum value
+     * @throws std::runtime_error if input is invalid
+     */
+    LowVibTreatment parseLowVibTreatment(const std::string& str)
+    {
+        // Try to parse as integer first
+        std::istringstream iss(str);
+        int                intValue;
+        if (iss >> intValue)
+        {
+            switch (intValue)
+            {
+                case 0:
+                    return LowVibTreatment::Harmonic;
+                case 1:
+                    return LowVibTreatment::Truhlar;
+                case 2:
+                    return LowVibTreatment::Grimme;
+                case 3:
+                    return LowVibTreatment::Minenkov;
+                default:
+                    throw std::runtime_error("Invalid low frequency treatment value: " + str +
+                                             ". Must be 0-3 or method name.");
+            }
+        }
+
+        // Try to parse as string (case-insensitive)
+        std::string lowVibMth = str;
+        std::transform(lowVibMth.begin(), lowVibMth.end(), lowVibMth.begin(), ::tolower);
+
+        if (lowVibMth == "harmonic")
+            return LowVibTreatment::Harmonic;
+        if (lowVibMth == "truhlar")
+            return LowVibTreatment::Truhlar;
+        if (lowVibMth == "grimme")
+            return LowVibTreatment::Grimme;
+        if (lowVibMth == "minenkov")
+            return LowVibTreatment::Minenkov;
+
+        throw std::runtime_error("Invalid low frequency treatment method: " + str +
+                                 ". Valid options: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov");
+    }
+
+    /**
      * @brief Parse command-line arguments and update system parameters
      *
      * Processes command-line
@@ -449,13 +501,18 @@ namespace util
                 if (!(iss >> sys.sclCV))
                     throw std::runtime_error("Error: Invalid value for -sclCV");
             }
-            else if (inputArgs == "-ilowfreq")
+            else if (inputArgs == "-lowvibmeth")
             {
                 if (++iarg >= argc)
-                    throw std::runtime_error("Error: Missing value for -ilowfreq");
-                std::istringstream iss(argv[iarg]);
-                if (!(iss >> sys.ilowfreq))
-                    throw std::runtime_error("Error: Invalid value for -ilowfreq");
+                    throw std::runtime_error("Error: Missing value for -lowvibmeth");
+                try
+                {
+                    sys.lowVibTreatment = parseLowVibTreatment(argv[iarg]);
+                }
+                catch (const std::runtime_error& e)
+                {
+                    throw std::runtime_error("Error: " + std::string(e.what()));
+                }
             }
             else if (inputArgs == "-ravib")
             {
@@ -495,13 +552,13 @@ namespace util
                 if (!(iss >> sys.outotm))
                     throw std::runtime_error("Error: Invalid value for -outotm");
             }
-            else if (inputArgs == "-defmass")
+            else if (inputArgs == "-massmod")
             {
                 if (++iarg >= argc)
-                    throw std::runtime_error("Error: Missing value for -defmass");
+                    throw std::runtime_error("Error: Missing value for -massmod");
                 std::istringstream iss(argv[iarg]);
                 if (!(iss >> sys.massmod))
-                    throw std::runtime_error("Error: Invalid value for -defmass");
+                    throw std::runtime_error("Error: Invalid value for -massmod");
             }
             else if (inputArgs == "-PGlabel")
             {
@@ -719,7 +776,7 @@ namespace util
                         throw std::runtime_error("Error: Invalid value for sclCV in settings.ini");
                 }
             }
-            get_option_str(file, "ilowfreq", inputArgs);
+            get_option_str(file, "lowvibmeth", inputArgs);
             if (!inputArgs.empty())
             {
                 // Find the position of '='
@@ -735,9 +792,14 @@ namespace util
                     if (end != std::string::npos)
                         valueStr = valueStr.substr(0, end + 1);
 
-                    std::istringstream iss(valueStr);
-                    if (!(iss >> sys.ilowfreq))
-                        throw std::runtime_error("Error: Invalid value for ilowfreq in settings.ini");
+                    try
+                    {
+                        sys.lowVibTreatment = parseLowVibTreatment(valueStr);
+                    }
+                    catch (const std::runtime_error& e)
+                    {
+                        throw std::runtime_error("Error: " + std::string(e.what()) + " in settings.ini");
+                    }
                 }
             }
             get_option_str(file, "ravib", inputArgs);
@@ -867,7 +929,7 @@ namespace util
             get_option_str(file, "PGlabel", inputArgs);
             if (!inputArgs.empty())
                 sys.PGlabelinit = inputArgs;
-            get_option_str(file, "defmass", inputArgs);
+            get_option_str(file, "massmod", inputArgs);
             if (!inputArgs.empty())
             {
                 // Find the position of '='
@@ -885,7 +947,7 @@ namespace util
 
                     std::istringstream iss(valueStr);
                     if (!(iss >> sys.massmod))
-                        throw std::runtime_error("Error: Invalid value for defmass in settings.ini");
+                        throw std::runtime_error("Error: Invalid value for massmod in settings.ini");
                 }
             }
             get_option_str(file, "extrape", inputArgs);
@@ -1091,7 +1153,7 @@ namespace util
                     if (inputArgs.find('.') == std::string::npos)
                     {
                         // Integer (isotope)
-                        int isotmp;
+                        int                isotmp;
                         std::istringstream iss_iso(inputArgs);
                         if (!(iss_iso >> isotmp))
                         {
@@ -1299,7 +1361,7 @@ namespace util
         file << "# 1 = Truhlar's QRRHO (frequency raising)" << "\n";
         file << "# 2 = Grimme's entropy interpolation (default)" << "\n";
         file << "# 3 = Minenkov's entropy + energy interpolation" << "\n";
-        file << "ilowfreq = 2" << "\n";
+        file << "lowvibmeth = 2" << "\n";
         file << "\n";
 
         // Low frequency parameters

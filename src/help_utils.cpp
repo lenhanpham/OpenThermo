@@ -41,12 +41,12 @@ namespace HelpUtils
         std::cout << "  -sclheat <factor>    Scale factor for thermal energy frequencies (default: 1.0)\n";
         std::cout << "  -sclS <factor>       Scale factor for entropy frequencies (default: 1.0)\n";
         std::cout << "  -sclCV <factor>      Scale factor for heat capacity frequencies (default: 1.0)\n";
-        std::cout << "  -ilowfreq <mode>     Low frequency treatment: 0=harmonic, 1=raise, 2=Grimme, 3=Minenkov\n";
+        std::cout << "  -lowvibmeth <mode>     Low frequency treatment: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov\n";
         std::cout << "  -ravib <value>       Raising value for low frequencies in cm^-1 (default: 100.0)\n";
         std::cout << "  -ipmode <mode>       Calculation mode: 0=gas phase, 1=condensed phase\n";
         std::cout << "  -imagreal <value>    Treat imaginary freq < value as real (default: 0.0)\n";
         std::cout << "  -conc <string>       Concentration string for phase correction\n";
-        std::cout << "  -defmass <type>      Default mass type: 1=element, 2=most abundant isotope, 3=file\n";
+        std::cout << "  -massmod <type>      Default mass type: 1=element, 2=most abundant isotope, 3=file\n";
         std::cout << "  -PGlabel <label>     Force point group symmetry\n";
         std::cout << "  -prtvib <mode>       Print vibration contributions: 0=no, 1=yes, -1=to file\n";
         std::cout << "  -outotm <mode>       Output .otm file: 0=no, 1=yes\n";
@@ -68,7 +68,7 @@ namespace HelpUtils
         std::cout << "Examples:\n";
         std::cout << "  " << program_name << " molecule.log\n";
         std::cout << "  " << program_name << " molecule.otm -T 300 -P 2.0\n";
-        std::cout << "  " << program_name << " molecule.out -T 273 373 10 -ilowfreq 2\n";
+        std::cout << "  " << program_name << " molecule.out -T 273 373 10 -lowvibmeth 2\n";
         std::cout << "  " << program_name << " --help-input\n";
         std::cout << "  " << program_name << " --help-T\n\n";
         std::cout << "For more detailed help on specific topics, use --help-<topic>\n";
@@ -132,20 +132,20 @@ namespace HelpUtils
              "  CV_vib = R * sum((hν/kT)^2 * exp(hν/kT) / (exp(hν/kT)-1)^2)\n"
              "  Example: -sclCV 0.99\n"
              "  Default: 1.0"},
-            {"ilowfreq",
+            {"lowvibmeth",
              "Low Frequency Treatment\n"
-             "  -ilowfreq <mode>\n"
+             "  -lowvibmeth <mode>\n"
              "  Method for handling low vibrational frequencies:\n"
-             "    0: Harmonic approximation (no special treatment)\n"
-             "    1: Raise frequencies below threshold to ravib value\n"
-             "    2: Grimme's interpolation for entropy\n"
-             "    3: Minenkov's interpolation for entropy and internal energy\n"
-             "  Example: -ilowfreq 2\n"
-             "  Default: 0"},
+             "    0/Harmonic: Harmonic approximation (no special treatment)\n"
+             "    1/Truhlar: Raise frequencies below threshold to ravib value\n"
+             "    2/Grimme: Grimme's interpolation for entropy\n"
+             "    3/Minenkov: Minenkov's interpolation for entropy and internal energy\n"
+             "  Example: -lowvibmeth 2 or -lowvibmeth Grimme\n"
+             "  Default: Grimme"},
             {"ravib",
              "Low Frequency Raising Value\n"
              "  -ravib <value>\n"
-             "  Frequency value (cm^-1) to which low frequencies are raised when ilowfreq=1\n"
+             "  Frequency value (cm^-1) to which low frequencies are raised when lowvibmeth=1\n"
              "  Example: -ravib 50.0\n"
              "  Default: 100.0"},
             {"ipmode",
@@ -170,14 +170,14 @@ namespace HelpUtils
              "  Format: numeric value representing concentration in mol/L\n"
              "  Example: -conc 2.5\n"
              "  Default: None"},
-            {"defmass",
+            {"massmod",
              "Default Atomic Masses\n"
-             "  -defmass <type>\n"
+             "  -massmod <type>\n"
              "  Type of atomic masses to use:\n"
              "    1: Element average mass\n"
              "    2: Most abundant isotope mass\n"
              "    3: Masses from input file\n"
-             "  Example: -defmass 2\n"
+             "  Example: -massmod 2\n"
              "  Default: 1"},
             {"PGlabel",
              "Point Group\n"
@@ -256,8 +256,12 @@ namespace HelpUtils
         std::cout << "   CP2K (.out):\n";
         std::cout << "     - Vibrational analysis output\n";
         std::cout << "     - Supports both molecular and periodic systems\n\n";
-        std::cout << "   xtb (g98.out):\n";
-        std::cout << "     - xtb frequency analysis output in Gaussian format\n\n";
+        std::cout << "   VASP (OUTCAR):\n";
+        std::cout << "     - Vibrational analysis output\n";
+        std::cout << "     - Supports both molecular and periodic systems\n";  
+        std::cout << "     - Both CONTCAR and OUTCAR are needed \n\n";        
+        //std::cout << "   xtb (g98.out):\n";
+        //std::cout << "     - xtb frequency analysis output in Gaussian format\n\n";
         std::cout << "3. List Files (.txt):\n";
         std::cout << "   Text file containing paths to multiple input files (one per line)\n";
         std::cout << "   Useful for batch processing of multiple molecules\n\n";
@@ -339,7 +343,7 @@ namespace HelpUtils
         std::cout << "sclS = 1.0\n";
         std::cout << "sclCV = 1.0\n\n";
         std::cout << "# Low frequency treatment\n";
-        std::cout << "ilowfreq = 0\n";
+        std::cout << "lowvibmeth = Grimme\n";
         std::cout << "ravib = 100.0\n";
         std::cout << "intpvib = 100.0\n\n";
         std::cout << "# Calculation mode and options\n";

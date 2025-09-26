@@ -63,13 +63,13 @@ auto main(int argc, char* argv[]) -> int
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 
         // Print program information
-        std::cout << "  " << "                                                                                   \n"
+        std::cout << "  " << "                                                                                 \n"
                   << "  " << " ***********************************************************************  " << " \n"
                   << "  " << " Please cite this github project if you use OpenThermo for your research  " << " \n"
                   << "  " << " ***********************************************************************  " << " \n"
                   << "# " << "--------------------------------------------------------------------------" << "#\n"
                   << "# " << "OpenThermo: A general program for calculating molecular thermochemistry   " << "#\n"
-                  << "# " << "Version 0.001.0  Release date: 2025                                       " << "#\n"
+                  << "# " << "Version 0.001.1  Release date: 2025                                       " << "#\n"
                   << "# " << "Developer: Le Nhan Pham                                                   " << "#\n"
                   << "# " << "https://github.com/lenhanpham/openthermo                                  " << "#\n"
                   << "# " << "--------------------------------------------------------------------------" << "#\n";
@@ -191,25 +191,25 @@ auto main(int argc, char* argv[]) -> int
                   << " Scale factor of vibrational frequencies for U(T)-U(0): " << std::setw(8) << sys.sclheat << "\n"
                   << " Scale factor of vibrational frequencies for S(T):      " << std::setw(8) << sys.sclS << "\n"
                   << " Scale factor of vibrational frequencies for CV:        " << std::setw(8) << sys.sclCV << "\n";
-        if (sys.ilowfreq == 0)
+        if (sys.lowVibTreatment == LowVibTreatment::Harmonic)
         {
             std::cout << "Low frequencies treatment: Harmonic approximation\n";
         }
-        else if (sys.ilowfreq == 1)
+        else if (sys.lowVibTreatment == LowVibTreatment::Truhlar)
         {
             std::cout << " Low frequencies treatment: Raising low frequencies (Truhlar's treatment)\n"
                       << " Lower frequencies will be raised to " << std::fixed << std::setprecision(2) << sys.ravib
                       << " cm^-1 during calculating S, U(T)-U(0), CV and q\n";
         }
-        else if (sys.ilowfreq == 2)
+        else if (sys.lowVibTreatment == LowVibTreatment::Grimme)
         {
             std::cout << " Low frequencies treatment: Grimme's interpolation for entropy\n";
         }
-        else if (sys.ilowfreq == 3)
+        else if (sys.lowVibTreatment == LowVibTreatment::Minenkov)
         {
             std::cout << " Low frequencies treatment: Minenkov's interpolation for entropy and internal energy\n";
         }
-        if (sys.ilowfreq == 2 || sys.ilowfreq == 3)
+        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov)
         {
             std::cout << " Vibrational frequency threshold used in the interpolation is " << std::fixed
                       << std::setprecision(2) << sys.intpvib << " cm^-1\n";

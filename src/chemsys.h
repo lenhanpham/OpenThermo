@@ -15,6 +15,7 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 /**
  * @brief Structure representing an atom in a molecular system
@@ -111,6 +112,17 @@ const std::array<std::string, nelesupp + 1> ind2name{
     "??", "??", "??", "??", "??", "??", "??", "??", "??", "??"                                             // 141-150
 };
 
+/**
+ * @brief Enumeration for low vibrational frequency treatment methods
+ */
+enum class LowVibTreatment : std::uint8_t
+{
+    Harmonic = 0, /**< Standard rigid rotor harmonic oscillator */
+    Truhlar  = 1, /**< Quasi-rigid rotor harmonic oscillator (raises low frequencies) */
+    Grimme   = 2, /**< Grimme's interpolation between harmonic and free rotor */
+    Minenkov = 3  /**< Minenkov's interpolation scheme */
+};
+
 // Structure to hold system data
 struct SystemData
 {
@@ -133,27 +145,27 @@ struct SystemData
     std::vector<int>                     edegen;          // Degeneracy of electronic energy levels
 
     // Parameters loaded from settings.ini or arguments
-    std::string PGlabelinit = "?";                     // Initial point group label
-    std::string PGlabel     = "?";                     // Point group label used in OpenThermo
-    std::string concstr     = "0";                     // Concentration string
-    int         prtvib      = 0;                       // Print vibration contributions
-    int         ilowfreq    = 2;                       // Low frequency treatment
-    int         massmod     = 3;                       // Mass assignment mode
-    int         outotm      = 0;                       // Output .otm file flag
-    int         ipmode      = 0;                       // 0 for isolated systems, and 1 for periodic solid state systems
-    double      T           = 298.15;                  // Temperature (K)
-    double      Tlow = 0.0, Thigh = 0.0, Tstep = 0.0;  // Temperature range
-    double      P    = 1.0;                            // Pressure (atm)
-    double      Plow = 0.0, Phigh = 0.0, Pstep = 0.0;  // Pressure range
-    double      sclZPE             = 1.0;              // ZPE scaling factor
-    double      sclheat            = 1.0;              // Heat capacity scaling factor
-    double      sclS               = 1.0;              // Entropy scaling factor
-    double      sclCV              = 1.0;              // CV scaling factor
-    double      ravib              = 100.0;            // Vibrational averaging parameter
-    double      intpvib            = 100.0;            // Vibrational interpolation parameter
-    double      imagreal           = 0.0;              // Imaginary frequency threshold
-    double      Eexter             = 0.0;              // External electronic energy
-    int         vasp_energy_select = 0;                // VASP energy selection: 0=energy  without entropy (default), 1=energy(sigma->0)
+    std::string     PGlabelinit     = "?";                      // Initial point group label
+    std::string     PGlabel         = "?";                      // Point group label used in OpenThermo
+    std::string     concstr         = "0";                      // Concentration string
+    int             prtvib          = 0;                        // Print vibration contributions
+    LowVibTreatment lowVibTreatment = LowVibTreatment::Grimme;  // Low frequency treatment
+    int             massmod         = 3;                        // Mass assignment mode
+    int             outotm          = 0;                        // Output .otm file flag
+    int             ipmode          = 0;       // 0 for isolated systems, and 1 for periodic solid state systems
+    double          T               = 298.15;  // Temperature (K)
+    double          Tlow = 0.0, Thigh = 0.0, Tstep = 0.0;  // Temperature range
+    double          P    = 1.0;                            // Pressure (atm)
+    double          Plow = 0.0, Phigh = 0.0, Pstep = 0.0;  // Pressure range
+    double          sclZPE   = 1.0;                        // ZPE scaling factor
+    double          sclheat  = 1.0;                        // Heat capacity scaling factor
+    double          sclS     = 1.0;                        // Entropy scaling factor
+    double          sclCV    = 1.0;                        // CV scaling factor
+    double          ravib    = 100.0;                      // Vibrational averaging parameter
+    double          intpvib  = 100.0;                      // Vibrational interpolation parameter
+    double          imagreal = 0.0;                        // Imaginary frequency threshold
+    double          Eexter   = 0.0;                        // External electronic energy
+    int vasp_energy_select   = 0;  // VASP energy selection: 0=energy  without entropy (default), 1=energy(sigma->0)
 
     // Special
     int inoset = 0;  // Skip settings.ini if 1

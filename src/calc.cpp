@@ -431,7 +431,7 @@ namespace calc
             if (sys.freq[i] <= 0.0)
                 continue;
             double freqtmp = sys.freq[i];
-            if (sys.ilowfreq == 1 && sys.wavenum[i] < sys.ravib)
+            if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
             {
                 freqtmp = sys.ravib * wave2freq;
             }
@@ -624,7 +624,7 @@ namespace calc
 
         std::cout << "\n                        -------- Vibration --------\n"
                   << "                        ---------------------------\n";
-        if (sys.ilowfreq == 1)
+        if (sys.lowVibTreatment == LowVibTreatment::Truhlar)
         {
             int nlow = 0;
             for (double wn : sys.wavenum)
@@ -638,12 +638,12 @@ namespace calc
                           << sys.ravib << " cm^-1 during calculating S, U(T)-U(0), CV and q\n\n";
             }
         }
-        else if (sys.ilowfreq == 2)
+        else if (sys.lowVibTreatment == LowVibTreatment::Grimme)
         {
             std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is \n"
                          "      used to evaluate S, other terms are identical to harmonic oscillator model\n\n";
         }
-        else if (sys.ilowfreq == 3)
+        else if (sys.lowVibTreatment == LowVibTreatment::Minenkov)
         {
             std::cout << "Note: Interpolation between harmonic oscillator model and free rotor model is \n"
                          "      used to evaluate S and U(T). "
@@ -667,7 +667,7 @@ namespace calc
             if (sys.freq[i] <= 0.0)
                 continue;
             double freqtmp = sys.freq[i];
-            if (sys.ilowfreq == 1 && sys.wavenum[i] < sys.ravib)
+            if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
             {
                 freqtmp = sys.ravib * wave2freq;
             }
@@ -720,7 +720,7 @@ namespace calc
         std::cout << std::scientific << std::setprecision(6) << " Vibrational q(V=0): " << std::setw(16) << qvib_v0
                   << "\n";
         std::cout << " Vibrational q(bot): " << std::setw(16) << qvib_bot << "\n";
-        if (sys.ilowfreq != 3)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
             std::cout << std::fixed << std::setprecision(3) << " Vibrational U(T)-U(0):" << std::setw(10) << U_vib_heat
                       << " kJ/mol" << std::setw(10) << U_vib_heat / cal2J << " kcal/mol   =H(T)-H(0)\n";
@@ -731,7 +731,7 @@ namespace calc
                   << " cal/mol/K   -TS:" << std::setw(8) << -S_vib / cal2J / 1000.0 * sys.T << " kcal/mol\n";
         std::cout << " Vibrational CV:" << std::setw(10) << CV_vib << " J/mol/K" << std::setw(10) << CV_vib / cal2J
                   << " cal/mol/K   =CP\n";
-        if (sys.ilowfreq != 3)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
             std::cout << std::setprecision(2) << " Zero-point energy (ZPE):" << std::setw(10) << ZPE << " kJ/mol,"
                       << std::setw(10) << ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(12)
@@ -786,7 +786,7 @@ namespace calc
         }
         sys.thermG = thermG;
 
-        if (sys.ilowfreq != 3)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
             std::cout << std::setprecision(3) << " Zero point energy (ZPE):" << std::setw(11) << ZPE << " kJ/mol"
                       << std::setw(11) << ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11)
@@ -808,7 +808,7 @@ namespace calc
         double G_final = sys.E + thermG / au2kJ_mol;
 
         std::cout << std::fixed << std::setprecision(7) << " Electronic energy:" << std::setw(19) << sys.E << " a.u.\n";
-        if (sys.ilowfreq != 3)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
             std::cout << " Sum of electronic energy and ZPE, namely U/H/G at 0 K:" << std::setw(19) << U0 << " a.u.\n";
         }
@@ -945,7 +945,7 @@ namespace calc
         }
 
         double prefac_trunc = 0.0, term_trunc = 0.0;
-        if (sys.ilowfreq == 1)
+        if (sys.lowVibTreatment == LowVibTreatment::Truhlar)
         {
             double freqtrunc = 0.0;
             // Truhlar's QRRHO
@@ -962,12 +962,12 @@ namespace calc
         {
             double prefac = h * sys.freq[i] * sys.sclheat / (kb * sys.T);
             double term   = std::exp(-h * sys.freq[i] * sys.sclheat / (kb * sys.T));
-            if (sys.ilowfreq == 1 && sys.wavenum[i] < sys.ravib)
+            if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
             {
                 prefac = prefac_trunc;
                 term   = term_trunc;
             }
-            if (sys.ilowfreq == 3)
+            if (sys.lowVibTreatment == LowVibTreatment::Minenkov)
             {  // Minenkov: Interpolation between RRHO and free rotor
                 double UvRRHO =
                     tmpZPE + R * sys.T * prefac * term / (1.0 - term) / 1000.0;          // Harmonic-oscillator result
@@ -985,7 +985,7 @@ namespace calc
         // CV
         double prefac = h * sys.freq[i] * sys.sclCV / (kb * sys.T);
         double term   = std::exp(-h * sys.freq[i] * sys.sclCV / (kb * sys.T));
-        if (sys.ilowfreq == 1 && sys.wavenum[i] < sys.ravib)
+        if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
         {
             prefac = prefac_trunc;
             term   = term_trunc;
@@ -995,14 +995,14 @@ namespace calc
         // S
         prefac = h * sys.freq[i] * sys.sclS / (kb * sys.T);
         term   = std::exp(-h * sys.freq[i] * sys.sclS / (kb * sys.T));
-        if (sys.ilowfreq == 1 && sys.wavenum[i] < sys.ravib)
+        if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
         {
             prefac = prefac_trunc;
             term   = term_trunc;
         }
         tmpS = R * (prefac * term / (1.0 - term) - std::log(1.0 - term));  // RRHO
 
-        if (sys.ilowfreq == 2 || sys.ilowfreq == 3)
+        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov)
         {  // Grimme's entropy interpolation
             double miu   = h / (8.0 * M_PI * M_PI * sys.freq[i]);
             double Bav   = 1e-44;  // kg*m^2

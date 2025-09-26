@@ -103,12 +103,30 @@ bool LoadFile::loclabelfinal(std::ifstream& file, const std::string& label, int&
     return false;
 }
 
-void LoadFile::skiplines(std::ifstream& file, int n)
+//void LoadFile::skiplines(std::ifstream& file, int n)
+//{
+//    std::string line;
+//    for (int i = 0; i < n; ++i)
+//    {
+//        std::getline(file, line);
+//    }
+//}
+
+void LoadFile::skiplines(std::ifstream& file, int n, bool print_debug)
 {
     std::string line;
     for (int i = 0; i < n; ++i)
     {
-        std::getline(file, line);
+        if (!std::getline(file, line))
+        {
+            throw std::runtime_error("Failed to skip line " + std::to_string(i + 1));
+        }
+        if (print_debug)
+        {
+            // Remove trailing \r for Windows compatibility
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            std::cout << "Debug: Skipped line " << i + 1 << ": '" << line << "'" << std::endl;
+        }
     }
 }
 
@@ -358,7 +376,8 @@ void LoadFile::setatmmass(SystemData& sys)
  */
 void LoadFile::loadotm(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -461,6 +480,7 @@ void LoadFile::loadotm(SystemData& sys)
 
 void LoadFile::loadgau(SystemData& sys)
 {
+    // Load file in binary mode to avoid OS-dependent line endings
     std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
@@ -785,7 +805,8 @@ void LoadFile::loadGaufreq(std::ifstream& file, SystemData& sys)
 // CP2K
 void LoadFile::loadCP2K(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -1015,7 +1036,8 @@ void LoadFile::loadCP2K(SystemData& sys)
 // ORCA
 void LoadFile::loadorca(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -1282,7 +1304,8 @@ void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
 // GAMESS
 void LoadFile::loadgms(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -1527,9 +1550,13 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
     sys.a.resize(sys.ncenter);
 
     int ncount;
-    if (loclabelfinal(file, "COORDINATES OF ALL ATOMS ARE (ANGS)", ncount) && ncount > 0)
+    if (loclabelfinal(file, "EQUILIBRIUM GEOMETRY LOCATED", ncount) && ncount > 0)
     {
-        skiplines(file, 3);
+        //Debug
+        std::cout << "Debug: Found 'EQUILIBRIUM GEOMETRY LOCATED' section" << "\n"
+                  << "Debug: ncount = " << ncount << "\n";
+        skiplines(file, 4, true);
+
         for (int i = 0; i < sys.ncenter;)
         {
             std::string line;
@@ -1562,7 +1589,7 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
             }
             if (tokens.size() < 5)
             {
-                throw std::runtime_error("Insufficient tokens in coordinate line for atom " + std::to_string(i + 1) +
+                throw std::runtime_error("Insufficient tokens in coordinate line for atom (ANGS)" + std::to_string(i + 1) +
                                          ": " + line);
             }
             try
@@ -1619,7 +1646,7 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
                 }
                 if (tokens.size() < 5)
                 {
-                    throw std::runtime_error("Insufficient tokens in coordinate line for atom " +
+                    throw std::runtime_error("Insufficient tokens in coordinate line for atom (BOHR)" +
                                              std::to_string(i + 1) + ": " + line);
                 }
                 try
@@ -1713,7 +1740,8 @@ void LoadFile::loadGmsfreq(std::ifstream& file, SystemData& sys)
 // NWCHEM
 void LoadFile::loadnw(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -1998,7 +2026,8 @@ void LoadFile::loadNwfreq(std::ifstream& file, SystemData& sys)
 // XTB
 void LoadFile::loadxtb(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings 
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
@@ -2117,7 +2146,8 @@ void LoadFile::loadxtb(SystemData& sys)
 // VASP
 void LoadFile::loadvasp(SystemData& sys)
 {
-    std::ifstream file(sys.inputfile);
+    // Load file in binary mode to avoid OS-dependent line endings
+    std::ifstream file(sys.inputfile, std::ios::binary);
     if (!file.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);

@@ -31,7 +31,7 @@ private:
     // Utility functions
     static auto loclabel(std::ifstream& file, const std::string& label, int skip = 0) -> bool;
     static auto loclabelfinal(std::ifstream& file, const std::string& label, int& ncount) -> bool;
-    static void skiplines(std::ifstream& file, int n);
+    static void skiplines(std::ifstream& file, int n, bool print_debug = false);
     static auto readaftersign(std::ifstream& file, const std::string& sign) -> double;
     static auto readaftersign_int(std::ifstream& file, const std::string& sign) -> int;
     static auto readaftersign_from_line(const std::string& line, const std::string& sign) -> double;

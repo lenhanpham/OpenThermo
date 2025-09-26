@@ -18,7 +18,7 @@ namespace HelpUtils
 
     void print_help(const std::string& program_name)
     {
-        std::cout << "OpenThermo: A general program for calculating molecular thermochemistry properties\n"
+        std::cout << "OpenThermo: A Comprehensive C++ Program for Calculation of Thermochemical Properties\n"
                   << "Version 0.001.1\n"
                   << "Developer: Le Nhan Pham\n\n";
         std::cout << "Usage: " << program_name << " [input_file] [options]\n\n";
@@ -29,7 +29,7 @@ namespace HelpUtils
             << "  including Gibbs free energy, enthalpy, entropy, heat capacity, and vibrational corrections.\n\n";
         std::cout << "Input Files:\n";
         std::cout << "  input_file    Path to input file (.otm format or quantum chemistry output)\n";
-        std::cout << "                Supported formats: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, xtb\n";
+        std::cout << "                Supported formats: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP\n";
         std::cout << "                If no file specified, program will prompt for input\n\n";
         std::cout << "Options:\n";
         std::cout << "  -E <value>           Electronic energy in a.u. (overrides file value)\n";

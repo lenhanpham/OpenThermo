@@ -588,7 +588,7 @@ auto symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np, int no
 /**
  * Get point group
  */
-void PG_eqvatm(int natoms, const std::vector<int>& nat, 
+void PG_determ(int natoms, const std::vector<int>& nat, 
                std::vector<std::vector<double>>& coord, double delta, std::string& PGlab) {
     const int nmax = 150;  // maximum number of symmetric operations
     
@@ -661,11 +661,11 @@ void SymmetryDetector::detectPG(int ishow) {
         }
 
         // This tolerance is suitable for most systems
-        PG_eqvatm(this->ncenter, nat, tmpmat, 0.01, PGlabel3);
+        PG_determ(this->ncenter, nat, tmpmat, 0.01, PGlabel3);
 
         if (PGlabel3 == " " || PGlabel3.empty()) {
             for (int i = 1; i <= 20; i++) {
-                PG_eqvatm(this->ncenter, nat, tmpmat, i * 0.005, PGlabel3);
+                PG_determ(this->ncenter, nat, tmpmat, i * 0.005, PGlabel3);
                 if (PGlabel3 != " " && !PGlabel3.empty()) break;
             }
         }

@@ -351,7 +351,7 @@ namespace symmetry
      * @param PGlab Output: Detected point group label (e.g., "C1", "C2v", "D3h", etc.)
      */
 
-    void PG_eqvatm(int                               natoms,
+    void PG_determ(int                               natoms,
                    const std::vector<int>&           nat,
                    std::vector<std::vector<double>>& coord,
                    double                            delta,

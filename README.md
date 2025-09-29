@@ -21,7 +21,7 @@ A comprehensive C++ program for calculating molecular thermochemistry properties
 
 **The project is still in the early stage and not fully tested. Therefore, errors and inaccuracy may happen. Users are suggested to check calculated data against original data from outputs of corresponding quantum chemical programs (with default temperature, conentration, and pressure)**
 
-A graphical user interface (GUI) version is underdevelopment and can be found here: 
+A graphical user interface (GUI) version is under development and can be found here: 
 [https://github.com/lenhanpham/OpenThermoGUI](https://github.com/lenhanpham/OpenThermoGUI) 
 
 ## Table of Contents

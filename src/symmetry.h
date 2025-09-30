@@ -463,8 +463,8 @@ namespace symmetry
         int               ncenter = 0;       /**< Number of atoms */
         std::vector<Atom> a;                 /**< Array of atoms */
         std::vector<int>  a_index;           /**< Atomic indices */
-        std::string       PGlabelinit = "?"; /**< Initial point group label */
-        std::string       PGlabel     = "?"; /**< Detected point group label */
+        std::string       PGnameinit = "?"; /**< Initial point group label */
+        std::string       PGname     = "?"; /**< Detected point group label */
         int               rotsym      = 1;   /**< Rotational symmetry number */
 
         // Methods
@@ -479,12 +479,12 @@ namespace symmetry
         void detectPG(int ishow = 0);
 
         /**
-         * @brief Converts point group label to rotational symmetry number
+         * @brief Converts point group name to rotational symmetry number
          *
-         * Based on the detected point group label (PGlabel), determines the rotational
+         * Based on the detected point group name (PGname), determines the rotational
          * symmetry number (rotsym) used in spectroscopic calculations.
          */
-        void PGlabel2rotsym();
+        void PGname2rotsym();
     };
 
 }  // namespace symmetry

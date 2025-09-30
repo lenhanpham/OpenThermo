@@ -47,7 +47,7 @@ namespace HelpUtils
         std::cout << "  -imagreal <value>    Treat imaginary freq < value as real (default: 0.0)\n";
         std::cout << "  -conc <string>       Concentration string for phase correction\n";
         std::cout << "  -massmod <type>      Default mass type: 1=element, 2=most abundant isotope, 3=file\n";
-        std::cout << "  -PGlabel <label>     Force point group symmetry\n";
+        std::cout << "  -PGname <name>       Force point group symmetry\n";
         std::cout << "  -prtvib <mode>       Print vibration contributions: 0=no, 1=yes, -1=to file\n";
         std::cout << "  -outotm <mode>       Output .otm file: 0=no, 1=yes\n";
         std::cout << "  -noset               Don't load settings from settings.ini\n";
@@ -179,12 +179,12 @@ namespace HelpUtils
              "    3: Masses from input file\n"
              "  Example: -massmod 2\n"
              "  Default: 1"},
-            {"PGlabel",
+            {"PGname",
              "Point Group\n"
-             "  -PGlabel <label>\n"
+             "  -PGname <name>\n"
              "  Force specific point group for symmetry analysis\n"
              "  Overrides automatic symmetry detection\n"
-             "  Example: -PGlabel C2v\n"
+             "  Example: -PGname C2v\n"
              "  Default: Auto-detect"},
             {"prtvib",
              "Print Vibration Contributions\n"
@@ -351,7 +351,7 @@ namespace HelpUtils
         std::cout << "imagreal = 0.0\n";
         std::cout << "conc = 1.0\n";
         std::cout << "massmod = 1\n";
-        std::cout << "PGlabel = \"?\"\n\n";
+        std::cout << "PGname = \"?\"\n\n";
         std::cout << "# Output options\n";
         std::cout << "prtvib = 0\n";
         std::cout << "outotm = 0\n\n";

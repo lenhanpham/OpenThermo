@@ -470,8 +470,8 @@ auto main(int argc, char* argv[]) -> int
                 std::exit(1);
             }
             symmetry::SymmetryDetector symDetector;
-            symDetector.PGlabelinit = sys.PGlabelinit;
-            if (symDetector.PGlabelinit == "?")
+            symDetector.PGnameinit = sys.PGnameinit;
+            if (symDetector.PGnameinit == "?")
             {
                 // else keep "?" for automatic detection
             }
@@ -484,7 +484,7 @@ auto main(int argc, char* argv[]) -> int
             }
             symDetector.detectPG(1);
             sys.rotsym  = symDetector.rotsym;
-            sys.PGlabel = symDetector.PGlabel;
+            sys.PGname = symDetector.PGname;
 
             std::vector<double> freq(sys.nfreq);
             for (int j = 0; j < sys.nfreq; ++j)
@@ -541,7 +541,7 @@ auto main(int argc, char* argv[]) -> int
             // End Debug
             std::cout << " Total mass: " << std::fixed << std::setprecision(6) << std::setw(16) << sys.totmass
                       << " amu\n\n"
-                      << " Point group: " << sys.PGlabel << "\n";
+                      << " Point group: " << sys.PGname << "\n";
             if (sys.ipmode == 0)
             {
                 std::cout << " Rotational symmetry number: " << std::setw(3) << sys.rotsym << "\n";

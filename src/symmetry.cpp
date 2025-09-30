@@ -644,9 +644,9 @@ void PG_determ(int natoms, const std::vector<int>& nat,
  */
 void SymmetryDetector::detectPG(int ishow) {
     std::vector<std::vector<double>> tmpmat(3, std::vector<double>(this->ncenter));
-    std::string PGlabel3; // Used for input and output from PG_eqvatm
+    std::string PGname3; // Used for input and output from PG_eqvatm
 
-    if (this->PGlabelinit == "?") { // Not directly specified
+    if (this->PGnameinit == "?") { // Not directly specified
         if (ishow == 1) std::cout << "Identifying point group..." << "\n";
 
         for (int i = 0; i < this->ncenter; i++) {
@@ -661,71 +661,71 @@ void SymmetryDetector::detectPG(int ishow) {
         }
 
         // This tolerance is suitable for most systems
-        PG_determ(this->ncenter, nat, tmpmat, 0.01, PGlabel3);
+        PG_determ(this->ncenter, nat, tmpmat, 0.01, PGname3);
 
-        if (PGlabel3 == " " || PGlabel3.empty()) {
+        if (PGname3 == " " || PGname3.empty()) {
             for (int i = 1; i <= 20; i++) {
-                PG_determ(this->ncenter, nat, tmpmat, i * 0.005, PGlabel3);
-                if (PGlabel3 != " " && !PGlabel3.empty()) break;
+                PG_determ(this->ncenter, nat, tmpmat, i * 0.005, PGname3);
+                if (PGname3 != " " && !PGname3.empty()) break;
             }
         }
 
-        if (PGlabel3 == " " || PGlabel3.empty()) {
+        if (PGname3 == " " || PGname3.empty()) {
             std::cout << "Warning: Failed to identify point group; C1 will be used " << "\n";
-            this->PGlabel = "C1  ";
+            this->PGname = "C1  ";
         } else {
             if (ishow == 1) std::cout << "Point group has been successfully identified" << "\n";
-            this->PGlabel = "    "; // Initialize with spaces
-            this->PGlabel.replace(0, 3, PGlabel3);
+            this->PGname = "    "; // Initialize with spaces
+            this->PGname.replace(0, 3, PGname3);
         }
     } else {
-        this->PGlabel = this->PGlabelinit;
+        this->PGname = this->PGnameinit;
     }
 
-    this->PGlabel2rotsym();
+    this->PGname2rotsym();
 }
 
 /**
- * Convert point group label (PGlabel) to rotational symmetry number (rotsym)
+ * Convert point group name (PGname) to rotational symmetry number (rotsym)
  */
-void SymmetryDetector::PGlabel2rotsym() {
-    std::string PGlabel_trimmed = trim(this->PGlabel);
-    int ie = PGlabel_trimmed.length();
+void SymmetryDetector::PGname2rotsym() {
+    std::string PGname_trimmed = trim(this->PGname);
+    int ie = PGname_trimmed.length();
 
-    if (PGlabel_trimmed == "C1" || PGlabel_trimmed == "Ci" ||
-        PGlabel_trimmed == "Cs" || PGlabel_trimmed == "Civ") {
+    if (PGname_trimmed == "C1" || PGname_trimmed == "Ci" ||
+        PGname_trimmed == "Cs" || PGname_trimmed == "Civ") {
         this->rotsym = 1;
-    } else if (PGlabel_trimmed == "Dih") {
+    } else if (PGname_trimmed == "Dih") {
         this->rotsym = 2;
-    } else if (PGlabel_trimmed == "Ih") {
+    } else if (PGname_trimmed == "Ih") {
         this->rotsym = 60;
-    } else if (PGlabel_trimmed[0] == 'S') {
-        std::string num_str = PGlabel_trimmed.substr(1);
+    } else if (PGname_trimmed[0] == 'S') {
+        std::string num_str = PGname_trimmed.substr(1);
         this->rotsym = std::stoi(num_str) / 2;
-    } else if (PGlabel_trimmed == "T" || PGlabel_trimmed == "Td" || PGlabel_trimmed == "Th") {
+    } else if (PGname_trimmed == "T" || PGname_trimmed == "Td" || PGname_trimmed == "Th") {
         this->rotsym = 12; // Rotsym of Th is in line with link 717 of Gaussian
-    } else if (PGlabel_trimmed == "Oh") {
+    } else if (PGname_trimmed == "Oh") {
         this->rotsym = 24;
-    } else if (PGlabel_trimmed[0] == 'C') {
+    } else if (PGname_trimmed[0] == 'C') {
         try {
-            this->rotsym = std::stoi(PGlabel_trimmed.substr(1));
+            this->rotsym = std::stoi(PGname_trimmed.substr(1));
         } catch (const std::exception&) {
             // The label is e.g. C2v, try without the last character
-            this->rotsym = std::stoi(PGlabel_trimmed.substr(1, ie - 2));
+            this->rotsym = std::stoi(PGname_trimmed.substr(1, ie - 2));
         }
-    } else if (PGlabel_trimmed[0] == 'D') {
+    } else if (PGname_trimmed[0] == 'D') {
         try {
-            this->rotsym = std::stoi(PGlabel_trimmed.substr(1));
+            this->rotsym = std::stoi(PGname_trimmed.substr(1));
         } catch (const std::exception&) {
             // The label is e.g. D2h, try without the last character
-            this->rotsym = std::stoi(PGlabel_trimmed.substr(1, ie - 2));
+            this->rotsym = std::stoi(PGname_trimmed.substr(1, ie - 2));
         }
         this->rotsym = this->rotsym * 2;
     } else {
         // Although We can identify 'O' and 'I', rotsym is not available
         // For simplicity, we'll assume rotsym = 1 for unknown cases
         std::cout << "Warning: Rotational symmetry number cannot be identified for this point group "
-                  << PGlabel_trimmed << "\n";
+                  << PGname_trimmed << "\n";
         std::cout << "Assuming rotational symmetry number to be 1" << "\n";
         this->rotsym = 1;
     }

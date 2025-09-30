@@ -202,7 +202,7 @@ namespace calc
             }
             symDetector.detectPG(sys.prtvib ? 1 : 0);
             sys.rotsym  = symDetector.rotsym;
-            sys.PGlabel = symDetector.PGlabel;
+            sys.PGname = symDetector.PGname;
 
             // Handle imaginary frequencies
             if (sys.imagreal != 0.0)

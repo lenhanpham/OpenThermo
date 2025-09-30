@@ -145,8 +145,8 @@ struct SystemData
     std::vector<int>                     edegen;          // Degeneracy of electronic energy levels
 
     // Parameters loaded from settings.ini or arguments
-    std::string     PGlabelinit     = "?";                      // Initial point group label
-    std::string     PGlabel         = "?";                      // Point group label used in OpenThermo
+    std::string     PGnameinit     = "?";                      // Initial point group label
+    std::string     PGname         = "?";                      // Point group label used in OpenThermo
     std::string     concstr         = "0";                      // Concentration string
     int             prtvib          = 0;                        // Print vibration contributions
     LowVibTreatment lowVibTreatment = LowVibTreatment::Grimme;  // Low frequency treatment

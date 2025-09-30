@@ -560,11 +560,11 @@ namespace util
                 if (!(iss >> sys.massmod))
                     throw std::runtime_error("Error: Invalid value for -massmod");
             }
-            else if (inputArgs == "-PGlabel")
+            else if (inputArgs == "-PGname")
             {
                 if (++iarg >= argc)
-                    throw std::runtime_error("Error: Missing value for -PGlabel");
-                sys.PGlabelinit = argv[iarg];
+                    throw std::runtime_error("Error: Missing value for -PGname");
+                sys.PGnameinit = argv[iarg];
             }
             else if (inputArgs == "-noset")
             {
@@ -926,9 +926,9 @@ namespace util
                         throw std::runtime_error("Error: Invalid value for outotm in settings.ini");
                 }
             }
-            get_option_str(file, "PGlabel", inputArgs);
+            get_option_str(file, "PGname", inputArgs);
             if (!inputArgs.empty())
-                sys.PGlabelinit = inputArgs;
+                sys.PGnameinit = inputArgs;
             get_option_str(file, "massmod", inputArgs);
             if (!inputArgs.empty())
             {
@@ -1398,7 +1398,7 @@ namespace util
 
         // Point group
         file << "# Force specific point group (auto-detect if not set)" << "\n";
-        file << "# PGlabel = C2v" << "\n";
+        file << "# PGname = C2v" << "\n";
         file << "\n";
 
         // Output options

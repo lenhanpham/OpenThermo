@@ -316,7 +316,7 @@ intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov
 ipmode = 0         # 0=gas phase, 1=condensed phase
 imagreal = 0.0    # Imaginary frequency threshold
 massmod = 3       # Mass assignment: 1=average, 2=abundant, 3=file
-PGlabel = "?"     # Point group (auto-detect if "?")
+PGname = "?"     # Point group (auto-detect if "?")
 
 # Output options
 prtvib = 0        # Vibration contributions: 0=no, 1=screen, -1=file
@@ -357,7 +357,7 @@ extrape = false
 | `imagreal`   | Imaginary frequency threshold (cm⁻¹)                                     | `0.0`         |
 | `Eexter`     | External electronic energy override (a.u.)                               | `0.0`         |
 | `extrape`    | VASP electronic energy selection                                         | `false`       |
-| `PGlabel`    | Point group label ("?" for auto-detect)                                  | `"?"`         |
+| `PGname`     | Point group name ("?" for auto-detect)                                   | `"?"`         |
 
 **Details for `extrape`:**
 - `false/no/0` → energy without entropy  
@@ -493,11 +493,11 @@ Settings are applied in this order:
 - **Default**: 3
 - **Example**: `-massmod 2`
 
-#### `-PGlabel <label>`
+#### `-PGname <name>`
 
 - **Description**: Force specific point group
 - **Default**: Auto-detect
-- **Example**: `-PGlabel C2v`
+- **Example**: `-PGname C2v`
 
 #### `-conc <string>`
 
@@ -805,7 +805,7 @@ modmass
 ### Symmetry Analysis
 
 - **Automatic detection** of point groups
-- **Manual override** with `-PGlabel` option
+- **Manual override** with `-PGname` option
 - **Rotational symmetry** number calculation
 - **Linear molecule** detection
 

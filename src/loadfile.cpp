@@ -1017,15 +1017,15 @@ void LoadFile::loadCP2K(SystemData& sys)
     }
 
     // ==================== Set Point Group ====================
-    if (sys.PGlabelinit == "?")
+    if (sys.PGnameinit == "?")
     {
         if (sys.ipmode == 1)
         {
-            sys.PGlabelinit = "C1";
+            sys.PGnameinit = "C1";
             std::cout
                 << "Note: When using CP2K to treat periodic systems or solid states (ipmode=1), OpenThermo does not "
                    "automatically detect point group and simply set it to C1."
-                << "You might want to use other point group, and it can be set manually via \"PGlabel\" in settings.ini"
+                << "You might want to use other point groups, and it can be set manually via \"PGname\" in settings.ini"
                 << '\n';
         }
     }
@@ -2215,15 +2215,15 @@ void LoadFile::loadvasp(SystemData& sys)
     }
 
     // ==================== Set Point Group ====================
-    if (sys.PGlabelinit == "?")
+    if (sys.PGnameinit == "?")
     {
         if (sys.ipmode == 1)
         {
-            sys.PGlabelinit = "C1";
+            sys.PGnameinit = "C1";
             std::cout
                 << "Note: When using VASP to treat periodic systems or solid states (ipmode=1), OpenThermo does not "
                    "automatically detect point group and simply set it to C1."
-                << "You might want to use other point group, and it can be set manually via \"PGlabel\" in settings.ini"
+                << "You might want to use other point group, and it can be set manually via \"PGname\" in settings.ini"
                 << '\n';
         }
     }

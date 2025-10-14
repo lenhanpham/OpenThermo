@@ -445,29 +445,45 @@ namespace util
             }
             else if (inputArgs == "-T")
             {
+                // Check if next 3 arguments exist for scanning
+                if (iarg + 3 < argc)
+                {
+                    std::istringstream iss_low(argv[iarg + 1]);
+                    std::istringstream iss_high(argv[iarg + 2]);
+                    std::istringstream iss_step(argv[iarg + 3]);
+                    if (iss_low >> sys.Tlow && iss_high >> sys.Thigh && iss_step >> sys.Tstep)
+                    {
+                        iarg += 3;  // Skip the consumed arguments
+                        continue;
+                    }
+                }
+                // Fallback to single temperature
                 if (++iarg >= argc)
                     throw std::runtime_error("Error: Missing value for -T");
                 std::istringstream iss(argv[iarg]);
-                if (!(iss >> sys.Tlow >> sys.Thigh >> sys.Tstep))
-                {
-                    iss.clear();
-                    iss.seekg(0);
-                    if (!(iss >> sys.T))
-                        throw std::runtime_error("Error: Invalid value for -T");
-                }
+                if (!(iss >> sys.T))
+                    throw std::runtime_error("Error: Invalid value for -T");
             }
             else if (inputArgs == "-P")
             {
+                // Check if next 3 arguments exist for scanning
+                if (iarg + 3 < argc)
+                {
+                    std::istringstream iss_low(argv[iarg + 1]);
+                    std::istringstream iss_high(argv[iarg + 2]);
+                    std::istringstream iss_step(argv[iarg + 3]);
+                    if (iss_low >> sys.Plow && iss_high >> sys.Phigh && iss_step >> sys.Pstep)
+                    {
+                        iarg += 3;  // Skip the consumed arguments
+                        continue;
+                    }
+                }
+                // Fallback to single pressure
                 if (++iarg >= argc)
                     throw std::runtime_error("Error: Missing value for -P");
                 std::istringstream iss(argv[iarg]);
-                if (!(iss >> sys.Plow >> sys.Phigh >> sys.Pstep))
-                {
-                    iss.clear();
-                    iss.seekg(0);
-                    if (!(iss >> sys.P))
-                        throw std::runtime_error("Error: Invalid value for -P");
-                }
+                if (!(iss >> sys.P))
+                    throw std::runtime_error("Error: Invalid value for -P");
             }
             else if (inputArgs == "-sclZPE")
             {

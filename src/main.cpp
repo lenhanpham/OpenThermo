@@ -695,12 +695,10 @@ auto main(int argc, char* argv[]) -> int
                 }
                 file_UHG.close();
                 file_SCq.close();
-                std::cout << "\n Done! Thermochemistry quantities at various temperatures/pressures have been "
-                             "outputted to "
-                          << uhg_filename << " and " << scq_filename << "\n"
-                          << " " << uhg_filename
-                          << " includes thermal correction to U, H and G, as well as sum of each of them "
-                             "and electronic energy\n"
+                std::cout << "\n Congratulation! Thermochemistry data at various temperatures/pressures were calculated "
+                             "and exported to " << uhg_filename << " and " << scq_filename << "\n" << " " << uhg_filename
+                          << " includes thermal correction to U, H and G, and sum of electronic energy "
+                             "and each corresponding correction\n"
                           << " " << scq_filename << " includes S, CV, CP, q(V=0) and q(bot)\n";
             }
         }

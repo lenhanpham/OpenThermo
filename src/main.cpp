@@ -651,7 +651,7 @@ auto main(int argc, char* argv[]) -> int
                     throw std::runtime_error("Error: Could not open " + uhg_filename + " for writing");
                 }
                 file_UHG << "Ucorr, Hcorr and Gcorr are in kcal/mol; U, H and G are in a.u.\n\n"
-                         << "     T(K)     P(atm)    Ucorr     Hcorr     Gcorr            U                H           "
+                         << "     T(K)      P(atm)  Ucorr     Hcorr     Gcorr            U                H           "
                             "     G\n";
                 std::ofstream file_SCq(scq_filename, std::ios::out);
                 if (!file_SCq.is_open())
@@ -659,8 +659,8 @@ auto main(int argc, char* argv[]) -> int
                     file_UHG.close();
                     throw std::runtime_error("Error: Could not open " + scq_filename + " for writing");
                 }
-                file_SCq << "S, CV and CP are in cal/mol/K, q(V=0)/NA and q(bot)/NA are unitless\n\n"
-                         << "    T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA\n";
+                file_SCq << "S, CV and CP are in cal/mol/K; q(V=0)/NA and q(bot)/NA are unitless\n\n"
+                         << "    T(K)       P(atm)    S         CV        CP        q(V=0)/NA      q(bot)/NA\n";
                 if (Ts > 0 && Ps > 0)
                 {
                     // Calculate the number of temperature steps

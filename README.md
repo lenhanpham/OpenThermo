@@ -669,7 +669,7 @@ Running parameters:
 **Thermal corrections and total energies:**
 
 ```text
-Unit of Ucorr, Hcorr and Gcorr is kcal/mol, unit of U, H and G is a.u.
+Ucorr, Hcorr and Gcorr are in kcal/mol; U, H and G are in a.u.
 
      T(K)     P(atm)    Ucorr     Hcorr     Gcorr            U                H                G
    298.15     1.000     4.567     4.789     4.123   -76.380162   -76.379940   -76.384063
@@ -681,7 +681,7 @@ Unit of Ucorr, Hcorr and Gcorr is kcal/mol, unit of U, H and G is a.u.
 **Entropy and partition functions:**
 
 ```text
-Unit of S, CV and CP is cal/mol/K, q(V=0)/NA and q(bot)/NA are dimensionless
+S, CV and CP are in cal/mol/K; q(V=0)/NA and q(bot)/NA are unitless
 
     T(K)     P(atm)      S         CV        CP       q(V=0)/NA      q(bot)/NA
    298.15     1.000    45.67     12.34     13.56   1.234567e-05   2.345678e-03

@@ -144,7 +144,7 @@ auto main(int argc, char* argv[]) -> int
         }
         if (sys.inoset == 1)
         {
-            std::cout << "Setting parameters from settings.ini are ignored because of \"-noset\" argument\n";
+            std::cout << "\"-noset\" is set: Setting parameters from settings.ini are ignored \n";
         }
         else
         {

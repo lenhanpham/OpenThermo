@@ -695,7 +695,7 @@ auto main(int argc, char* argv[]) -> int
                 }
                 file_UHG.close();
                 file_SCq.close();
-                std::cout << "\n Congratulation! Thermochemimcal properties at various temperatures/pressures were calculated " << "\n"
+                std::cout << "\n Congratulation! Thermochemical properties at various temperatures/pressures were calculated " << "\n"
                           << " " << "All data were exported to " << uhg_filename << " and " << scq_filename << "\n" 
                           << " " << uhg_filename << " contains thermal correction to U, H and G, and sum of electronic energy and corresponding corrections\n"
                           << " " << scq_filename << " contains S, CV, CP, q(V=0) and q(bot)\n";

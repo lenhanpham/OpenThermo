@@ -338,32 +338,34 @@ extrape = false
 
 ### Parameters
 
-| Parameter    | Meaning                                                                  | Default Value |
-| ----------   | ------------------------------------------------------------------------ | ------------- |
-| `conc`       | Concentration string for solution phase Gibbs energy corrections         | `0`           |
-| `prtvib`     | Print vibration contributions (0=no, 1=screen, -1=file)                  | `0`           |
-| `lowvibmeth` | Low frequency treatment method                                           | `2`           |
-| `massmod`    | Mass assignment mode (1=average, 2=abundant, 3=file)                     | `3`           |
-| `outotm`     | Output .otm file flag (0=no, 1=yes)                                      | `0`           |
-| `ipmode`     | Calculation mode (0=gas phase, 1=condensed phase)                        | `0`           |
-| `T`          | Temperature in Kelvin                                                    | `298.15`      |
-| `P`          | Pressure in atmospheres                                                  | `1.0`         |
-| `sclZPE`     | ZPE scaling factor                                                       | `1.0`         |
-| `sclheat`    | Thermal energy scaling factor                                            | `1.0`         |
-| `sclS`       | Entropy scaling factor                                                   | `1.0`         |
-| `sclCV`      | Heat capacity scaling factor                                             | `1.0`         |
-| `ravib`      | Raising threshold for Truhlar method (cm⁻¹)                              | `100.0`       |
-| `intpvib`    | Interpolation threshold for Grimme/Minenkov (cm⁻¹)                       | `100.0`       |
-| `imagreal`   | Imaginary frequency threshold (cm⁻¹)                                     | `0.0`         |
-| `Eexter`     | External electronic energy override (a.u.)                               | `0.0`         |
-| `extrape`    | VASP electronic energy selection                                         | `false`       |
-| `PGname`     | Point group name ("?" for auto-detect)                                   | `"?"`         |
+| Parameter    | Meaning                                                          | Default Value |
+| ------------ | ---------------------------------------------------------------- | ------------- |
+| `conc`       | Concentration string for solution phase Gibbs energy corrections | `0`           |
+| `prtvib`     | Print vibration contributions (0=no, 1=screen, -1=file)          | `0`           |
+| `lowvibmeth` | Low frequency treatment method                                   | `2`           |
+| `massmod`    | Mass assignment mode (1=average, 2=abundant, 3=file)             | `3`           |
+| `outotm`     | Output .otm file flag (0=no, 1=yes)                              | `0`           |
+| `ipmode`     | Calculation mode (0=gas phase, 1=condensed phase)                | `0`           |
+| `T`          | Temperature in Kelvin                                            | `298.15`      |
+| `P`          | Pressure in atmospheres                                          | `1.0`         |
+| `sclZPE`     | ZPE scaling factor                                               | `1.0`         |
+| `sclheat`    | Thermal energy scaling factor                                    | `1.0`         |
+| `sclS`       | Entropy scaling factor                                           | `1.0`         |
+| `sclCV`      | Heat capacity scaling factor                                     | `1.0`         |
+| `ravib`      | Raising threshold for Truhlar method (cm⁻¹)                      | `100.0`       |
+| `intpvib`    | Interpolation threshold for Grimme/Minenkov (cm⁻¹)               | `100.0`       |
+| `imagreal`   | Imaginary frequency threshold (cm⁻¹)                             | `0.0`         |
+| `Eexter`     | External electronic energy override (a.u.)                       | `0.0`         |
+| `extrape`    | VASP electronic energy selection                                 | `false`       |
+| `PGname`     | Point group name ("?" for auto-detect)                           | `"?"`         |
 
 **Details for `extrape`:**
+
 - `false/no/0` → energy without entropy  
 - `true/yes/1` → energy (σ→0)
 
 **Details for `lowvibmeth`:**
+
 - 0/Harmonic = Rigid-Rotor Harmonic Oscillator approximation (RRHO)
 - 1/Truhlar =  Truhlar's QRRHO method
 - 2/Grimme = Grimme's method
@@ -610,7 +612,6 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Features**: Supports molecular and periodic systems
 - **Note**: For condensed phase systems (ipmode=1): contributions of translation and rotation are ignored
 
-
 #### 3. List Files (.txt)
 
 **Batch processing of multiple files:**
@@ -818,6 +819,7 @@ modmass
 ### VASP Energy Selection
 
 - **Energy line format**: In VASP OUTCAR files, the energy line contains two values:
+  
   ```
   energy  without entropy=      -27.39346935  energy(sigma->0) =      -27.39346935
   ```
@@ -1129,6 +1131,22 @@ clang-format -i src/*.cpp src/*.h
 clang-tidy src/*.cpp -- -std=c++17
 ```
 
+## Cite
+
+Cite this project if you use OpenThermo for your research:
+
+```bibtex
+@article{pham_openthermo_2025,
+    title = {{OpenThermo} {A} {Comprehensive} {C}++ {Program} for {Calculation} of {Thermochemical} {Properties}},
+    url = {https://www.researchgate.net/doi/10.13140/RG.2.2.22380.63363},
+    doi = {10.13140/RG.2.2.22380.63363},
+    urldate = {2025},
+    author = {Pham, Le Nhan},
+    year = {2025},
+    note = {Publisher: Preprint},
+}
+```
+
 ## License
 
 OpenThermo is licensed under the **MIT License**.
@@ -1141,7 +1159,7 @@ OpenThermo is licensed under the **MIT License**.
 
 ---
 
-**OpenThermo v0.001.0** - High-performance molecular thermochemistry calculations
+**OpenThermo v0.001.1** - High-performance molecular thermochemistry calculations
 Developed by Le Nhan Pham | [GitHub](https://github.com/lenhanpham/OpenThermo)
 
-For more information, visit the project documentation or use `./build/OpenThermo --help`
+For more information, visit the project documentation or use `OpenThermo --help`

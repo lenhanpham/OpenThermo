@@ -24,8 +24,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.5373264"
-     inkscape:cx="282.30829"
-     inkscape:cy="95.29531"
+     inkscape:cx="282.3083"
+     inkscape:cy="95.295313"
      inkscape:window-width="1920"
      inkscape:window-height="1013"
      inkscape:window-x="2391"
@@ -33,19 +33,17 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="svg16"
      inkscape:document-units="cm" />
-  <text
-     xml:space="preserve"
-     style="font-size:64.8226px;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:5.40188"
-     x="0"
-     y="48.616951"
-     id="text16"><tspan
-       sodipodi:role="line"
-       id="tspan16"
-       x="0"
-       y="48.616951"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Determination;-inkscape-font-specification:Determination;stroke-width:5.40188"><tspan
-         style="fill:#aa8800;stroke-width:5.40188"
-         id="tspan17">Open</tspan><tspan
-         style="fill:#24221c;stroke-width:5.40188"
-         id="tspan18">Thermo</tspan></tspan></text>
+  <g
+     id="text16"
+     style="font-size:64.8226px;fill:#000000;stroke-width:5.40188"
+     aria-label="OpenThermo">
+    <path
+       style="font-family:Determination;-inkscape-font-specification:Determination;fill:#aa8800"
+       d="M 21.586433,43.236169 V 5.412434 H 10.793216 V 43.236169 Z M 5.3807823,48.616951 V 43.236169 H 0 V 5.412434 H 5.3807823 V 0 H 26.998867 v 5.412434 h 5.412434 v 37.823735 h -5.412434 v 5.380782 z M 59.378516,43.236169 V 16.20565 H 48.5853 V 43.236169 Z M 37.792084,64.822601 V 10.824868 H 64.79095 v 5.380782 h 5.412434 V 43.236169 H 64.79095 v 5.380782 H 48.5853 v 16.20565 z M 97.1706,27.030518 V 16.20565 H 86.377384 V 27.030518 Z M 80.96495,48.616951 V 43.236169 H 75.584167 V 16.20565 h 5.380783 v -5.380782 h 21.61808 v 5.380782 h 5.41244 V 32.411301 H 86.377384 V 43.236169 H 97.1706 v -5.412434 h 10.82487 v 5.412434 h -5.41244 v 5.380782 z m 32.4113,0 V 10.824868 h 26.99887 v 5.380782 h 5.41243 V 48.616951 H 134.96268 V 16.20565 h -10.79321 v 32.411301 z"
+       id="path1" />
+    <path
+       style="font-family:Determination;-inkscape-font-specification:Determination;fill:#24221c"
+       d="M 161.96155,48.616951 V 5.412434 H 151.16833 V 0 h 32.41131 v 5.412434 h -10.82487 v 43.204517 z m 26.99887,0 V 0 h 10.79322 v 10.824868 h 16.20565 v 5.380782 h 5.41243 V 48.616951 H 210.54685 V 16.20565 H 199.75364 V 48.616951 Z M 248.33894,27.030518 V 16.20565 H 237.54572 V 27.030518 Z M 232.13328,48.616951 V 43.236169 H 226.7525 V 16.20565 h 5.38078 v -5.380782 h 21.61809 v 5.380782 h 5.41243 v 16.205651 h -21.61808 v 10.824868 h 10.79322 v -5.412434 h 10.82486 v 5.412434 h -5.41243 v 5.380782 z m 32.41131,0 V 10.824868 h 26.99886 v 5.380782 h 5.41244 V 27.030518 H 286.13102 V 16.20565 H 275.3378 v 32.411301 z m 37.79208,0 V 10.824868 h 16.20565 v 5.380782 h 5.38078 v -5.380782 h 10.82487 v 5.380782 h 5.38078 V 48.616951 H 329.33554 V 21.618084 h -5.41244 v 21.618085 h -5.38078 V 21.618084 h -5.41243 v 26.998867 z m 64.79096,-5.380782 V 16.20565 h -10.79321 v 27.030519 z m -16.20565,5.380782 V 43.236169 H 345.5412 V 16.20565 h 5.38078 v -5.380782 h 21.61809 v 5.380782 h 5.41243 v 27.030519 h -5.41243 v 5.380782 z"
+       id="path2" />
+  </g>
 </svg>

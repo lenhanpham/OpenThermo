@@ -1,4 +1,4 @@
-name: CI/CD for OpenThermo
+name: Build
 
 on:
   push:

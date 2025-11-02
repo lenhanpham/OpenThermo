@@ -12,7 +12,9 @@
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
   </a>
-  <img src="https://img.shields.io/badge/Build-Passing-brightgreen.svg" alt="Build Status">
+  <a href="https://github.com/lenhanpham/OpenThermo/actions/workflows/ot.yml">
+    <img src="https://github.com/lenhanpham/OpenThermo/actions/workflows/ot.yml/badge.svg" alt="Build Status">
+  </a>
 </p>
 
 A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.

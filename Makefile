@@ -43,6 +43,9 @@ endif
 DEBUGFLAGS = -g -DDEBUG_BUILD -fsanitize=address -fno-omit-frame-pointer
 
 # Platform-specific flags
+ifeq ($(DETECTED_OS),Windows)
+    LDFLAGS += -static
+endif
 ifeq ($(DETECTED_OS),Linux)
     LDFLAGS += -lrt -lstdc++fs
 endif

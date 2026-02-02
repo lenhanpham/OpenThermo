@@ -2826,8 +2826,10 @@ void sym_elements(int natoms, const std::vector<int>& nat,
  */
 // Converted from Fortran 2D array 'chtab'
 // Dimensions: [322][14]
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-const-variable"
+#endif
 const std::array<std::array<double, 14>, 322> chtab = {{
 //
 // Character tables
@@ -3607,7 +3609,9 @@ const std::array<std::array<double, 14>, 322> chtab = {{
   //  Hu
     { 5.0, 0.0, 0.0, -1.0, 1.0, -5.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0 },
 }};
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 //
 ///**
 // * @brief Get the character table for a specific point group

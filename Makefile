@@ -5,10 +5,21 @@
 SRC_DIR = src
 BUILD_DIR = build
 
+# OS detection
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+else
+    DETECTED_OS := $(shell uname -s)
+endif
+
 # Compiler settings
 # Auto-detect compiler. Prefers Intel compilers (icpx, icpc, icc) over GCC (g++) and Clang.
 COMPILER_LIST := icpx icpc icc clang++ g++
-CXX := $(firstword $(foreach c,$(COMPILER_LIST),$(if $(shell command -v $(c)),$(c))))
+ifeq ($(DETECTED_OS),Windows)
+    CXX := $(firstword $(foreach c,$(COMPILER_LIST),$(if $(shell where $(c) 2>nul),$(c))))
+else
+    CXX := $(firstword $(foreach c,$(COMPILER_LIST),$(if $(shell command -v $(c)),$(c))))
+endif
 
 # Fallback to a default if no compiler is found in PATH and print a warning.
 ifeq ($(CXX),)
@@ -31,12 +42,11 @@ endif
 
 DEBUGFLAGS = -g -DDEBUG_BUILD -fsanitize=address -fno-omit-frame-pointer
 
-# Platform detection
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
+# Platform-specific flags
+ifeq ($(DETECTED_OS),Linux)
     LDFLAGS += -lrt -lstdc++fs
 endif
-ifeq ($(UNAME_S),Darwin)
+ifeq ($(DETECTED_OS),Darwin)
     # macOS specific flags if needed
 endif
 
@@ -58,10 +68,19 @@ HEADERS = $(SRC_DIR)/atommass.h \
            $(SRC_DIR)/help_utils.h
 
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-TARGET = $(BUILD_DIR)/OpenThermo
+
+ifeq ($(DETECTED_OS),Windows)
+    TARGET = $(BUILD_DIR)/OpenThermo.exe
+else
+    TARGET = $(BUILD_DIR)/OpenThermo
+endif
 
 # Ensure build directory exists
-$(shell mkdir -p $(BUILD_DIR))
+ifeq ($(DETECTED_OS),Windows)
+    $(shell if not exist $(BUILD_DIR) mkdir $(BUILD_DIR))
+else
+    $(shell mkdir -p $(BUILD_DIR))
+endif
 
 # Default target
 all: $(TARGET)
@@ -72,7 +91,11 @@ $(TARGET): $(OBJECTS)
 
 # Compile source files to object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
+ifeq ($(DETECTED_OS),Windows)
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+else
 	@mkdir -p $(dir $@)
+endif
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Debug build with additional safety checks
@@ -86,7 +109,11 @@ release: clean $(TARGET)
 
 # Clean build artifacts
 clean:
+ifeq ($(DETECTED_OS),Windows)
+	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
+else
 	rm -rf $(BUILD_DIR) $(TARGET)
+endif
 
 # Help target
 help:

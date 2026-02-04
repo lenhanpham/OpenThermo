@@ -82,15 +82,17 @@ bool LoadFile::loclabelfinal(std::ifstream& file, const std::string& label, int&
     std::string    line;
     file.clear();
     file.seekg(0);
-    while (std::getline(file, line))
+    while (file)
     {
+        std::streampos linestart = file.tellg();
+        if (!std::getline(file, line)) break;
         line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
         line.erase(0, line.find_first_not_of(" \t"));
         line.erase(line.find_last_not_of(" \t") + 1);
         if (line.find(label) != std::string::npos)
         {
             ncount++;
-            lastpos = file.tellg() - std::streamoff(line.length() + 1);  // Save start of line
+            lastpos = linestart;
         }
     }
     if (ncount > 0)

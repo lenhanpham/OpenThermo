@@ -139,6 +139,24 @@ help:
 	@echo "  make debug              # Build debug version"
 	@echo "  make release            # Build optimized version"
 	@echo "  make clean              # Clean build"
+	@echo "  make test               # Run regression tests"
+	@echo "  make test-generate      # Generate reference values"
+
+# Run regression tests
+test: $(TARGET)
+ifeq ($(DETECTED_OS),Windows)
+	python tests/run_tests.py --executable $(TARGET)
+else
+	python3 tests/run_tests.py --executable $(TARGET)
+endif
+
+# Generate reference values from current build
+test-generate: $(TARGET)
+ifeq ($(DETECTED_OS),Windows)
+	python tests/run_tests.py --generate --executable $(TARGET)
+else
+	python3 tests/run_tests.py --generate --executable $(TARGET)
+endif
 
 # Declare phony targets
-.PHONY: all debug release clean help
+.PHONY: all debug release clean help test test-generate

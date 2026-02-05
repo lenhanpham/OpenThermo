@@ -1,0 +1,666 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "generated_at": "2026-02-02T09:48:52.726932+00:00",
+    "generated_by": "OpenThermo (057dffe)",
+    "tolerances": {
+      "energy_au": 1e-06,
+      "energy_kJ": 0.01,
+      "energy_kcal": 0.01,
+      "entropy_J": 0.01,
+      "heat_capacity_J": 0.01
+    }
+  },
+  "tests": [
+    {
+      "id": "gaussian_h2co_freq",
+      "description": "Gaussian 16 H2CO frequency calculation",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730554,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "gaussian_large",
+      "description": "Gaussian large molecule",
+      "input_file": "gaussian.log",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C1",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -690.567357,
+        "zpe_kJ": 735.811,
+        "zpe_kcal": 175.863,
+        "zpe_au": 0.280255,
+        "thermal_correction_U_kJ": 773.165,
+        "thermal_correction_U_au": 0.294483,
+        "thermal_correction_H_kJ": 775.644152,
+        "thermal_correction_H_au": 0.295427,
+        "thermal_correction_G_kJ": 630.735539,
+        "thermal_correction_G_au": 0.240234,
+        "total_CV_J": 236.238,
+        "total_CP_J": 244.552,
+        "total_S_J": 486.026,
+        "E_plus_ZPE_au": -690.2871015,
+        "E_plus_U_au": -690.272874,
+        "E_plus_H_au": -690.2719298,
+        "E_plus_G_au": -690.3271226
+      }
+    },
+    {
+      "id": "gaussian_c2h5",
+      "description": "Gaussian 16 C2H5 opt+freq",
+      "input_file": "gaussian_16_C2H5_optfreq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Cs",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -79.104438,
+        "zpe_kJ": 156.744,
+        "zpe_kcal": 37.463,
+        "zpe_au": 0.059701,
+        "thermal_correction_U_kJ": 167.107,
+        "thermal_correction_U_au": 0.063648,
+        "thermal_correction_H_kJ": 169.585502,
+        "thermal_correction_H_au": 0.064592,
+        "thermal_correction_G_kJ": 95.299456,
+        "thermal_correction_G_au": 0.036298,
+        "total_CV_J": 46.163,
+        "total_CP_J": 54.477,
+        "total_S_J": 249.157,
+        "E_plus_ZPE_au": -79.0447373,
+        "E_plus_U_au": -79.0407905,
+        "E_plus_H_au": -79.0398463,
+        "E_plus_G_au": -79.0681404
+      }
+    },
+    {
+      "id": "orca_optfreq",
+      "description": "ORCA opt+freq calculation",
+      "input_file": "ORCA-optFreq.log",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C1",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -1594.34467012,
+        "zpe_kJ": 286.979,
+        "zpe_kcal": 68.59,
+        "zpe_au": 0.109304,
+        "thermal_correction_U_kJ": 316.245,
+        "thermal_correction_U_au": 0.120451,
+        "thermal_correction_H_kJ": 318.724061,
+        "thermal_correction_H_au": 0.121396,
+        "thermal_correction_G_kJ": 189.821957,
+        "thermal_correction_G_au": 0.072299,
+        "total_CV_J": 170.849,
+        "total_CP_J": 179.164,
+        "total_S_J": 432.34,
+        "E_plus_ZPE_au": -1594.2353658,
+        "E_plus_U_au": -1594.2242187,
+        "E_plus_H_au": -1594.2232745,
+        "E_plus_G_au": -1594.2723708
+      }
+    },
+    {
+      "id": "orca_ethanol",
+      "description": "ORCA ethanol opt+freq",
+      "input_file": "ORCA_ethanol_optfreq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Cs",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -155.03085171,
+        "zpe_kJ": 210.692,
+        "zpe_kcal": 50.357,
+        "zpe_au": 0.080248,
+        "thermal_correction_U_kJ": 221.926,
+        "thermal_correction_U_au": 0.084527,
+        "thermal_correction_H_kJ": 224.404459,
+        "thermal_correction_H_au": 0.085471,
+        "thermal_correction_G_kJ": 144.034721,
+        "thermal_correction_G_au": 0.05486,
+        "total_CV_J": 56.055,
+        "total_CP_J": 64.37,
+        "total_S_J": 269.561,
+        "E_plus_ZPE_au": -154.9506034,
+        "E_plus_U_au": -154.9463248,
+        "E_plus_H_au": -154.9453806,
+        "E_plus_G_au": -154.9759918
+      }
+    },
+    {
+      "id": "gamess_ch4",
+      "description": "GAMESS CH4 methane",
+      "input_file": "gamess-CH4.log",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Td",
+        "rotational_symmetry_number": 12,
+        "electronic_energy_au": -4.58652414,
+        "zpe_kJ": 117.495,
+        "zpe_kcal": 28.082,
+        "zpe_au": 0.044752,
+        "thermal_correction_U_kJ": 125.017,
+        "thermal_correction_U_au": 0.047616,
+        "thermal_correction_H_kJ": 127.495617,
+        "thermal_correction_H_au": 0.048561,
+        "thermal_correction_G_kJ": 72.009499,
+        "thermal_correction_G_au": 0.027427,
+        "total_CV_J": 26.884,
+        "total_CP_J": 35.198,
+        "total_S_J": 186.101,
+        "E_plus_ZPE_au": -4.5417725,
+        "E_plus_U_au": -4.5389078,
+        "E_plus_H_au": -4.5379636,
+        "E_plus_G_au": -4.5590972
+      }
+    },
+    {
+      "id": "gamess_h2co",
+      "description": "GAMESS H2CO opt+freq",
+      "input_file": "GMS_H2CO_optfreq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -11.06898764,
+        "zpe_kJ": 70.148,
+        "zpe_kcal": 16.766,
+        "zpe_au": 0.026718,
+        "thermal_correction_U_kJ": 77.674,
+        "thermal_correction_U_au": 0.029584,
+        "thermal_correction_H_kJ": 80.152732,
+        "thermal_correction_H_au": 0.030529,
+        "thermal_correction_G_kJ": 15.021809,
+        "thermal_correction_G_au": 0.005722,
+        "total_CV_J": 26.813,
+        "total_CP_J": 35.127,
+        "total_S_J": 218.45,
+        "E_plus_ZPE_au": -11.0422697,
+        "E_plus_U_au": -11.0394033,
+        "E_plus_H_au": -11.0384591,
+        "E_plus_G_au": -11.0632661
+      }
+    },
+    {
+      "id": "nwchem_nh2coh",
+      "description": "NWChem NH2COH opt+freq",
+      "input_file": "NWChem_NH2COH_optfreq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Cs",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -169.8888416,
+        "zpe_kJ": 118.811,
+        "zpe_kcal": 28.397,
+        "zpe_au": 0.045253,
+        "thermal_correction_U_kJ": 129.331,
+        "thermal_correction_U_au": 0.049259,
+        "thermal_correction_H_kJ": 131.809736,
+        "thermal_correction_H_au": 0.050204,
+        "thermal_correction_G_kJ": 53.257115,
+        "thermal_correction_G_au": 0.020285,
+        "total_CV_J": 45.706,
+        "total_CP_J": 54.02,
+        "total_S_J": 263.467,
+        "E_plus_ZPE_au": -169.8435889,
+        "E_plus_U_au": -169.8395821,
+        "E_plus_H_au": -169.8386379,
+        "E_plus_G_au": -169.868557
+      }
+    },
+    {
+      "id": "cp2k_co2_freq",
+      "description": "CP2K CO2 frequency calculation",
+      "input_file": "CP2K_CO2_freq.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Dih",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -11.54216292,
+        "zpe_kJ": 30.42,
+        "zpe_kcal": 7.271,
+        "zpe_au": 0.011586,
+        "thermal_correction_U_kJ": 37.211,
+        "thermal_correction_U_au": 0.014173,
+        "thermal_correction_H_kJ": 39.689677,
+        "thermal_correction_H_au": 0.015117,
+        "thermal_correction_G_au": 0.009107,
+        "total_CV_J": 28.134,
+        "total_CP_J": 36.449,
+        "total_S_J": 213.318,
+        "E_plus_ZPE_au": -11.5305765,
+        "E_plus_U_au": -11.5279901,
+        "E_plus_H_au": -11.5270459,
+        "E_plus_G_au": -11.5512701
+      }
+    },
+    {
+      "id": "vasp_co_freq",
+      "description": "VASP CO molecule frequency",
+      "input_file": "vasp_CO_freq/OUTCAR",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Civ",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -0.39007787,
+        "zpe_kJ": 39.866,
+        "zpe_kcal": 9.528,
+        "zpe_au": 0.015184,
+        "thermal_correction_U_kJ": 53.536,
+        "thermal_correction_U_au": 0.020391,
+        "thermal_correction_H_kJ": 56.015046,
+        "thermal_correction_H_au": 0.021335,
+        "thermal_correction_G_au": 0.01181,
+        "total_CV_J": 46.83,
+        "total_CP_J": 55.145,
+        "total_S_J": 291.87,
+        "E_plus_ZPE_au": -0.3748939,
+        "E_plus_U_au": -0.3696871,
+        "E_plus_H_au": -0.3687429,
+        "E_plus_G_au": -0.4018874
+      }
+    },
+    {
+      "id": "gaussian_h2co_T500",
+      "description": "H2CO at 500 K",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-T",
+        "500"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 83.55,
+        "thermal_correction_U_au": 0.031822,
+        "thermal_correction_H_kJ": 87.706929,
+        "thermal_correction_H_au": 0.033406,
+        "thermal_correction_G_au": 0.011991,
+        "total_CV_J": 34.722,
+        "total_CP_J": 43.037,
+        "total_S_J": 238.376,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5174316,
+        "E_plus_H_au": -114.5158482,
+        "E_plus_G_au": -114.5612445
+      }
+    },
+    {
+      "id": "gaussian_h2co_P2",
+      "description": "H2CO at 2 atm",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-P",
+        "2.0"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 16.448837,
+        "thermal_correction_G_au": 0.006265,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 212.72,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.542989
+      }
+    },
+    {
+      "id": "gaussian_h2co_truhlar",
+      "description": "H2CO with Truhlar quasi-RRHO",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-lowvibmeth",
+        "1"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730589,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "gaussian_h2co_grimme",
+      "description": "H2CO with Grimme quasi-RRHO",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-lowvibmeth",
+        "2"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730554,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "gaussian_h2co_minenkov",
+      "description": "H2CO with Minenkov quasi-RRHO",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-lowvibmeth",
+        "3"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.870574,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.729755,
+        "thermal_correction_G_au": 0.00561,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_U_au": -114.5197771,
+        "E_plus_H_au": -114.5188329,
+        "E_plus_G_au": -114.5436437
+      }
+    },
+    {
+      "id": "gaussian_h2co_scaled",
+      "description": "H2CO with ZPE scaling 0.96",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-sclZPE",
+        "0.96"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 67.072,
+        "zpe_kcal": 16.031,
+        "zpe_au": 0.025546,
+        "thermal_correction_U_kJ": 74.598,
+        "thermal_correction_U_au": 0.028413,
+        "thermal_correction_H_kJ": 77.076714,
+        "thermal_correction_H_au": 0.029357,
+        "thermal_correction_G_kJ": 11.935896,
+        "thermal_correction_G_au": 0.004546,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5237077,
+        "E_plus_U_au": -114.5208412,
+        "E_plus_H_au": -114.519897,
+        "E_plus_G_au": -114.5447079
+      }
+    },
+    {
+      "id": "gaussian_h2co_conc",
+      "description": "H2CO with concentration 1.0 M",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-conc",
+        "1.0"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730554,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "nwchem_nh2coh_imagreal",
+      "description": "NH2COH with imagreal threshold 20",
+      "input_file": "NWChem_NH2COH_optfreq.out",
+      "extra_args": [
+        "-imagreal",
+        "20"
+      ],
+      "expected": {
+        "point_group": "Cs",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -169.8888416,
+        "zpe_kJ": 118.811,
+        "zpe_kcal": 28.397,
+        "zpe_au": 0.045253,
+        "thermal_correction_U_kJ": 129.331,
+        "thermal_correction_U_au": 0.049259,
+        "thermal_correction_H_kJ": 131.809736,
+        "thermal_correction_H_au": 0.050204,
+        "thermal_correction_G_kJ": 53.257115,
+        "thermal_correction_G_au": 0.020285,
+        "total_CV_J": 45.706,
+        "total_CP_J": 54.02,
+        "total_S_J": 263.467,
+        "E_plus_ZPE_au": -169.8435889,
+        "E_plus_U_au": -169.8395821,
+        "E_plus_H_au": -169.8386379,
+        "E_plus_G_au": -169.868557
+      }
+    },
+    {
+      "id": "vasp_co_ni111_ipmode1",
+      "description": "VASP CO/Ni(111) condensed phase",
+      "input_file": "vasp_CO_Ni111_freq/OUTCAR",
+      "extra_args": [
+        "-ipmode",
+        "1"
+      ],
+      "expected": {
+        "point_group": "C1",
+        "electronic_energy_au": -1.49704841,
+        "zpe_kJ": 20.812,
+        "zpe_kcal": 4.974,
+        "zpe_au": 0.007927,
+        "thermal_correction_U_kJ": 27.679,
+        "thermal_correction_U_au": 0.010542,
+        "thermal_correction_H_kJ": 27.679192,
+        "thermal_correction_H_au": 0.010542,
+        "thermal_correction_G_kJ": 13.479949,
+        "thermal_correction_G_au": 0.005134,
+        "total_CV_J": 34.113,
+        "total_CP_J": 34.113,
+        "total_S_J": 47.624,
+        "E_plus_ZPE_au": -1.4891214,
+        "E_plus_U_au": -1.486506,
+        "E_plus_H_au": -1.486506,
+        "E_plus_G_au": -1.4919142
+      }
+    },
+    {
+      "id": "gaussian_h2co_otm",
+      "description": "H2CO .otm file generation",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-outotm",
+        "1"
+      ],
+      "check_files": [
+        ".otm"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730554,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "gaussian_h2co_vibcon",
+      "description": "H2CO .vibcon file generation",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-prtvib",
+        "-1"
+      ],
+      "check_files": [
+        ".vibcon"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "zpe_kJ": 69.866,
+        "zpe_kcal": 16.698,
+        "zpe_au": 0.026611,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.871373,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.730554,
+        "thermal_correction_G_au": 0.005611,
+        "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_ZPE_au": -114.5226433,
+        "E_plus_U_au": -114.5197768,
+        "E_plus_H_au": -114.5188326,
+        "E_plus_G_au": -114.5436434
+      }
+    },
+    {
+      "id": "gaussian_h2co_Tscan",
+      "description": "H2CO temperature scan 200-400K",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-T",
+        "200",
+        "400",
+        "50"
+      ],
+      "check_files": [
+        ".UHG",
+        ".SCq"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254
+      }
+    },
+    {
+      "id": "error_nonexistent_file",
+      "description": "Non-existent input file",
+      "input_file": "NONEXISTENT_FILE.out",
+      "extra_args": [],
+      "expect_error": true,
+      "expected": {}
+    },
+    {
+      "id": "error_invalid_input",
+      "description": "Invalid input file",
+      "input_file": "invalid_input.txt",
+      "extra_args": [],
+      "expect_error": true,
+      "expected": {}
+    },
+    {
+      "id": "batch_conformers",
+      "description": "Conformer ensemble (3 BIH)",
+      "input_file": "conformer_ensemble.list",
+      "extra_args": [],
+      "test_mode": "batch",
+      "expected": {
+        "weighted_U_au": -690.272689,
+        "weighted_H_au": -690.271745,
+        "weighted_G_au": -690.327189,
+        "weighted_S_J": 488.235,
+        "weighted_CV_J": 236.288,
+        "weighted_CP_J": 244.603,
+        "conf_entropy_J": 2.265
+      }
+    }
+  ]
+}

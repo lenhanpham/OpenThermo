@@ -93,6 +93,18 @@ install(TARGETS OpenThermo
     RUNTIME DESTINATION bin
 )
 
-# Optional: Create a test target
+# Testing
 enable_testing()
-add_test(NAME BasicTest COMMAND OpenThermo --help)
+add_test(NAME SmokeTest_Help COMMAND OpenThermo --help)
+
+find_program(PYTHON_EXECUTABLE NAMES python3 python)
+if(PYTHON_EXECUTABLE)
+    add_test(NAME RegressionTests
+        COMMAND ${PYTHON_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_tests.py
+                --executable $<TARGET_FILE:OpenThermo>
+                --ref-file ${CMAKE_CURRENT_SOURCE_DIR}/tests/reference_values.json)
+    set_tests_properties(RegressionTests PROPERTIES
+        TIMEOUT 600
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()

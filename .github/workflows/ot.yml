@@ -1,13 +1,11 @@
-name: Build
+name: Build and Test
 
 on:
   push:
-    branches: [main, develop, dev]
   pull_request:
     branches: [main, develop, dev]
   workflow_dispatch:
 
-# Add permissions for GitHub Pages
 permissions:
   contents: write
   pages: write
@@ -15,21 +13,25 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure Git identity
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com" 
-
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ make cmake clang-tidy
+          sudo apt-get install -y g++ make cmake
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake
 
       - name: Configure CMake
         run: |
@@ -38,3 +40,37 @@ jobs:
       - name: Build the project
         run: cmake --build build
 
+      - name: Smoke test
+        run: ./build/OpenThermo --help
+
+      - name: Run regression tests
+        run: |
+          python3 tests/run_tests.py \
+            --executable ./build/OpenThermo \
+            --verbose
+
+  sanitizer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make cmake
+
+      - name: Build with AddressSanitizer
+        run: |
+          cmake -S . -B build-asan \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+          cmake --build build-asan
+
+      - name: Run tests with ASan
+        env:
+          ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+        run: |
+          python3 tests/run_tests.py \
+            --executable ./build-asan/OpenThermo \
+            --verbose

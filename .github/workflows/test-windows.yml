@@ -1,0 +1,44 @@
+name: Windows Test
+
+on:
+  push:
+  pull_request:
+    branches: [main, develop, dev]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-clang
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-python
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXE_LINKER_FLAGS="-static"
+          cmake --build build
+
+      - name: Smoke test
+        shell: msys2 {0}
+        run: ./build/OpenThermo.exe --help
+
+      - name: Run regression tests
+        shell: msys2 {0}
+        run: |
+          python tests/run_tests.py \
+            --executable ./build/OpenThermo.exe \
+            --verbose

@@ -84,7 +84,7 @@ src/
 - **Version**: 0.001.1
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
-- **Testing**: Comprehensive test suite with sample files
+- **Testing**: 25-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer)
 - **Documentation**: Doxygen-generated API documentation
 
 ## Key Features
@@ -221,6 +221,19 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug
 cmake .. -DCMAKE_CXX_COMPILER=clang++
 ```
 
+#### Windows Build (MSYS2/MinGW)
+
+1. Install [MSYS2](https://www.msys2.org/) and open a MINGW64 terminal
+2. Install dependencies:
+   ```bash
+   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-clang mingw-w64-x86_64-cmake mingw-w64-x86_64-make
+   ```
+3. Build:
+   ```bash
+   make
+   ```
+   The Makefile auto-detects Windows and adds `-static` linking so the binary runs without MinGW DLLs.
+
 ### Post-Build Setup
 
 1. **Verify executable:**
@@ -254,6 +267,8 @@ cmake .. -DCMAKE_CXX_COMPILER=clang++
 - `debug`: Includes debug symbols and AddressSanitizer
 - `release`: Maximum optimization for production use
 - `clean`: Remove all build artifacts
+- `test`: Run the regression test suite
+- `test-generate`: Regenerate reference values from current build
 
 ### Successful Compilation Output
 
@@ -1044,6 +1059,69 @@ const double au2cm_1 = 219474.6363;   // Hartree to cm⁻¹
 - **Efficient algorithms** for partition function calculation
 - **Memory-mapped file I/O** for large files
 - **Optimized mathematical operations**
+
+## Testing
+
+OpenThermo includes a regression test suite that validates thermodynamic calculations against reference values across all supported formats.
+
+### Running Tests
+
+```bash
+# Run the full test suite
+make test
+
+# Run with verbose output (shows details on failure)
+python3 tests/run_tests.py --verbose
+
+# Run a single test by ID
+python3 tests/run_tests.py --test gaussian_h2co_freq
+```
+
+### Test Coverage
+
+The suite includes 25 tests organized by category:
+
+**Format coverage** (10 tests) — one per supported QC program at default settings:
+
+| ID | Format | Molecule |
+|----|--------|----------|
+| `gaussian_h2co_freq` | Gaussian | H2CO |
+| `gaussian_large` | Gaussian | Large molecule |
+| `gaussian_c2h5` | Gaussian | C2H5 |
+| `orca_optfreq` | ORCA | Opt+freq |
+| `orca_ethanol` | ORCA | Ethanol |
+| `gamess_ch4` | GAMESS | CH4 |
+| `gamess_h2co` | GAMESS | H2CO |
+| `nwchem_nh2coh` | NWChem | NH2COH |
+| `cp2k_co2_freq` | CP2K | CO2 |
+| `vasp_co_freq` | VASP | CO |
+
+**Option coverage** (9 tests) — different temperatures, pressures, low-frequency methods, scaling, concentration, imaginary frequency handling, and condensed phase mode.
+
+**Output file tests** (3 tests) — verify `.otm`, `.vibcon`, and temperature scan (`.UHG`/`.SCq`) file generation.
+
+**Error handling** (2 tests) — non-existent and invalid input files.
+
+**Batch/ensemble** (1 test) — conformer ensemble with Boltzmann averaging.
+
+Each regression test compares thermodynamic values against reference values with defined tolerances.
+
+### Regenerating Reference Values
+
+After modifying calculation logic, regenerate the reference file:
+
+```bash
+make test-generate
+```
+
+This runs OpenThermo on all test inputs and writes the results to `tests/reference_values.json`.
+
+### CI
+
+Tests run automatically on every push via GitHub Actions:
+- **Linux and macOS**: Build + regression tests
+- **Windows**: MSYS2/MinGW build + regression tests
+- **AddressSanitizer**: Separate build with ASan on Linux to detect memory errors
 
 ## Contributing
 

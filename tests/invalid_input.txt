@@ -1,0 +1,3 @@
+This is not a valid quantum chemistry output file.
+It contains no frequency data, no electronic energy, and no molecular geometry.
+OpenThermo should reject this file with a non-zero exit code.

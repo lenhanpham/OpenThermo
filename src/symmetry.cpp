@@ -12,6 +12,7 @@
 
 
 #include "symmetry.h"
+#include "omp_config.h"
 #include <vector>
 #include <cmath>
 #include <stdexcept>
@@ -212,6 +213,11 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
     nc = 0;
     delta3 = 0.0;
 
+    int local_nc = 0;
+    double local_delta3 = 0.0;
+#ifdef _OPENMP
+    #pragma omp parallel for reduction(+:local_nc) if(natoms > 50)
+#endif
     for (int i = 0; i < natoms; ++i) {
         for (int j = 0; j < natoms; ++j) {
             if (nat[i] != nat[j]) continue;
@@ -224,13 +230,20 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
 
             double vn = std::sqrt(symm_dot(diff.data(), diff.data(), 3));
             if (vn <= delta) {
-                nc++;
+                local_nc++;
                 ntrans[i] = j;
-                if (vn > delta3) delta3 = vn;
-                break; // Found match, move to next i
+#ifdef _OPENMP
+                #pragma omp critical
+#endif
+                {
+                    if (vn > local_delta3) local_delta3 = vn;
+                }
+                break;
             }
         }
     }
+    nc = local_nc;
+    delta3 = local_delta3;
 }
 
 // Implementation of add_perm function
@@ -378,23 +391,26 @@ void symm_rotate(int natoms, const std::vector<int>& nat,
                 const std::array<double, 3>& v1, double sina, double cosa,
                 double delta, int& nc, std::vector<int>& ntrans, double& delta3) {
     std::vector<std::vector<double>> cord(3, std::vector<double>(natoms));
-    std::array<double, 3> v2, v3, p0, p;
 
+#ifdef _OPENMP
+#pragma omp parallel for if(natoms > 50)
+#endif
     for (int j = 0; j < natoms; j++) {
-        p0[0] = coord[0][j];
-        p0[1] = coord[1][j];
-        p0[2] = coord[2][j];
+        std::array<double, 3> lp0, lv2, lv3, lp;
+        lp0[0] = coord[0][j];
+        lp0[1] = coord[1][j];
+        lp0[2] = coord[2][j];
 
-        symm_crossp(v1, p0, v2);
-        symm_crossp(v1, v2, v3);
+        symm_crossp(v1, lp0, lv2);
+        symm_crossp(v1, lv2, lv3);
 
-        p[0] = p0[0] + sina * v2[0] + (1.0 - cosa) * v3[0];
-        p[1] = p0[1] + sina * v2[1] + (1.0 - cosa) * v3[1];
-        p[2] = p0[2] + sina * v2[2] + (1.0 - cosa) * v3[2];
+        lp[0] = lp0[0] + sina * lv2[0] + (1.0 - cosa) * lv3[0];
+        lp[1] = lp0[1] + sina * lv2[1] + (1.0 - cosa) * lv3[1];
+        lp[2] = lp0[2] + sina * lv2[2] + (1.0 - cosa) * lv3[2];
 
-        cord[0][j] = p[0];
-        cord[1][j] = p[1];
-        cord[2][j] = p[2];
+        cord[0][j] = lp[0];
+        cord[1][j] = lp[1];
+        cord[2][j] = lp[2];
     }
 
     symm_check(natoms, delta, nat, coord, cord, nc, ntrans, delta3);
@@ -408,19 +424,15 @@ void symm_reflect(int natoms, const std::vector<int>& nat,
                   const std::array<double, 3>& v, const std::array<double, 3>& p0,
                   double delta, int& nc, std::vector<int>& ntrans, double& delta3) {
     std::vector<std::vector<double>> cord(3, std::vector<double>(natoms));
-    std::array<double, 3> p, p_minus_p0;
 
+#ifdef _OPENMP
+    #pragma omp parallel for if(natoms > 50)
+#endif
     for (int i = 0; i < natoms; i++) {
-        p[0] = coord[0][i];
-        p[1] = coord[1][i];
-        p[2] = coord[2][i];
+        std::array<double, 3> lp = {coord[0][i], coord[1][i], coord[2][i]};
+        std::array<double, 3> lp_minus_p0 = {lp[0] - p0[0], lp[1] - p0[1], lp[2] - p0[2]};
 
-        // Calculate p - p0
-        p_minus_p0[0] = p[0] - p0[0];
-        p_minus_p0[1] = p[1] - p0[1];
-        p_minus_p0[2] = p[2] - p0[2];
-
-        double vk = -symm_dot(v.data(), p_minus_p0.data(), 3);
+        double vk = -symm_dot(v.data(), lp_minus_p0.data(), 3);
 
         cord[0][i] = coord[0][i] + 2.0 * vk * v[0];
         cord[1][i] = coord[1][i] + 2.0 * vk * v[1];
@@ -2120,8 +2132,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
     // Output rotations from plane intersections
     for (int i = 0; i < nrot; ++i) {
-        int m = 0; // Suppress unused variable warning
-        (void)m;
+        int m = 0;
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Rotation #" << (i + 1) << ": C("
@@ -2322,8 +2333,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
     // Output rotation axes found so far
     for (int i = 0; i < nrot; ++i) {
-        int m = 0; // Suppress unused variable warning
-        (void)m;
+        int m = 0;
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Axis #" << (i + 1) << ": C("

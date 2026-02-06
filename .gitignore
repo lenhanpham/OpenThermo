@@ -1,0 +1,18 @@
+# Build directories
+build*/
+
+# Benchmarks (local only)
+benchmarks/
+
+# Windows artifacts
+nul
+
+# Editor/IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

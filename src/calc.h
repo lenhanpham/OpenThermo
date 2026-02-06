@@ -85,7 +85,7 @@ void calcinertia(SystemData& sys);
  * @param QV [out] Vibrational partition function
  * @param Qbot [out] Bottom partition function (rotational + electronic)
  */
-void calcthermo(SystemData& sys, double T, double P, double& corrU, double& corrH, double& corrG,
+void calcthermo(const SystemData& sys, double T, double P, double& corrU, double& corrH, double& corrG,
                 double& S, double& CV, double& CP, double& QV, double& Qbot);
 
 /**
@@ -125,6 +125,7 @@ void getGconc(const SystemData &sys, const double &concnow, const double &concsp
  * @param tmpS [out] Entropy contribution
  */
 void getvibcontri(const SystemData& sys, int i, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS);
+void getvibcontri(const SystemData& sys, int i, double T, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS);
 
 /**
  * @brief Calculate total vibrational contributions at temperature

@@ -16,6 +16,7 @@
 #include "loadfile.h"
 #include "symmetry.h"
 #include "util.h"
+#include "omp_config.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -265,7 +266,6 @@ auto main(int argc, char* argv[]) -> int
         // Print start message
         auto        start_now      = std::chrono::system_clock::now();
         std::time_t start_now_time = std::chrono::system_clock::to_time_t(start_now);
-        // std::string basename       = get_basename_without_extension(sys.inputfile);
         std::cout << "                      -------- End of Summary --------\n";
         std::cout << "\n";
         std::cout << "OpenThermo started to process " << sys.inputfile << " at "
@@ -333,22 +333,7 @@ auto main(int argc, char* argv[]) -> int
                     std::cout << "Processing VASP output file...\n";
                     LoadFile::loadvasp(sys);
                 }
-                // Debug modmass
-                // std::cout << "Before modmass:\n";
-                // for (int i = 0; i < sys.ncenter; ++i)
-                //{
-                //    std::cout << "Atom " << i + 1 << " mass: " << std::fixed << std::setprecision(6) << sys.a[i].mass
-                //              << " amu\n";
-                //}
                 util::modmass(sys);
-                // Debug modmass
-                // std::cout << "After modmass:\n";
-                // for (int i = 0; i < sys.ncenter; ++i)
-                //{
-                //    std::cout << "Atom " << i + 1 << " mass: " << std::fixed << std::setprecision(6) << sys.a[i].mass
-                //              << " amu\n";
-                //}
-                // End Debug modmass
                 sys.nelevel = 1;
                 sys.elevel  = {0.0};
                 sys.edegen  = {sys.spinmult};
@@ -457,11 +442,6 @@ auto main(int argc, char* argv[]) -> int
                     break;
                 }
             }
-            // Debug GAMESS
-            // std::cout << "Debug: After Processing, ncenter = " << sys.ncenter << ", a.size() = " << sys.a.size()
-            //          << "\n";
-            // End Debug GAMESS
-
             // Symmetry detection
             std::cout << "Number of atoms loaded: " << sys.a.size() << "\n";
             if (sys.a.empty())
@@ -471,10 +451,6 @@ auto main(int argc, char* argv[]) -> int
             }
             symmetry::SymmetryDetector symDetector;
             symDetector.PGnameinit = sys.PGnameinit;
-            if (symDetector.PGnameinit == "?")
-            {
-                // else keep "?" for automatic detection
-            }
             symDetector.ncenter = sys.a.size();
             symDetector.a       = sys.a;
             symDetector.a_index.resize(sys.a.size());
@@ -530,15 +506,7 @@ auto main(int argc, char* argv[]) -> int
                 std::cout << " Atom " << std::setw(5) << iatm + 1 << " (" << ind2name[sys.a[iatm].index]
                           << ")   Mass: " << std::fixed << std::setprecision(6) << std::setw(12) << sys.a[iatm].mass
                           << " amu\n";
-                //<< " Index: " << sys.a[iatm].index << "\n";
             }
-            // Debug mass of molecule
-            // for (int iatm = 0; iatm < sys.ncenter; ++iatm)
-            //{
-            //    std::cout << "Debug: Atom " << iatm + 1 << " index: " << sys.a[iatm].index << " mass: " << std::fixed
-            //              << std::setprecision(6) << sys.a[iatm].mass << " amu\n";
-            //}
-            // End Debug
             std::cout << " Total mass: " << std::fixed << std::setprecision(6) << std::setw(16) << sys.totmass
                       << " amu\n\n"
                       << " Point group: " << sys.PGname << "\n";
@@ -663,34 +631,43 @@ auto main(int argc, char* argv[]) -> int
                          << "    T(K)       P(atm)    S         CV        CP        q(V=0)/NA      q(bot)/NA\n";
                 if (Ts > 0 && Ps > 0)
                 {
-                    // Calculate the number of temperature steps
-                    // static_cast to int will truncate, so +1 makes it inclusive
                     const int num_step_T = static_cast<int>((T2 - T1) / Ts) + 1;
+                    const int num_step_P = static_cast<int>((P2 - P1) / Ps) + 1;
+                    const int total_points = num_step_T * num_step_P;
 
-                    for (int i = 0; i < num_step_T; ++i)
+                    struct ScanResult {
+                        double T, P;
+                        double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
+                    };
+                    std::vector<ScanResult> results(total_points);
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+                    for (int idx = 0; idx < total_points; ++idx)
                     {
-                        const double T = T1 + i * Ts;  // Calculate T for this iteration
+                        int i = idx / num_step_P;
+                        int j = idx % num_step_P;
+                        auto& r = results[idx];
+                        r.T = T1 + i * Ts;
+                        r.P = P1 + j * Ps;
+                        calc::calcthermo(sys, r.T, r.P, r.corrU, r.corrH, r.corrG,
+                                         r.S, r.CV, r.CP, r.QV, r.Qbot);
+                    }
 
-                        // Calculate the number of pressure steps for this temperature
-                        const int num_step_P = static_cast<int>((P2 - P1) / Ps) + 1;
-
-                        for (int j = 0; j < num_step_P; ++j)
-                        {
-                            const double P = P1 + j * Ps;  // Calculate P for this iteration
-
-                            double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
-                            calc::calcthermo(sys, T, P, corrU, corrH, corrG, S, CV, CP, QV, Qbot);
-                            file_UHG << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
-                                     << std::setprecision(3) << std::setw(10) << corrU / cal2J << std::setw(10)
-                                     << corrH / cal2J << std::setw(10) << corrG / cal2J << std::setprecision(6)
-                                     << std::setw(17) << corrU / au2kJ_mol + sys.E << std::setw(17)
-                                     << corrH / au2kJ_mol + sys.E << std::setw(17) << corrG / au2kJ_mol + sys.E << "\n";
-                            file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << T << std::setw(10) << P
-                                     << std::setprecision(3) << std::setw(10) << S / cal2J << std::setw(10)
-                                     << CV / cal2J << std::setw(10) << CP / cal2J << std::scientific
-                                     << std::setprecision(6) << std::setw(16) << QV / NA << std::setw(16) << Qbot / NA
-                                     << "\n";
-                        }
+                    for (int idx = 0; idx < total_points; ++idx)
+                    {
+                        const auto& r = results[idx];
+                        file_UHG << std::fixed << std::setprecision(3) << std::setw(10) << r.T << std::setw(10) << r.P
+                                 << std::setprecision(3) << std::setw(10) << r.corrU / cal2J << std::setw(10)
+                                 << r.corrH / cal2J << std::setw(10) << r.corrG / cal2J << std::setprecision(6)
+                                 << std::setw(17) << r.corrU / au2kJ_mol + sys.E << std::setw(17)
+                                 << r.corrH / au2kJ_mol + sys.E << std::setw(17) << r.corrG / au2kJ_mol + sys.E << "\n";
+                        file_SCq << std::fixed << std::setprecision(3) << std::setw(10) << r.T << std::setw(10) << r.P
+                                 << std::setprecision(3) << std::setw(10) << r.S / cal2J << std::setw(10)
+                                 << r.CV / cal2J << std::setw(10) << r.CP / cal2J << std::scientific
+                                 << std::setprecision(6) << std::setw(16) << r.QV / NA << std::setw(16) << r.Qbot / NA
+                                 << "\n";
                     }
                 }
                 file_UHG.close();

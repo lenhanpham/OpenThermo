@@ -2132,7 +2132,8 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
     // Output rotations from plane intersections
     for (int i = 0; i < nrot; ++i) {
-        int m = 0;
+        int m = 0; // Suppress unused variable warning
+        (void)m;
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Rotation #" << (i + 1) << ": C("
@@ -2333,7 +2334,8 @@ void sym_elements(int natoms, const std::vector<int>& nat,
 
     // Output rotation axes found so far
     for (int i = 0; i < nrot; ++i) {
-        int m = 0;
+        int m = 0; // Suppress unused variable warning
+        (void)m;
         double sp = rota[i];
         if (nout >= 1) {
             std::cout << "\n-- Axis #" << (i + 1) << ": C("

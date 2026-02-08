@@ -451,6 +451,10 @@ auto main(int argc, char* argv[]) -> int
             }
             symmetry::SymmetryDetector symDetector;
             symDetector.PGnameinit = sys.PGnameinit;
+            if (symDetector.PGnameinit == "?")
+            {
+                // else keep "?" for automatic detection
+            }
             symDetector.ncenter = sys.a.size();
             symDetector.a       = sys.a;
             symDetector.a_index.resize(sys.a.size());

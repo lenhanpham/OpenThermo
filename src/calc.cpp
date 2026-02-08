@@ -354,7 +354,7 @@ namespace calc
     {
         double q_trans = 1.0, U_trans = 0.0, CV_trans = 0.0, CP_trans = 0.0, H_trans = 0.0, S_trans = 0.0;
         double q_rot = 1.0, U_rot = 0.0, CV_rot = 0.0, S_rot = 0.0;
-        double qvib_v0 = 1.0, qvib_bot = 1.0, U_vib_heat = 0.0, CV_vib = 0.0, S_vib = 0.0, ZPE = 0.0;
+        double log_qvib_v0 = 0.0, log_qvib_bot = 0.0, U_vib_heat = 0.0, CV_vib = 0.0, S_vib = 0.0, ZPE = 0.0;
         double q_ele = 1.0, U_ele = 0.0, CV_ele = 0.0, S_ele = 0.0;
 
         const double b2m_sq = (b2a * 1e-10) * (b2a * 1e-10);
@@ -441,7 +441,7 @@ namespace calc
         const double grimme_log_base = 8.0 * M_PI * M_PI * M_PI * 1e-44 * kb * T / (h * h);
 
 #ifdef _OPENMP
-#pragma omp parallel for reduction(*:qvib_v0,qvib_bot) reduction(+:ZPE,U_vib_heat,CV_vib,S_vib) if(nfreq > 50)
+#pragma omp parallel for reduction(+:log_qvib_v0,log_qvib_bot,ZPE,U_vib_heat,CV_vib,S_vib) if(nfreq > 50)
 #endif
         for (int i = 0; i < nfreq; ++i)
         {
@@ -455,8 +455,8 @@ namespace calc
             double x = h_over_kbT * freqtmp;
             double exp_neg_x = std::exp(-x);
             double one_minus_exp = 1.0 - exp_neg_x;
-            qvib_v0 *= 1.0 / one_minus_exp;
-            qvib_bot *= std::sqrt(exp_neg_x) / one_minus_exp;
+            log_qvib_v0 += -std::log(one_minus_exp);
+            log_qvib_bot += -x / 2.0 - std::log(one_minus_exp);
 
             double local_ZPE = wi * zpe_factor;
 
@@ -568,6 +568,8 @@ namespace calc
         S     = S_tot;
         CV    = CV_tot;
         CP    = CP_tot;
+        double qvib_v0 = std::exp(log_qvib_v0);
+        double qvib_bot = std::exp(log_qvib_bot);
         QV    = q_trans * q_rot * qvib_v0 * q_ele;
         Qbot  = q_trans * q_rot * qvib_bot * q_ele;
     }

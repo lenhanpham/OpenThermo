@@ -73,6 +73,7 @@ src/
 ├── loadfile.cpp
 ├── loadfile.h
 ├── main.cpp
+├── omp_config.h
 ├── symmetry.cpp
 ├── symmetry.h
 ├── util.cpp
@@ -84,7 +85,7 @@ src/
 - **Version**: 0.001.1
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
-- **Testing**: 25-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer)
+- **Testing**: 25-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
 - **Documentation**: Doxygen-generated API documentation
 
 ## Key Features
@@ -188,6 +189,9 @@ src/
 # Standard optimized build
 make
 
+# Build with OpenMP parallelization
+make OPENMP=1
+
 # Debug build with AddressSanitizer
 make debug
 
@@ -211,6 +215,10 @@ mkdir build && cd build
 
 # Configure and build
 cmake ..
+make
+
+# Build with OpenMP parallelization
+cmake .. -DENABLE_OPENMP=ON
 make
 
 # Build types
@@ -266,6 +274,7 @@ cmake .. -DCMAKE_CXX_COMPILER=clang++
 - `all` (default): Standard optimized build
 - `debug`: Includes debug symbols and AddressSanitizer
 - `release`: Maximum optimization for production use
+- `tsan`: ThreadSanitizer build for detecting data races (use with `OPENMP=1`)
 - `clean`: Remove all build artifacts
 - `test`: Run the regression test suite
 - `test-generate`: Regenerate reference values from current build
@@ -980,15 +989,8 @@ ravib = 50.0
 
 #### Large Files
 
-- Use `-max-file-size` option to limit processing
 - Enable batch processing with smaller chunks
-- Consider using `-nt` for multi-threading
-
-#### Memory Usage
-
-- Monitor with `-memory-limit` option
-- Reduce batch size for large file sets
-- Use `-q` quiet mode to reduce output
+- Build with OpenMP (`make OPENMP=1`) for temperature/pressure scans
 
 ### Validation
 
@@ -1055,10 +1057,20 @@ const double au2cm_1 = 219474.6363;   // Hartree to cm⁻¹
 
 ### Performance Optimizations
 
-- **Multi-threading support** for batch processing
+- **OpenMP parallelization** (optional) for temperature/pressure scans, vibrational loops, and symmetry calculations
 - **Efficient algorithms** for partition function calculation
-- **Memory-mapped file I/O** for large files
 - **Optimized mathematical operations**
+
+#### OpenMP Parallelization
+
+When built with OpenMP enabled (`make OPENMP=1` or `cmake -DENABLE_OPENMP=ON`), temperature/pressure scans, vibrational loops, moment of inertia, and symmetry detection are parallelized. Control threads via `OMP_NUM_THREADS`:
+
+```bash
+export OMP_NUM_THREADS=4
+./build/OpenThermo molecule.log -T 100 5000 1
+```
+
+The code compiles and runs correctly both with and without OpenMP.
 
 ## Testing
 
@@ -1119,9 +1131,10 @@ This runs OpenThermo on all test inputs and writes the results to `tests/referen
 ### CI
 
 Tests run automatically on every push via GitHub Actions:
-- **Linux and macOS**: Build + regression tests
-- **Windows**: MSYS2/MinGW build + regression tests
+- **Linux and macOS**: Build + regression tests (serial and OpenMP at 1 and 4 threads)
+- **Windows**: MSYS2/MinGW build + regression tests (serial and OpenMP)
 - **AddressSanitizer**: Separate build with ASan on Linux to detect memory errors
+- **ThreadSanitizer**: OpenMP build with TSan on Linux to detect data races
 
 ## Contributing
 

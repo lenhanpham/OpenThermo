@@ -49,6 +49,50 @@ jobs:
             --executable ./build/OpenThermo \
             --verbose
 
+  build-and-test-openmp:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make cmake
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake libomp
+
+      - name: Configure CMake with OpenMP
+        run: |
+          cmake -S . -B build-omp -DENABLE_OPENMP=ON
+
+      - name: Build with OpenMP
+        run: cmake --build build-omp
+
+      - name: Run tests (OMP_NUM_THREADS=1)
+        env:
+          OMP_NUM_THREADS: 1
+        run: |
+          python3 tests/run_tests.py \
+            --executable ./build-omp/OpenThermo \
+            --verbose
+
+      - name: Run tests (OMP_NUM_THREADS=4)
+        env:
+          OMP_NUM_THREADS: 4
+        run: |
+          python3 tests/run_tests.py \
+            --executable ./build-omp/OpenThermo \
+            --verbose
+
   sanitizer:
     runs-on: ubuntu-latest
     steps:
@@ -73,4 +117,33 @@ jobs:
         run: |
           python3 tests/run_tests.py \
             --executable ./build-asan/OpenThermo \
+            --verbose
+
+  thread-sanitizer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libomp-dev make cmake
+
+      - name: Build with ThreadSanitizer + OpenMP (clang + libomp)
+        run: |
+          cmake -S . -B build-tsan \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DENABLE_OPENMP=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=thread"
+          cmake --build build-tsan
+
+      - name: Run tests with TSan
+        env:
+          OMP_NUM_THREADS: 4
+          TSAN_OPTIONS: abort_on_error=1 ignore_noninstrumented_modules=1
+        run: |
+          python3 tests/run_tests.py \
+            --executable ./build-tsan/OpenThermo \
             --verbose

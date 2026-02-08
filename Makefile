@@ -40,6 +40,19 @@ ifneq ($(filter icpx icpc icc,$(CXX)),)
     $(info Intel compiler detected. TBB linking commented out as not required for OpenThermo.)
 endif
 
+# OpenMP support (optional, set OPENMP=1 to enable)
+OPENMP ?= 0
+ifeq ($(OPENMP),1)
+    ifneq ($(filter icpx icpc icc,$(CXX)),)
+        CXXFLAGS += -qopenmp
+        LDFLAGS += -qopenmp
+    else
+        CXXFLAGS += -fopenmp
+        LDFLAGS += -fopenmp
+    endif
+    $(info OpenMP parallelization enabled)
+endif
+
 DEBUGFLAGS = -g -DDEBUG_BUILD -fsanitize=address -fno-omit-frame-pointer
 
 # Platform-specific flags
@@ -139,6 +152,7 @@ help:
 	@echo "  make debug              # Build debug version"
 	@echo "  make release            # Build optimized version"
 	@echo "  make clean              # Clean build"
+	@echo "  make OPENMP=1           # Build with OpenMP parallelization"
 	@echo "  make test               # Run regression tests"
 	@echo "  make test-generate      # Generate reference values"
 
@@ -158,5 +172,10 @@ else
 	python3 tests/run_tests.py --generate --executable $(TARGET)
 endif
 
+# Thread sanitizer build (for OpenMP race detection)
+tsan: CXXFLAGS += -g -fsanitize=thread -fno-omit-frame-pointer -fopenmp
+tsan: LDFLAGS += -fsanitize=thread -fopenmp
+tsan: clean $(TARGET)
+
 # Declare phony targets
-.PHONY: all debug release clean help test test-generate
+.PHONY: all debug release clean help test test-generate tsan

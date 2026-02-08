@@ -8,7 +8,6 @@ endif()
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -21,6 +20,17 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+endif()
+
+# OpenMP support (optional)
+option(ENABLE_OPENMP "Enable OpenMP parallelization" OFF)
+if(ENABLE_OPENMP)
+    find_package(OpenMP)
+    if(OpenMP_CXX_FOUND)
+        message(STATUS "OpenMP found: ${OpenMP_CXX_VERSION}")
+    else()
+        message(WARNING "OpenMP requested but not found. Building without OpenMP.")
+    endif()
 endif()
 
 # Platform-specific definitions
@@ -51,6 +61,7 @@ set(HEADERS
     src/symmetry.h
     src/util.h
     src/help_utils.h
+    src/omp_config.h
 )
 
 # Add Windows resource file if building on Windows
@@ -81,6 +92,11 @@ endif()
 
 # Create executable
 add_executable(OpenThermo ${SOURCES} ${HEADERS})
+
+# Link OpenMP if found
+if(ENABLE_OPENMP AND OpenMP_CXX_FOUND)
+    target_link_libraries(OpenThermo PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # Set output directory - ensures binary is created in build directory, not source directory
 set_target_properties(OpenThermo PROPERTIES

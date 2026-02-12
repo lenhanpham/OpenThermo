@@ -1247,6 +1247,7 @@ OpenThermo is licensed under the **MIT License**.
 ### Acknowledgments
 
 - **Le Nhan Pham**: Developer and maintainer
+- **Romain Despoullains**: developer
 - **Open-source community**: For contributions and feedback
 - **Quantum chemistry community**: For validation and testing
 

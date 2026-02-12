@@ -27,40 +27,22 @@
 #include <vector>
 
 
-// Implemetation of LoadFile class
 /**
- * @brief Locate a specific label/string in an input file stream
- *
- * Searches for a given label string in the file
- * stream and positions the stream
- * at the matching line, optionally skipping additional lines after the match.
- *
- *
- * @param file Input file stream to search
- * @param label String pattern to locate in the file
- * @param skip Number of
- * lines to skip after finding the label (default: 0)
- * @return true if label found and stream positioned successfully,
- * false otherwise
- *
- * @note Removes whitespace and carriage returns from lines before comparison
- * @note Positions
- * stream at the beginning of the matching line
- * @note Used extensively for parsing quantum chemistry output files
+ * @brief Locate a label in an input stream, optionally skipping lines after match
+ * @param file Input stream to search
+ * @param label String pattern to locate
+ * @param skip Lines to skip after finding label (default: 0)
+ * @return true if label found, false otherwise
  */
-bool LoadFile::loclabel(std::ifstream& file, const std::string& label, int skip)
+bool LoadFile::loclabel(std::istream& file, const std::string& label, int skip)
 {
     std::string    line;
     std::streampos pos;
     while (std::getline(file, line))
     {
         pos = file.tellg() - std::streamoff(line.length() + 1);  // Position at line start
-        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-        line.erase(0, line.find_first_not_of(" \t"));
-        line.erase(line.find_last_not_of(" \t") + 1);
         if (line.find(label) != std::string::npos)
         {
-            // std::cerr << "DEBUG: loclabel matched line: [" << line << "] for label: [" << label << "]" << "\n";
             file.clear();
             file.seekg(pos);  // Rewind to start of matching line
             for (int i = 0; i < skip; ++i)
@@ -71,11 +53,10 @@ bool LoadFile::loclabel(std::ifstream& file, const std::string& label, int skip)
             return true;
         }
     }
-    // std::cerr << "Debug: Reached EOF or error while searching for: " << label << "\n";
     return false;
 }
 
-bool LoadFile::loclabelfinal(std::ifstream& file, const std::string& label, int& ncount)
+bool LoadFile::loclabelfinal(std::istream& file, const std::string& label, int& ncount)
 {
     ncount = 0;
     std::streampos lastpos;
@@ -86,9 +67,6 @@ bool LoadFile::loclabelfinal(std::ifstream& file, const std::string& label, int&
     {
         std::streampos linestart = file.tellg();
         if (!std::getline(file, line)) break;
-        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-        line.erase(0, line.find_first_not_of(" \t"));
-        line.erase(line.find_last_not_of(" \t") + 1);
         if (line.find(label) != std::string::npos)
         {
             ncount++;
@@ -104,16 +82,7 @@ bool LoadFile::loclabelfinal(std::ifstream& file, const std::string& label, int&
     return false;
 }
 
-//void LoadFile::skiplines(std::ifstream& file, int n)
-//{
-//    std::string line;
-//    for (int i = 0; i < n; ++i)
-//    {
-//        std::getline(file, line);
-//    }
-//}
-
-void LoadFile::skiplines(std::ifstream& file, int n, bool print_debug)
+void LoadFile::skiplines(std::istream& file, int n)
 {
     std::string line;
     for (int i = 0; i < n; ++i)
@@ -122,80 +91,10 @@ void LoadFile::skiplines(std::ifstream& file, int n, bool print_debug)
         {
             throw std::runtime_error("Failed to skip line " + std::to_string(i + 1));
         }
-        if (print_debug)
-        {
-            // Remove trailing \r for Windows compatibility
-            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-            std::cout << "Debug: Skipped line " << i + 1 << ": '" << line << "'" << "\n";
-        }
     }
 }
 
-// double LoadFile::readaftersign(std::ifstream& file, const std::string& sign) {
-//     std::string line;
-//     // Get the current position
-//     std::streampos current_pos = file.tellg();
-//
-//     if (!std::getline(file, line)) {
-//         throw std::runtime_error("Could not read line for sign: " + sign);
-//     }
-//
-//     // Go back to the beginning of the line we just read
-//     file.seekg(current_pos);
-//
-//     if (line.find(sign) == std::string::npos) {
-//         throw std::runtime_error("Sign '" + sign + "' not found in line: " + line);
-//     }
-//     // Find the last number in the line (handles ".... 4", "....   4", etc.)
-//     std::istringstream iss(line);
-//     std::string token;
-//     double value = 0.0;
-//     while (iss >> token) {
-//         try {
-//             value = std::stod(token); // Keep last number
-//         } catch (const std::invalid_argument&) {
-//             // Not a number, continue
-//         }
-//     }
-//     if (value == 0.0) {
-//         throw std::runtime_error("No number found after sign in line: " + line);
-//     }
-//     return value;
-// }
-// double LoadFile::readaftersign(std::ifstream& file, const std::string& sign) {
-//     std::string line;
-//     // Get the current position
-//     std::streampos current_pos = file.tellg();
-//
-//     // Read the current line (not the next one)
-//     if (!std::getline(file, line)) {
-//         throw std::runtime_error("Could not read line for sign: " + sign);
-//     }
-//
-//     // Go back to the beginning of the line we just read
-//     file.seekg(current_pos);
-//
-//     // Find the last number in the line
-//     std::istringstream iss(line);
-//     std::string token;
-//     double value = 0.0;
-//     bool found_number = false;
-//     while (iss >> token) {
-//         try {
-//             value = std::stod(token); // Keep last number
-//             found_number = true;
-//         } catch (const std::invalid_argument&) {
-//             // Not a number, continue
-//         }
-//     }
-//
-//     if (!found_number) {
-//         throw std::runtime_error("No number found after sign in line: " + line);
-//     }
-//     return value;
-// }
-//
-double LoadFile::readaftersign(std::ifstream& file, const std::string& sign)
+double LoadFile::readaftersign(std::istream& file, const std::string& sign)
 {
     std::string line;
     if (!std::getline(file, line))
@@ -218,8 +117,6 @@ double LoadFile::readaftersign(std::ifstream& file, const std::string& sign)
             throw std::runtime_error("Sign '" + sign + "' not found in line: " + line);
         }
     }
-    // std::cerr << "DEBUG: readaftersign read line: [" << line << "]" << "\n";  // ← ADD THIS
-
     // Read from after the sign
     std::istringstream iss(line.substr(pos + sign.length()));
     std::string        token;
@@ -247,7 +144,7 @@ double LoadFile::readaftersign(std::ifstream& file, const std::string& sign)
     return value;
 }
 
-int LoadFile::readaftersign_int(std::ifstream& file, const std::string& sign)
+int LoadFile::readaftersign_int(std::istream& file, const std::string& sign)
 {
     double value = readaftersign(file, sign);
     return static_cast<int>(value);
@@ -377,12 +274,15 @@ void LoadFile::setatmmass(SystemData& sys)
  */
 void LoadFile::loadotm(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     std::string line, strtmp;
 
@@ -476,17 +376,19 @@ void LoadFile::loadotm(SystemData& sys)
     }
 
     sys.spinmult = 0;
-    file.close();
 }
 
 void LoadFile::loadgau(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Load energy
     if (loclabel(file, "Sum of electronic and zero-point Energies=", 0))
@@ -582,11 +484,10 @@ void LoadFile::loadgau(SystemData& sys)
 
     // Load frequencies
     loadGaufreq(file, sys);
-    file.close();
 }
 
 
-void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGaugeom(std::istream& file, SystemData& sys)
 {
     std::string locstr;
     int         nskip = 0;
@@ -711,7 +612,7 @@ void LoadFile::loadGaugeom(std::ifstream& file, SystemData& sys)
 }
 
 
-void LoadFile::loadGaufreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGaufreq(std::istream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);
@@ -806,12 +707,15 @@ void LoadFile::loadGaufreq(std::ifstream& file, SystemData& sys)
 // CP2K
 void LoadFile::loadCP2K(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // ==================== Load Spin Multiplicity ====================
     file.clear();
@@ -865,7 +769,6 @@ void LoadFile::loadCP2K(SystemData& sys)
     if (loclabel(file, "- Atoms:", 0))
     {
         sys.ncenter = readaftersign_int(file, ":");
-        // std::cerr << "Debug: Found " << sys.ncenter << " atoms." << "\n";
     }
     else
     {
@@ -937,8 +840,6 @@ void LoadFile::loadCP2K(SystemData& sys)
         sys.a[i].z    = z;
         sys.a[i].mass = mass;  // ← CORRECT: Read 9th field as mass
 
-        // std::cerr << "Debug: Atom " << (i + 1) << " (" << element_symbol << ") index: " << sys.a[i].index
-        //           << " mass: " << mass << " amu" << "\n";
 
         // Prepare next line
         line = "";
@@ -984,13 +885,8 @@ void LoadFile::loadCP2K(SystemData& sys)
             // Read all frequencies on this line
             while (iss >> freq)
             {
-                // Optional: Skip near-zero frequencies (translations/rotations)
-                // if (std::abs(freq) > 10.0) {
                 allFreqs.push_back(freq);
-                //}
             }
-            // std::cerr << "Debug: Parsed frequency line: " << freqPart << " → found " << allFreqs.size()
-            //           << " total so far." << "\n";
         }
     }
 
@@ -1006,11 +902,6 @@ void LoadFile::loadCP2K(SystemData& sys)
             sys.freq[i]    = allFreqs[i] * wave2freq;  // Convert cm⁻¹ to Hz
         }
 
-        // std::cerr << "Debug: Loaded " << sys.nfreq << " vibrational frequencies." << "\n";
-        // for (int i = 0; i < std::min(5, sys.nfreq); ++i)
-        //{
-        //     std::cerr << "Debug: Frequency " << (i + 1) << ": " << sys.wavenum[i] << " cm⁻¹" << "\n";
-        // }
     }
     else
     {
@@ -1030,19 +921,20 @@ void LoadFile::loadCP2K(SystemData& sys)
                 << '\n';
         }
     }
-
-    file.close();
 }
 
 // ORCA
 void LoadFile::loadorca(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Load energy
     // Load energy
@@ -1169,10 +1061,9 @@ void LoadFile::loadorca(SystemData& sys)
 
     // Load frequencies - CRITICAL FIX: Pass file handle, don't reset
     loadORCAfreq(file, sys);
-    file.close();
 }
 
-void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadORCAgeom(std::istream& file, SystemData& sys)
 {
     // Reset file to start to ensure "Number of atoms" is found
     file.clear();
@@ -1180,7 +1071,6 @@ void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
 
     if (!loclabel(file, "Number of atoms", 0))
     {
-        // std::cerr << "Debug: Current file position: " << file.tellg() << "\n";
         throw std::runtime_error("Number of atoms not found in ORCA file");
     }
 
@@ -1242,7 +1132,7 @@ void LoadFile::loadORCAgeom(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadORCAfreq(std::istream& file, SystemData& sys)
 {
     int ncount;
     if (!loclabelfinal(file, "Scaling factor for frequencies =", ncount) || ncount == 0)
@@ -1250,9 +1140,6 @@ void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
         std::cerr << "\nError: Unable to load frequencies from this file! Please check keywords in the ORCA input file"
                   << '\n';
         std::cerr << "\nOr your ORCA is maybe too old (2.x). Please use the recent versions" << '\n';
-        // std::cerr << "\n";
-        // std::cerr << "Press ENTER button to exit" << "\n";
-        // std::cin.get();
         throw std::runtime_error("Unable to load frequencies from ORCA file: Scaling factor section not found");
         std::cerr << "\n" << '\n';
     }
@@ -1305,12 +1192,15 @@ void LoadFile::loadORCAfreq(std::ifstream& file, SystemData& sys)
 // GAMESS
 void LoadFile::loadgms(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Load energy - robust method: find last "FINAL" line, read next line, split and take last value
     file.clear();
@@ -1418,7 +1308,6 @@ void LoadFile::loadgms(SystemData& sys)
             {
                 throw std::runtime_error("Failed to read 'ATOMIC WEIGHTS (AMU)' label line.");
             }
-            // std::cerr << "Debug (Mass): Consumed label line: '" << current_line << "'" << "\n";
 
             // Consume the blank line after the label.
             // After this, the file pointer is at the beginning of the first atom's mass data.
@@ -1426,7 +1315,6 @@ void LoadFile::loadgms(SystemData& sys)
             {
                 throw std::runtime_error("Failed to read blank line after 'ATOMIC WEIGHTS (AMU)'.");
             }
-            // std::cerr << "Debug (Mass): Consumed blank line: '" << current_line << "'" << "\n";
 
 
             std::vector<std::pair<std::string, double>> mass_data;
@@ -1443,7 +1331,6 @@ void LoadFile::loadgms(SystemData& sys)
 
                 if (trimmed_line.empty())
                 {
-                    // std::cerr << "Debug (Mass): Encountered an empty/whitespace-only line, continuing." << "\n";
                     continue;  // Skip truly empty or whitespace-only lines.
                 }
 
@@ -1453,8 +1340,6 @@ void LoadFile::loadgms(SystemData& sys)
                 int                atom_num_check;
                 if (!(test_iss >> atom_num_check))
                 {
-                    // std::cerr << "Debug (Mass): Stopping mass reading at non-atom line (e.g., 'MODES...'): '"
-                    //           << trimmed_line << "'" << "\n";
                     break;  // If it doesn't start with an integer, it's not atom data, so we've reached the end of the
                             // section.
                 }
@@ -1471,8 +1356,6 @@ void LoadFile::loadgms(SystemData& sys)
                     throw std::runtime_error("Failed to parse mass data from line: '" + current_line + "'");
                 }
                 mass_data.emplace_back(element_symbol, mass_value);
-                // std::cerr << "Debug (Mass): Read mass for element " << element_symbol << ": " << mass_value
-                //           << " amu from line: '" << trimmed_line << "'" << "\n";
             }
 
             // After the loop, verify that the number of masses read matches the expected number of atoms.
@@ -1502,21 +1385,15 @@ void LoadFile::loadgms(SystemData& sys)
                     {
                         sys.a[i].mass = mass_read;
                         found         = true;
-                        // std::cerr << "Debug (Mass): Assigned mass " << mass_read << " amu to atom " << i + 1 << " ("
-                        //           << expected_element_symbol << ")" << "\n";
                         break;
                     }
                 }
                 if (!found)
                 {
-                    // Enhanced error message with both trimmed and original symbols for debugging
-                    // std::cerr << "Debug (Mass): Available elements in mass_data:" << "\n";
                     for (const auto& [sym, mass] : mass_data)
                     {
                         std::cerr << "  '" << sym << "'" << '\n';
                     }
-                    // std::cerr << "Debug (Mass): Looking for: '" << expected_element_symbol << "' (original: '"
-                    //           << ind2name[sys.a[i].index] << "')" << "\n";
                     throw std::runtime_error("No mass found for element '" + expected_element_symbol + "' for atom " +
                                              std::to_string(i + 1));
                 }
@@ -1532,10 +1409,9 @@ void LoadFile::loadgms(SystemData& sys)
     file.clear();
     file.seekg(0);  // Rewind to start
     loadGmsfreq(file, sys);
-    file.close();
 }
 
-void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGmsgeom(std::istream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);  // Rewind to start
@@ -1553,10 +1429,7 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
     int ncount;
     if (loclabelfinal(file, "EQUILIBRIUM GEOMETRY LOCATED", ncount) && ncount > 0)
     {
-        //Debug
-        std::cout << "Debug: Found 'EQUILIBRIUM GEOMETRY LOCATED' section" << "\n"
-                  << "Debug: ncount = " << ncount << "\n";
-        skiplines(file, 4, true);
+        skiplines(file, 4);
 
         for (int i = 0; i < sys.ncenter;)
         {
@@ -1580,7 +1453,6 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
                        line.end());
             if (line.empty())
                 continue;  // Skip blank lines
-            // std::cerr << "Debug: Geometry line for atom " << i + 1 << ": " << line << "\n";
             std::istringstream       iss(line);
             std::vector<std::string> tokens;
             std::string              token;
@@ -1605,7 +1477,6 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
                 throw std::runtime_error("Failed to parse coordinates for atom " + std::to_string(i + 1) + ": " +
                                          e.what() + " from: " + line);
             }
-            // std::cerr << "Debug: Atom " << i + 1 << " index = " << sys.a[i].index << "\n";
             ++i;
         }
     }
@@ -1675,7 +1546,7 @@ void LoadFile::loadGmsgeom(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadGmsfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadGmsfreq(std::istream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);  // Rewind to start
@@ -1741,12 +1612,15 @@ void LoadFile::loadGmsfreq(std::ifstream& file, SystemData& sys)
 // NWCHEM
 void LoadFile::loadnw(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Load energy
     int ncount;
@@ -1794,7 +1668,6 @@ void LoadFile::loadnw(SystemData& sys)
         if (loclabel(file, "- Atom information -"))
         {
             skiplines(file, 3);
-            // std::cerr << "Debug: Found 'Atom information' section, reading " << sys.ncenter << " atoms" << "\n";
             int         atoms_read = 0;
             std::string line;
             bool        parse_failed = false;
@@ -1820,9 +1693,6 @@ void LoadFile::loadnw(SystemData& sys)
                 }
 
                 sys.a[atoms_read].mass = mass;
-                // std::cerr << "Debug: Atom " << atoms_read + 1 << " (" << element_symbol << ") mass: " << mass << "
-                // amu"
-                //           << "\n";
                 atoms_read++;
             }
 
@@ -1841,18 +1711,15 @@ void LoadFile::loadnw(SystemData& sys)
 
     // Load frequencies
     loadNwfreq(file, sys);
-    file.close();
 }
 
-void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
+void LoadFile::loadNwgeom(std::istream& file, SystemData& sys)
 {
     file.clear();
     file.seekg(0);
     if (loclabel(file, "No. of atoms     :"))
     {
-        // std::cerr << "DEBUG: About to read after sign..." << "\n";
         sys.ncenter = readaftersign_int(file, ":");
-        // std::cerr << "Debug: ncenter set to " << sys.ncenter << "\n";
     }
     else
     {
@@ -1872,19 +1739,16 @@ void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
         {
             throw std::runtime_error("Failed to read header line after '- Atom information -'");
         }
-        // std::cerr << "Debug: Skipped header line: " << line << "\n";
         //  2. Column labels: "atom    #        X              Y              Z            mass"
         if (!std::getline(file, line))
         {
             throw std::runtime_error("Failed to read column labels line");
         }
-        // std::cerr << "Debug: Skipped column labels: " << line << "\n";
         //  3. Separator: "--------------------------------------------------------------------------"
         if (!std::getline(file, line))
         {
             throw std::runtime_error("Failed to read separator line");
         }
-        // std::cerr << "Debug: Skipped separator: " << line << "\n";
 
         // Now read geometry data
         for (int i = 0; i < sys.ncenter; ++i)
@@ -1898,7 +1762,6 @@ void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
             line.erase(line.find_last_not_of(" \t") + 1);
             if (line.empty())
             {
-                // std::cerr << "Debug: Skipping empty line before atom " << i + 1 << "\n";
                 --i;  // Retry this atom
                 continue;
             }
@@ -1912,7 +1775,6 @@ void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
             std::replace(line.begin(), line.end(), 'D', 'E');
             std::replace(line.begin(), line.end(), 'd', 'e');  // or 'E' if you prefer consistency
 
-            // std::cerr << "Debug: Geometry line " << i + 1 << ": " << line << "\n";
             std::istringstream iss(line);
             std::string        strtmp;
             int                inouse;
@@ -1927,7 +1789,6 @@ void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
             sys.a[i].x = x * b2a;
             sys.a[i].y = y * b2a;
             sys.a[i].z = z * b2a;
-            // std::cerr << "Debug: Atom " << i + 1 << " (" << strtmp << ") index: " << sys.a[i].index << "\n";
         }
     }
     else
@@ -1936,7 +1797,7 @@ void LoadFile::loadNwgeom(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadNwfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadNwfreq(std::istream& file, SystemData& sys)
 {
     if (loclabel(file, "Projected Derivative Dipole Moments"))
     {
@@ -2016,7 +1877,6 @@ void LoadFile::loadNwfreq(std::ifstream& file, SystemData& sys)
             sys.freq[i]    = tempFreq[i] * wave2freq;  // Convert cm⁻¹ to Hz
         }
 
-        // std::cerr << "Debug: Loaded " << sys.nfreq << " vibrational frequencies." << "\n";
     }
     else
     {
@@ -2027,12 +1887,15 @@ void LoadFile::loadNwfreq(std::ifstream& file, SystemData& sys)
 // XTB
 void LoadFile::loadxtb(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Load multiplicity
     if (loclabel(file, "alpha electrons", 0))
@@ -2141,18 +2004,20 @@ void LoadFile::loadxtb(SystemData& sys)
     setatmmass(sys);
 
     loadGaufreq(file, sys);
-    file.close();
 }
 
 // VASP
 void LoadFile::loadvasp(SystemData& sys)
 {
-    // Load file in binary mode to avoid OS-dependent line endings
-    std::ifstream file(sys.inputfile, std::ios::binary);
-    if (!file.is_open())
+    // Read entire file into memory for fast seeking
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
     {
         throw std::runtime_error("Cannot open input file: " + sys.inputfile);
     }
+    std::string filecontents((std::istreambuf_iterator<char>(rawfile)), std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
 
     // Determine if it's CONTCAR or OUTCAR based on content
     // Check for OUTCAR-specific patterns first
@@ -2228,11 +2093,9 @@ void LoadFile::loadvasp(SystemData& sys)
                 << '\n';
         }
     }
-
-    file.close();
 }
 
-void LoadFile::loadVASPgeom(std::ifstream& file, SystemData& sys, bool isOUTCAR)
+void LoadFile::loadVASPgeom(std::istream& file, SystemData& sys, bool isOUTCAR)
 {
     if (isOUTCAR)
     {
@@ -2493,7 +2356,7 @@ void LoadFile::loadVASPgeom(std::ifstream& file, SystemData& sys, bool isOUTCAR)
     }
 }
 
-void LoadFile::loadVASPEnergy(std::ifstream& file, SystemData& sys)
+void LoadFile::loadVASPEnergy(std::istream& file, SystemData& sys)
 {
     int ncount;
     if (loclabelfinal(file, "energy  without entropy", ncount) && ncount > 0)
@@ -2547,7 +2410,7 @@ void LoadFile::loadVASPEnergy(std::ifstream& file, SystemData& sys)
     }
 }
 
-void LoadFile::loadVASPfreq(std::ifstream& file, SystemData& sys)
+void LoadFile::loadVASPfreq(std::istream& file, SystemData& sys)
 {
     std::vector<double> allFreqs;
     std::string         freqLine;

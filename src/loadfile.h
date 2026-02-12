@@ -13,9 +13,9 @@
 #ifndef LOADFILE_H
 #define LOADFILE_H
 
-// #include <vector>
 #include "chemsys.h"
 #include <string>
+#include <istream>
 
 
 /**
@@ -29,31 +29,31 @@ class LoadFile
 {
 private:
     // Utility functions
-    static auto loclabel(std::ifstream& file, const std::string& label, int skip = 0) -> bool;
-    static auto loclabelfinal(std::ifstream& file, const std::string& label, int& ncount) -> bool;
-    static void skiplines(std::ifstream& file, int n, bool print_debug = false);
-    static auto readaftersign(std::ifstream& file, const std::string& sign) -> double;
-    static auto readaftersign_int(std::ifstream& file, const std::string& sign) -> int;
+    static auto loclabel(std::istream& file, const std::string& label, int skip = 0) -> bool;
+    static auto loclabelfinal(std::istream& file, const std::string& label, int& ncount) -> bool;
+    static void skiplines(std::istream& file, int n);
+    static auto readaftersign(std::istream& file, const std::string& sign) -> double;
+    static auto readaftersign_int(std::istream& file, const std::string& sign) -> int;
     static auto readaftersign_from_line(const std::string& line, const std::string& sign) -> double;
     static void elename2idx(const std::string& element, int& index);
     static void setatmmass(SystemData& sys);
 
     // Geometry loading functions
-    static void loadGaugeom(std::ifstream& file, SystemData& sys);
-    static void loadORCAgeom(std::ifstream& file, SystemData& sys);
-    static void loadGmsgeom(std::ifstream& file, SystemData& sys);
-    static void loadNwgeom(std::ifstream& file, SystemData& sys);
+    static void loadGaugeom(std::istream& file, SystemData& sys);
+    static void loadORCAgeom(std::istream& file, SystemData& sys);
+    static void loadGmsgeom(std::istream& file, SystemData& sys);
+    static void loadNwgeom(std::istream& file, SystemData& sys);
 
     // Frequency loading functions
-    static void loadGaufreq(std::ifstream& file, SystemData& sys);
-    static void loadORCAfreq(std::ifstream& file, SystemData& sys);
-    static void loadGmsfreq(std::ifstream& file, SystemData& sys);
-    static void loadNwfreq(std::ifstream& file, SystemData& sys);
+    static void loadGaufreq(std::istream& file, SystemData& sys);
+    static void loadORCAfreq(std::istream& file, SystemData& sys);
+    static void loadGmsfreq(std::istream& file, SystemData& sys);
+    static void loadNwfreq(std::istream& file, SystemData& sys);
 
     // VASP loading functions
-    static void loadVASPgeom(std::ifstream& file, SystemData& sys, bool isOUTCAR);
-    static void loadVASPEnergy(std::ifstream& file, SystemData& sys);
-    static void loadVASPfreq(std::ifstream& file, SystemData& sys);
+    static void loadVASPgeom(std::istream& file, SystemData& sys, bool isOUTCAR);
+    static void loadVASPEnergy(std::istream& file, SystemData& sys);
+    static void loadVASPfreq(std::istream& file, SystemData& sys);
 
 
 public:

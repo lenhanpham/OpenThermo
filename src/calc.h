@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include "chemsys.h" // For SystemData
 
 /**
@@ -24,6 +25,54 @@
  * and ensemble averaging.
  */
 namespace calc {
+
+/**
+ * @brief Per-contribution breakdown of thermodynamic properties
+ *
+ * Stores individual contributions (translational, rotational, vibrational,
+ * electronic) as well as totals, avoiding the need for separate computation
+ * in display functions.
+ */
+struct ThermoResult {
+    // Translation
+    double q_trans  = 1.0;
+    double U_trans  = 0.0;
+    double H_trans  = 0.0;
+    double CV_trans = 0.0;
+    double CP_trans = 0.0;
+    double S_trans  = 0.0;
+
+    // Rotation
+    double q_rot  = 1.0;
+    double U_rot  = 0.0;
+    double CV_rot = 0.0;
+    double S_rot  = 0.0;
+
+    // Vibration
+    double qvib_v0  = 1.0;
+    double qvib_bot = 1.0;
+    double U_vib      = 0.0;
+    double U_vib_heat = 0.0;
+    double ZPE        = 0.0;
+    double CV_vib     = 0.0;
+    double S_vib      = 0.0;
+
+    // Electronic
+    double q_ele  = 1.0;
+    double U_ele  = 0.0;
+    double CV_ele = 0.0;
+    double S_ele  = 0.0;
+
+    // Totals
+    double corrU  = 0.0;
+    double corrH  = 0.0;
+    double corrG  = 0.0;
+    double S_tot  = 0.0;
+    double CV_tot = 0.0;
+    double CP_tot = 0.0;
+    double QV     = 0.0;   // total q(V=0) product
+    double Qbot   = 0.0;   // total q(bot) product
+};
 
 /**
  * @brief Check if a file exists on the filesystem
@@ -70,8 +119,21 @@ void calcinertia(SystemData& sys);
 /**
  * @brief Calculate thermodynamic properties at given temperature and pressure
  *
- * This is the main thermodynamic calculation function that computes all
- * thermochemical properties using statistical mechanics.
+ * This is the single source of truth for all thermodynamic computation.
+ * Returns a ThermoResult with per-contribution breakdown and totals.
+ *
+ * @param sys SystemData structure with molecular data and parameters
+ * @param T Temperature in Kelvin
+ * @param P Pressure in atmospheres
+ * @return ThermoResult with per-contribution breakdown and totals
+ */
+ThermoResult calcthermo(const SystemData& sys, double T, double P);
+
+/**
+ * @brief Calculate thermodynamic properties (output-parameter overload)
+ *
+ * Convenience overload that extracts totals from ThermoResult into
+ * individual output parameters. Used by the T/P scan loop.
  *
  * @param sys SystemData structure with molecular data and parameters
  * @param T Temperature in Kelvin
@@ -79,9 +141,9 @@ void calcinertia(SystemData& sys);
  * @param corrU [out] Thermal correction to internal energy (kJ/mol)
  * @param corrH [out] Thermal correction to enthalpy (kJ/mol)
  * @param corrG [out] Thermal correction to Gibbs energy (kJ/mol)
- * @param S [out] Total entropy (J/mol·K)
- * @param CV [out] Constant volume heat capacity (J/mol·K)
- * @param CP [out] Constant pressure heat capacity (J/mol·K)
+ * @param S [out] Total entropy (J/mol-K)
+ * @param CV [out] Constant volume heat capacity (J/mol-K)
+ * @param CP [out] Constant pressure heat capacity (J/mol-K)
  * @param QV [out] Vibrational partition function
  * @param Qbot [out] Bottom partition function (rotational + electronic)
  */
@@ -89,14 +151,27 @@ void calcthermo(const SystemData& sys, double T, double P, double& corrU, double
                 double& S, double& CV, double& CP, double& QV, double& Qbot);
 
 /**
- * @brief Display calculated thermodynamic properties
+ * @brief Display detailed thermodynamic properties for a single (T, P) point
  *
- * Outputs the calculated thermochemical properties in a formatted manner
- * to the console, including corrections and final values.
+ * Calls calcthermo() internally and formats the per-contribution breakdown
+ * to the console. Sets sys.thermG as a side effect.
  *
  * @param sys SystemData structure containing the results
  */
 void showthermo(SystemData& sys);
+
+/**
+ * @brief Display per-mode vibrational detail table
+ *
+ * Prints per-mode partition functions and thermodynamic contributions
+ * (ZPE, U, CV, S) for each vibrational mode. Separated from showthermo()
+ * to support future verbosity-level control.
+ *
+ * @param sys SystemData with vibrational data
+ * @param T Temperature in Kelvin
+ * @param out Output stream (cout or file stream for .vibcon export)
+ */
+void showvibdetail(const SystemData& sys, double T, std::ostream& out);
 
 /**
  * @brief Calculate concentration-dependent Gibbs energy correction
@@ -119,12 +194,12 @@ void getGconc(const SystemData &sys, const double &concnow, const double &concsp
  *
  * @param sys SystemData structure with vibrational data
  * @param i Index of the vibrational mode (0-based)
+ * @param T Temperature in Kelvin
  * @param tmpZPE [out] Zero-point energy contribution
  * @param tmpheat [out] Thermal energy contribution
  * @param tmpCV [out] Constant volume heat capacity contribution
  * @param tmpS [out] Entropy contribution
  */
-void getvibcontri(const SystemData& sys, int i, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS);
 void getvibcontri(const SystemData& sys, int i, double T, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS);
 
 /**

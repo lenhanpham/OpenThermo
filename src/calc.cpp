@@ -35,7 +35,6 @@ namespace calc
 {
 
     // Forward declarations
-    void elecontri(const SystemData& sys, double& tmpq, double& tmpheat, double& tmpCV, double& tmpS);
     void elecontri(const SystemData& sys, double T, double& tmpq, double& tmpheat, double& tmpCV, double& tmpS);
     void getvibcontri(const SystemData& sys, int i, double T, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS);
 
@@ -321,74 +320,55 @@ namespace calc
     /**
      * @brief Calculate thermodynamic properties at given temperature and pressure
      *
-     * Computes all thermochemical properties (internal energy, enthalpy, Gibbs energy,
-     * entropy, heat capacities, partition functions) using statistical mechanics.
-     * Includes translational, rotational, vibrational, and electronic contributions.
+     * Single source of truth for all thermodynamic computation.
+     * Returns a ThermoResult with per-contribution breakdown and totals.
      *
      * @param sys SystemData structure with molecular data (const, not modified)
      * @param T Temperature in Kelvin
      * @param P Pressure in atmospheres
-     * @param corrU [out] Thermal correction to internal energy (kJ/mol)
-     * @param corrH [out] Thermal correction to enthalpy (kJ/mol)
-     * @param corrG [out] Thermal correction to Gibbs energy (kJ/mol)
-     * @param S [out] Total entropy (J/mol/K)
-     * @param CV [out] Heat capacity at constant volume (J/mol/K)
-     * @param CP [out] Heat capacity at constant pressure (J/mol/K)
-     * @param QV [out] Vibrational partition function (q(V=0)/NA)
-     * @param Qbot [out] Bottom-of-well partition function (q(bot)/NA)
+     * @return ThermoResult with per-contribution breakdown and totals
      *
      * @note Uses fused vibrational loop with precomputed invariants for performance
      * @note Supports Harmonic, Truhlar, Grimme, and Minenkov low-frequency treatments
      */
-    void calcthermo(const SystemData& sys,
-                    double      T,
-                    double      P,
-                    double& corrU,
-                    double& corrH,
-                    double& corrG,
-                    double& S,
-                    double& CV,
-                    double& CP,
-                    double& QV,
-                    double& Qbot)
+    ThermoResult calcthermo(const SystemData& sys, double T, double P)
     {
-        double q_trans = 1.0, U_trans = 0.0, CV_trans = 0.0, CP_trans = 0.0, H_trans = 0.0, S_trans = 0.0;
-        double q_rot = 1.0, U_rot = 0.0, CV_rot = 0.0, S_rot = 0.0;
-        double log_qvib_v0 = 0.0, log_qvib_bot = 0.0, U_vib_heat = 0.0, CV_vib = 0.0, S_vib = 0.0, ZPE = 0.0;
-        double q_ele = 1.0, U_ele = 0.0, CV_ele = 0.0, S_ele = 0.0;
+        ThermoResult r;
 
         const double b2m_sq = (b2a * 1e-10) * (b2a * 1e-10);
 
+        // --- Translation ---
         if (sys.ipmode == 0)
         {
-            double P_Pa = P * atm2Pa;
+            double P_Pa      = P * atm2Pa;
             double trans_base = 2.0 * M_PI * (sys.totmass * amu2kg) * kb * T / (h * h);
-            q_trans = trans_base * std::sqrt(trans_base) * R * T / P_Pa;
-            CV_trans = 1.5 * R;
-            CP_trans = 2.5 * R;
-            U_trans  = 1.5 * R * T / 1000.0;
-            H_trans  = 2.5 * R * T / 1000.0;
-            S_trans  = R * (std::log(q_trans / NA) + 2.5);
+            r.q_trans  = trans_base * std::sqrt(trans_base) * R * T / P_Pa;
+            r.CV_trans = 1.5 * R;
+            r.CP_trans = 2.5 * R;
+            r.U_trans  = 1.5 * R * T / 1000.0;
+            r.H_trans  = 2.5 * R * T / 1000.0;
+            r.S_trans  = R * (std::log(r.q_trans / NA) + 2.5);
         }
         else if (sys.ipmode == 1)
         {
-            q_trans  = 1.0;
-            CV_trans = 0.0;
-            CP_trans = 0.0;
-            U_trans  = 0.0;
-            H_trans  = 0.0;
-            S_trans  = 0.0;
+            r.q_trans  = 1.0;
+            r.CV_trans = 0.0;
+            r.CP_trans = 0.0;
+            r.U_trans  = 0.0;
+            r.H_trans  = 0.0;
+            r.S_trans  = 0.0;
         }
 
+        // --- Rotation ---
         if (sys.ipmode == 0)
         {
             double sum_inert = sys.inert[0] + sys.inert[1] + sys.inert[2];
             if (sum_inert < 1e-10)
             {
-                q_rot  = 1.0;
-                U_rot  = 0.0;
-                CV_rot = 0.0;
-                S_rot  = 0.0;
+                r.q_rot  = 1.0;
+                r.U_rot  = 0.0;
+                r.CV_rot = 0.0;
+                r.S_rot  = 0.0;
             }
             else
             {
@@ -398,47 +378,53 @@ namespace calc
                     inertkg[i] = sys.inert[i] * amu2kg * b2m_sq;
                 }
                 if (sys.ilinear == 1)
-                {  // Linear molecule
-                    q_rot  = 8.0 * M_PI * M_PI * inertkg[2] * kb * T / sys.rotsym / (h * h);
-                    U_rot  = R * T / 1000.0;
-                    CV_rot = R;
-                    S_rot  = R * (std::log(q_rot) + 1.0);
+                {   // Linear molecule: use the largest moment of inertia
+                    // (the near-zero moment is rotation about the molecular axis)
+                    double largest_inertkg = *std::max_element(inertkg.begin(), inertkg.end());
+                    r.q_rot  = 8.0 * M_PI * M_PI * largest_inertkg * kb * T / sys.rotsym / (h * h);
+                    r.U_rot  = R * T / 1000.0;
+                    r.CV_rot = R;
+                    r.S_rot  = R * (std::log(r.q_rot) + 1.0);
                 }
                 else
-                {  // Non-linear molecule
+                {   // Non-linear molecule
                     double rot_base = 2.0 * M_PI * kb * T;
-                    q_rot = 8.0 * M_PI * M_PI / sys.rotsym / (h * h * h) *
-                            rot_base * std::sqrt(rot_base) *
-                            std::sqrt(inertkg[0] * inertkg[1] * inertkg[2]);
-                    U_rot  = 1.5 * R * T / 1000.0;
-                    CV_rot = 1.5 * R;
-                    S_rot  = R * (std::log(q_rot) + 1.5);
+                    r.q_rot = 8.0 * M_PI * M_PI / sys.rotsym / (h * h * h) *
+                              rot_base * std::sqrt(rot_base) *
+                              std::sqrt(inertkg[0] * inertkg[1] * inertkg[2]);
+                    r.U_rot  = 1.5 * R * T / 1000.0;
+                    r.CV_rot = 1.5 * R;
+                    r.S_rot  = R * (std::log(r.q_rot) + 1.5);
                 }
             }
         }
         else if (sys.ipmode == 1)
         {
-            q_rot  = 1.0;
-            U_rot  = 0.0;
-            CV_rot = 0.0;
-            S_rot  = 0.0;
+            r.q_rot  = 1.0;
+            r.U_rot  = 0.0;
+            r.CV_rot = 0.0;
+            r.S_rot  = 0.0;
         }
 
+        // --- Vibration (fused loop) ---
+        double log_qvib_v0 = 0.0, log_qvib_bot = 0.0;
+        double ZPE = 0.0, U_vib_heat = 0.0, CV_vib = 0.0, S_vib = 0.0;
+
         const double h_over_kbT = h / (kb * T);
-        const double RT_1000 = R * T / 1000.0;
+        const double RT_1000    = R * T / 1000.0;
         const double zpe_factor = sys.sclZPE / 2.0 / au2cm_1 * au2kJ_mol;
-        const int nfreq = sys.nfreq;
-        const auto lowVib = sys.lowVibTreatment;
+        const int    nfreq      = sys.nfreq;
+        const auto   lowVib     = sys.lowVibTreatment;
         const double ravib_freq = sys.ravib * wave2freq;
-        const double sclheat = sys.sclheat;
-        const double sclCV = sys.sclCV;
-        const double sclS = sys.sclS;
-        const bool uniform_scaling = (sclheat == 1.0 && sclCV == 1.0 && sclS == 1.0);
-        const double prefac_trunc = (lowVib == LowVibTreatment::Truhlar) ? h_over_kbT * ravib_freq : 0.0;
-        const double term_trunc = (lowVib == LowVibTreatment::Truhlar) ? std::exp(-prefac_trunc) : 0.0;
-        const bool do_grimme_interp = (lowVib == LowVibTreatment::Grimme || lowVib == LowVibTreatment::Minenkov);
-        constexpr double eight_pi2 = 8.0 * M_PI * M_PI;
-        const double grimme_log_base = 8.0 * M_PI * M_PI * M_PI * 1e-44 * kb * T / (h * h);
+        const double sclheat    = sys.sclheat;
+        const double sclCV      = sys.sclCV;
+        const double sclS       = sys.sclS;
+        const bool   uniform_scaling = (sclheat == 1.0 && sclCV == 1.0 && sclS == 1.0);
+        const double prefac_trunc    = (lowVib == LowVibTreatment::Truhlar) ? h_over_kbT * ravib_freq : 0.0;
+        const double term_trunc      = (lowVib == LowVibTreatment::Truhlar) ? std::exp(-prefac_trunc) : 0.0;
+        const bool   do_grimme_interp = (lowVib == LowVibTreatment::Grimme || lowVib == LowVibTreatment::Minenkov);
+        constexpr double eight_pi2    = 8.0 * M_PI * M_PI;
+        const double grimme_log_base  = 8.0 * M_PI * M_PI * M_PI * 1e-44 * kb * T / (h * h);
 
 #ifdef _OPENMP
 #pragma omp parallel for reduction(+:log_qvib_v0,log_qvib_bot,ZPE,U_vib_heat,CV_vib,S_vib) if(nfreq > 50)
@@ -455,7 +441,7 @@ namespace calc
             double x = h_over_kbT * freqtmp;
             double exp_neg_x = std::exp(-x);
             double one_minus_exp = 1.0 - exp_neg_x;
-            log_qvib_v0 += -std::log(one_minus_exp);
+            log_qvib_v0  += -std::log(one_minus_exp);
             log_qvib_bot += -x / 2.0 - std::log(one_minus_exp);
 
             double local_ZPE = wi * zpe_factor;
@@ -488,8 +474,8 @@ namespace calc
                     double UvRRHO = local_ZPE + RT_1000 * pf_h * tm_h / (1.0 - tm_h);
                     local_ZPE = 0.0;
                     double Ufree = RT_1000 * 0.5;
-                    double r = sys.intpvib / wi;
-                    double r2 = r * r;
+                    double ra = sys.intpvib / wi;
+                    double r2 = ra * ra;
                     double tmpval = 1.0 + r2 * r2;
                     local_heat = (1.0 / tmpval) * UvRRHO + (1.0 - 1.0 / tmpval) * Ufree;
                 }
@@ -510,8 +496,8 @@ namespace calc
                 tm_cv = std::exp(-pf_cv);
                 if (truhlar_active) { pf_cv = prefac_trunc; tm_cv = term_trunc; }
             }
-            double omt_cv = 1.0 - tm_cv;
-            double local_CV = R * pf_cv * pf_cv * tm_cv / (omt_cv * omt_cv);
+            double omt_cv   = 1.0 - tm_cv;
+            double local_CV  = R * pf_cv * pf_cv * tm_cv / (omt_cv * omt_cv);
 
             double pf_s, tm_s;
             if (uniform_scaling)
@@ -528,50 +514,85 @@ namespace calc
 
             if (do_grimme_interp)
             {
-                double miu = h / (eight_pi2 * fi);
+                double miu  = h / (eight_pi2 * fi);
                 constexpr double Bav = 1e-44;
                 double miup = miu * Bav / (miu + Bav);
                 double Sfree = R * (0.5 + 0.5 * std::log(grimme_log_base * miup / Bav));
-                double gr = sys.intpvib / wi;
+                double gr  = sys.intpvib / wi;
                 double gr2 = gr * gr;
                 double wei = 1.0 / (1.0 + gr2 * gr2);
-                local_S = wei * local_S + (1.0 - wei) * Sfree;
+                local_S    = wei * local_S + (1.0 - wei) * Sfree;
             }
 
-            ZPE += local_ZPE;
+            ZPE        += local_ZPE;
             U_vib_heat += local_heat;
-            CV_vib += local_CV;
-            S_vib += local_S;
+            CV_vib     += local_CV;
+            S_vib      += local_S;
         }
-        double U_vib = U_vib_heat + ZPE;
 
-        elecontri(sys, T, q_ele, U_ele, CV_ele, S_ele);
+        r.ZPE        = ZPE;
+        r.U_vib_heat = U_vib_heat;
+        r.U_vib      = U_vib_heat + ZPE;
+        r.CV_vib     = CV_vib;
+        r.S_vib      = S_vib;
+        r.qvib_v0    = std::exp(log_qvib_v0);
+        r.qvib_bot   = std::exp(log_qvib_bot);
 
-        double CV_tot = CV_trans + CV_rot + CV_vib + CV_ele;
-        double CP_tot = CP_trans + CV_rot + CV_vib + CV_ele;
-        double S_tot  = S_trans + S_rot + S_vib + S_ele;
-        double thermU = U_trans + U_rot + U_vib + U_ele;
-        double thermH = H_trans + U_rot + U_vib + U_ele;
-        double thermG;
+        // --- Electronic ---
+        elecontri(sys, T, r.q_ele, r.U_ele, r.CV_ele, r.S_ele);
+
+        // --- Totals ---
+        r.CV_tot = r.CV_trans + r.CV_rot + r.CV_vib + r.CV_ele;
+        r.CP_tot = r.CP_trans + r.CV_rot + r.CV_vib + r.CV_ele;
+        r.S_tot  = r.S_trans  + r.S_rot  + r.S_vib  + r.S_ele;
+
         if (T == 0.0)
         {
-            thermG = thermH;
+            r.corrU = r.ZPE;
+            r.corrH = r.ZPE;
+            r.corrG = r.ZPE;
         }
         else
         {
-            thermG = thermH - T * S_tot / 1000.0;
+            r.corrU = r.U_trans + r.U_rot + r.U_vib + r.U_ele;
+            r.corrH = r.H_trans + r.U_rot + r.U_vib + r.U_ele;
+            r.corrG = r.corrH - T * r.S_tot / 1000.0;
         }
 
-        corrU = thermU;
-        corrH = thermH;
-        corrG = thermG;
-        S     = S_tot;
-        CV    = CV_tot;
-        CP    = CP_tot;
-        double qvib_v0 = std::exp(log_qvib_v0);
-        double qvib_bot = std::exp(log_qvib_bot);
-        QV    = q_trans * q_rot * qvib_v0 * q_ele;
-        Qbot  = q_trans * q_rot * qvib_bot * q_ele;
+        r.QV   = r.q_trans * r.q_rot * r.qvib_v0  * r.q_ele;
+        r.Qbot = r.q_trans * r.q_rot * r.qvib_bot  * r.q_ele;
+
+        return r;
+    }
+
+
+    /**
+     * @brief Calculate thermodynamic properties (output-parameter overload)
+     *
+     * Thin wrapper around the ThermoResult version for backward compatibility.
+     * Used by the T/P scan loop and batchthermo.
+     */
+    void calcthermo(const SystemData& sys,
+                    double      T,
+                    double      P,
+                    double& corrU,
+                    double& corrH,
+                    double& corrG,
+                    double& S,
+                    double& CV,
+                    double& CP,
+                    double& QV,
+                    double& Qbot)
+    {
+        ThermoResult r = calcthermo(sys, T, P);
+        corrU = r.corrU;
+        corrH = r.corrH;
+        corrG = r.corrG;
+        S     = r.S_tot;
+        CV    = r.CV_tot;
+        CP    = r.CP_tot;
+        QV    = r.QV;
+        Qbot  = r.Qbot;
     }
 
 
@@ -589,11 +610,8 @@ namespace calc
      */
     void showthermo(SystemData& sys)
     {
-        double q_trans = 1.0, U_trans = 0.0, CV_trans = 0.0, CP_trans = 0.0, H_trans = 0.0, S_trans = 0.0;
-        double q_rot = 1.0, U_rot = 0.0, CV_rot = 0.0, S_rot = 0.0;
-        double qvib_v0 = 1.0, qvib_bot = 1.0, U_vib_heat = 0.0, CV_vib = 0.0, S_vib = 0.0, ZPE = 0.0;
-        double q_ele = 1.0, U_ele = 0.0, CV_ele = 0.0, S_ele = 0.0;
-        double thermU, thermH, thermG, CV_tot, CP_tot, S_tot;
+        // Single source of truth: compute all thermodynamic quantities
+        ThermoResult r = calcthermo(sys, sys.T, sys.P);
 
         // Translation contribution
         if (sys.ipmode == 0)
@@ -602,37 +620,23 @@ namespace calc
                       << "\n";
             std::cout << "                        ------- Translation -------\n"
                       << "                        ---------------------------\n";
-            double P_Pa = sys.P * atm2Pa;
-            double trans_base = 2.0 * M_PI * (sys.totmass * amu2kg) * kb * sys.T / (h * h);
-            q_trans = trans_base * std::sqrt(trans_base) * R * sys.T / P_Pa;
-            CV_trans = 3.0 / 2.0 * R;
-            CP_trans = 5.0 / 2.0 * R;
-            U_trans  = 3.0 / 2.0 * R * sys.T / 1000.0;
-            H_trans  = 5.0 / 2.0 * R * sys.T / 1000.0;
-            S_trans  = R * (std::log(q_trans / NA) + 5.0 / 2.0);
-            std::cout << std::scientific << std::setprecision(6) << " Translational q: " << std::setw(16) << q_trans
-                      << "     q/NA: " << std::setw(16) << q_trans / NA << "\n";
-            std::cout << std::fixed << std::setprecision(3) << " Translational U: " << std::setw(10) << U_trans
-                      << " kJ/mol " << std::setw(10) << U_trans / cal2J << " kcal/mol\n";
-            std::cout << " Translational H: " << std::setw(10) << H_trans << " kJ/mol " << std::setw(10)
-                      << H_trans / cal2J << " kcal/mol\n";
-            std::cout << " Translational S: " << std::setw(10) << S_trans << " J/mol/K" << std::setw(10)
-                      << S_trans / cal2J << " cal/mol/K  -TS:" << std::setw(8) << -S_trans / cal2J / 1000.0 * sys.T
+            std::cout << std::scientific << std::setprecision(6) << " Translational q: " << std::setw(16) << r.q_trans
+                      << "     q/NA: " << std::setw(16) << r.q_trans / NA << "\n";
+            std::cout << std::fixed << std::setprecision(3) << " Translational U: " << std::setw(10) << r.U_trans
+                      << " kJ/mol " << std::setw(10) << r.U_trans / cal2J << " kcal/mol\n";
+            std::cout << " Translational H: " << std::setw(10) << r.H_trans << " kJ/mol " << std::setw(10)
+                      << r.H_trans / cal2J << " kcal/mol\n";
+            std::cout << " Translational S: " << std::setw(10) << r.S_trans << " J/mol/K" << std::setw(10)
+                      << r.S_trans / cal2J << " cal/mol/K  -TS:" << std::setw(8) << -r.S_trans / cal2J / 1000.0 * sys.T
                       << " kcal/mol\n";
-            std::cout << " Translational CV:" << std::setw(10) << CV_trans << " J/mol/K" << std::setw(10)
-                      << CV_trans / cal2J << " cal/mol/K\n";
-            std::cout << " Translational CP:" << std::setw(10) << CP_trans << " J/mol/K" << std::setw(10)
-                      << CP_trans / cal2J << " cal/mol/K\n";
+            std::cout << " Translational CV:" << std::setw(10) << r.CV_trans << " J/mol/K" << std::setw(10)
+                      << r.CV_trans / cal2J << " cal/mol/K\n";
+            std::cout << " Translational CP:" << std::setw(10) << r.CP_trans << " J/mol/K" << std::setw(10)
+                      << r.CP_trans / cal2J << " cal/mol/K\n";
         }
         else if (sys.ipmode == 1)
         {
             std::cout << "\nTranslation contribution is ignored since ipmode=1\n";
-            q_trans  = 1.0;
-            CV_trans = 0.0;
-            CP_trans = 0.0;
-            U_trans  = 0.0;
-            H_trans  = 0.0;
-            S_trans  = 0.0;
         }
 
         // Rotation contribution
@@ -640,62 +644,21 @@ namespace calc
         {
             std::cout << "\n                        -------- Rotation --------\n"
                       << "                        --------------------------\n";
-            double sum_inert = sys.inert[0] + sys.inert[1] + sys.inert[2];
-            if (sum_inert < 1e-10)
-            {  // Single atom
-                q_rot  = 1.0;
-                U_rot  = 0.0;
-                CV_rot = 0.0;
-                S_rot  = 0.0;
-            }
-            else
-            {
-                const double b2m_sq_show = (b2a * 1e-10) * (b2a * 1e-10);
-                std::array<double, 3> inertkg;
-                for (int i = 0; i < 3; ++i)
-                {
-                    inertkg[i] = sys.inert[i] * amu2kg * b2m_sq_show;
-                }
-                if (sys.ilinear == 1)
-                {  // Linear molecule
-                   // Use the LARGEST moment of inertia (not inertkg[2]!)
-                    double largest_inertkg = *std::max_element(inertkg.begin(), inertkg.end());
-                    q_rot                  = 8.0 * M_PI * M_PI * largest_inertkg * kb * sys.T / sys.rotsym / (h * h);
-                    U_rot                  = R * sys.T / 1000.0;
-                    CV_rot                 = R;
-                    S_rot                  = R * (std::log(q_rot) + 1.0);
-                }
-                else
-                {  // Non-linear molecule
-                    double rot_base = 2.0 * M_PI * kb * sys.T;
-                    q_rot = 8.0 * M_PI * M_PI / sys.rotsym / (h * h * h) *
-                            rot_base * std::sqrt(rot_base) *
-                            std::sqrt(inertkg[0] * inertkg[1] * inertkg[2]);
-                    U_rot  = 1.5 * R * sys.T / 1000.0;
-                    CV_rot = 1.5 * R;
-                    S_rot  = R * (std::log(q_rot) + 1.5);
-                }
-            }
-            std::cout << std::scientific << std::setprecision(6) << " Rotational q: " << std::setw(16) << q_rot << "\n";
-            std::cout << std::fixed << std::setprecision(3) << " Rotational U: " << std::setw(10) << U_rot << " kJ/mol "
-                      << std::setw(10) << U_rot / cal2J << " kcal/mol    =H\n";
-            std::cout << " Rotational S: " << std::setw(10) << S_rot << " J/mol/K" << std::setw(10) << S_rot / cal2J
-                      << " cal/mol/K   -TS:" << std::setw(8) << -S_rot / cal2J / 1000.0 * sys.T << " kcal/mol\n";
-            std::cout << " Rotational CV:" << std::setw(10) << CV_rot << " J/mol/K" << std::setw(10) << CV_rot / cal2J
+            std::cout << std::scientific << std::setprecision(6) << " Rotational q: " << std::setw(16) << r.q_rot << "\n";
+            std::cout << std::fixed << std::setprecision(3) << " Rotational U: " << std::setw(10) << r.U_rot << " kJ/mol "
+                      << std::setw(10) << r.U_rot / cal2J << " kcal/mol    =H\n";
+            std::cout << " Rotational S: " << std::setw(10) << r.S_rot << " J/mol/K" << std::setw(10) << r.S_rot / cal2J
+                      << " cal/mol/K   -TS:" << std::setw(8) << -r.S_rot / cal2J / 1000.0 * sys.T << " kcal/mol\n";
+            std::cout << " Rotational CV:" << std::setw(10) << r.CV_rot << " J/mol/K" << std::setw(10) << r.CV_rot / cal2J
                       << " cal/mol/K   =CP\n";
         }
         else if (sys.ipmode == 1)
         {
             std::cout << "\nRotation contribution is ignored since ipmode=1\n";
-            q_rot  = 1.0;
-            U_rot  = 0.0;
-            CV_rot = 0.0;
-            S_rot  = 0.0;
         }
 
         // Vibration contribution
         std::ofstream vibfile;
-        std::ostream* ivibout = &std::cout;
         std::string   vibcon_filename;
         if (sys.prtvib == -1)
         {
@@ -703,7 +666,6 @@ namespace calc
             vibfile.open(vibcon_filename);
             if (!vibfile.is_open())
                 throw std::runtime_error("showthermo: Unable to open " + vibcon_filename);
-            ivibout = &vibfile;
         }
 
         std::cout << "\n                        -------- Vibration --------\n"
@@ -735,64 +697,12 @@ namespace calc
                          "Other terms are identical to harmonic oscillator model\n\n";
         }
 
-        // Calculate partition function
+        // Per-mode vibrational detail (partition functions & contributions)
         if (std::abs(sys.prtvib) == 1)
         {
-            if (sys.sclZPE != 1.0 || sys.sclheat != 1.0 || sys.sclS != 1.0 || sys.sclCV != 1.0)
-            {
-                *ivibout << "Note: The wavenumbers shown below are unscaled ones\n\n";
-            }
-            *ivibout << " Mode  Wavenumber    Freq        Vib. Temp.    q(V=0)        q(bot)\n";
-            *ivibout << "         cm^-1        GHz            K\n";
+            std::ostream& vibout = (sys.prtvib == -1) ? vibfile : std::cout;
+            showvibdetail(sys, sys.T, vibout);
         }
-
-        for (int i = 0; i < sys.nfreq; ++i)
-        {
-            if (sys.freq[i] <= 0.0)
-                continue;
-            double freqtmp = sys.freq[i];
-            if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
-            {
-                freqtmp = sys.ravib * wave2freq;
-            }
-            double tmpv0  = 1.0 / (1.0 - std::exp(-h * freqtmp / (kb * sys.T)));
-            double tmpbot = std::exp(-h * freqtmp / (kb * 2.0 * sys.T)) / (1.0 - std::exp(-h * freqtmp / (kb * sys.T)));
-            qvib_v0 *= tmpv0;
-            qvib_bot *= tmpbot;
-            if (std::abs(sys.prtvib) == 1)
-            {
-                *ivibout << std::fixed << std::setprecision(2) << std::setw(5) << (i + 1) << std::setw(11)
-                         << sys.wavenum[i] << std::scientific << std::setprecision(5) << std::setw(14)
-                         << sys.freq[i] / 1e9 << std::fixed << std::setprecision(2) << std::setw(12)
-                         << sys.freq[i] * h / kb << std::setprecision(8) << std::setw(14) << tmpv0 << std::setw(14)
-                         << tmpbot << "\n";
-            }
-        }
-
-        // Calculate contribution to thermochemistry quantities
-        if (std::abs(sys.prtvib) == 1)
-        {
-            *ivibout << "\n Mode  Wavenumber     ZPE      U(T)-U(0)    U(T)      CV(T)       S(T)\n";
-            *ivibout << "         cm^-1      kcal/mol   kcal/mol   kcal/mol  cal/mol/K  cal/mol/K\n";
-        }
-
-        for (int i = 0; i < sys.nfreq; ++i)
-        {
-            double tmpZPE, tmpheat, tmpCV, tmpS;
-            getvibcontri(sys, i, tmpZPE, tmpheat, tmpCV, tmpS);
-            ZPE += tmpZPE;
-            U_vib_heat += tmpheat;
-            CV_vib += tmpCV;
-            S_vib += tmpS;
-            if (std::abs(sys.prtvib) == 1)
-            {
-                *ivibout << std::fixed << std::setprecision(2) << std::setw(5) << (i + 1) << std::setw(11)
-                         << sys.wavenum[i] << std::setprecision(5) << std::setw(11) << tmpZPE / cal2J << std::setw(11)
-                         << tmpheat / cal2J << std::setw(11) << (tmpheat + tmpZPE) / cal2J << std::setw(11)
-                         << tmpCV / cal2J << std::setw(11) << tmpS / cal2J << "\n";
-            }
-        }
-        double U_vib = U_vib_heat + ZPE;
 
         if (sys.prtvib == -1)
         {
@@ -801,79 +711,66 @@ namespace calc
                       << vibcon_filename << " in current folder\n\n";
         }
 
-        std::cout << std::scientific << std::setprecision(6) << " Vibrational q(V=0): " << std::setw(16) << qvib_v0
+        std::cout << std::scientific << std::setprecision(6) << " Vibrational q(V=0): " << std::setw(16) << r.qvib_v0
                   << "\n";
-        std::cout << " Vibrational q(bot): " << std::setw(16) << qvib_bot << "\n";
+        std::cout << " Vibrational q(bot): " << std::setw(16) << r.qvib_bot << "\n";
         if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
-            std::cout << std::fixed << std::setprecision(3) << " Vibrational U(T)-U(0):" << std::setw(10) << U_vib_heat
-                      << " kJ/mol" << std::setw(10) << U_vib_heat / cal2J << " kcal/mol   =H(T)-H(0)\n";
+            std::cout << std::fixed << std::setprecision(3) << " Vibrational U(T)-U(0):" << std::setw(10) << r.U_vib_heat
+                      << " kJ/mol" << std::setw(10) << r.U_vib_heat / cal2J << " kcal/mol   =H(T)-H(0)\n";
         }
-        std::cout << " Vibrational U: " << std::setw(10) << U_vib << " kJ/mol " << std::setw(10) << U_vib / cal2J
+        std::cout << " Vibrational U: " << std::setw(10) << r.U_vib << " kJ/mol " << std::setw(10) << r.U_vib / cal2J
                   << " kcal/mol    =H\n";
-        std::cout << " Vibrational S: " << std::setw(10) << S_vib << " J/mol/K" << std::setw(10) << S_vib / cal2J
-                  << " cal/mol/K   -TS:" << std::setw(8) << -S_vib / cal2J / 1000.0 * sys.T << " kcal/mol\n";
-        std::cout << " Vibrational CV:" << std::setw(10) << CV_vib << " J/mol/K" << std::setw(10) << CV_vib / cal2J
+        std::cout << " Vibrational S: " << std::setw(10) << r.S_vib << " J/mol/K" << std::setw(10) << r.S_vib / cal2J
+                  << " cal/mol/K   -TS:" << std::setw(8) << -r.S_vib / cal2J / 1000.0 * sys.T << " kcal/mol\n";
+        std::cout << " Vibrational CV:" << std::setw(10) << r.CV_vib << " J/mol/K" << std::setw(10) << r.CV_vib / cal2J
                   << " cal/mol/K   =CP\n";
         if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
-            std::cout << std::setprecision(2) << " Zero-point energy (ZPE):" << std::setw(10) << ZPE << " kJ/mol,"
-                      << std::setw(10) << ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(12)
-                      << ZPE / au2kJ_mol << " a.u.\n";
+            std::cout << std::setprecision(2) << " Zero-point energy (ZPE):" << std::setw(10) << r.ZPE << " kJ/mol,"
+                      << std::setw(10) << r.ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(12)
+                      << r.ZPE / au2kJ_mol << " a.u.\n";
         }
 
-        // Electron contribution
+        // Electronic contribution
         std::cout << "\n                 -------- Electronic excitation --------\n"
                   << "                 ---------------------------------------\n";
-        elecontri(sys, q_ele, U_ele, CV_ele, S_ele);
-        std::cout << std::scientific << std::setprecision(6) << " Electronic q: " << std::setw(16) << q_ele << "\n";
-        std::cout << std::fixed << std::setprecision(3) << " Electronic U: " << std::setw(10) << U_ele << " kJ/mol "
-                  << std::setw(10) << U_ele / cal2J << " kcal/mol    =H\n";
-        std::cout << " Electronic S: " << std::setw(10) << S_ele << " J/mol/K" << std::setw(10) << S_ele / cal2J
-                  << " cal/mol/K   -TS:" << std::setw(8) << -S_ele / cal2J / 1000.0 * sys.T << " kcal/mol\n";
-        std::cout << " Electronic CV:" << std::setw(10) << CV_ele << " J/mol/K" << std::setw(10) << CV_ele / cal2J
+        std::cout << std::scientific << std::setprecision(6) << " Electronic q: " << std::setw(16) << r.q_ele << "\n";
+        std::cout << std::fixed << std::setprecision(3) << " Electronic U: " << std::setw(10) << r.U_ele << " kJ/mol "
+                  << std::setw(10) << r.U_ele / cal2J << " kcal/mol    =H\n";
+        std::cout << " Electronic S: " << std::setw(10) << r.S_ele << " J/mol/K" << std::setw(10) << r.S_ele / cal2J
+                  << " cal/mol/K   -TS:" << std::setw(8) << -r.S_ele / cal2J / 1000.0 * sys.T << " kcal/mol\n";
+        std::cout << " Electronic CV:" << std::setw(10) << r.CV_ele << " J/mol/K" << std::setw(10) << r.CV_ele / cal2J
                   << " cal/mol/K   =CP\n";
 
-        // Total result
+        // Final summary
         std::cout << "\n\n"
                   << "                       ----------------------------\n"
                   << "                       -------- Final data --------\n"
                   << "                       ----------------------------\n";
         std::cout << std::scientific << std::setprecision(6) << " Total q(V=0):    " << std::setw(16)
-                  << q_trans * q_rot * qvib_v0 * q_ele << "\n";
-        std::cout << " Total q(bot):    " << std::setw(16) << q_trans * q_rot * qvib_bot * q_ele << "\n";
-        std::cout << " Total q(V=0)/NA: " << std::setw(16) << q_trans * q_rot * qvib_v0 * q_ele / NA << "\n";
-        std::cout << " Total q(bot)/NA: " << std::setw(16) << q_trans * q_rot * qvib_bot * q_ele / NA << "\n";
+                  << r.QV << "\n";
+        std::cout << " Total q(bot):    " << std::setw(16) << r.Qbot << "\n";
+        std::cout << " Total q(V=0)/NA: " << std::setw(16) << r.QV / NA << "\n";
+        std::cout << " Total q(bot)/NA: " << std::setw(16) << r.Qbot / NA << "\n";
 
-        CV_tot = CV_trans + CV_rot + CV_vib + CV_ele;
-        CP_tot = CP_trans + CV_rot + CV_vib + CV_ele;
-        S_tot  = S_trans + S_rot + S_vib + S_ele;
-        std::cout << std::fixed << std::setprecision(3) << " Total CV:" << std::setw(12) << CV_tot << " J/mol/K"
-                  << std::setw(12) << CV_tot / cal2J << " cal/mol/K\n";
-        std::cout << " Total CP:" << std::setw(12) << CP_tot << " J/mol/K" << std::setw(12) << CP_tot / cal2J
+        std::cout << std::fixed << std::setprecision(3) << " Total CV:" << std::setw(12) << r.CV_tot << " J/mol/K"
+                  << std::setw(12) << r.CV_tot / cal2J << " cal/mol/K\n";
+        std::cout << " Total CP:" << std::setw(12) << r.CP_tot << " J/mol/K" << std::setw(12) << r.CP_tot / cal2J
                   << " cal/mol/K\n";
-        std::cout << " Total S: " << std::setw(12) << S_tot << " J/mol/K" << std::setw(12) << S_tot / cal2J
-                  << " cal/mol/K    -TS:" << std::setw(10) << -S_tot / cal2J / 1000.0 * sys.T << " kcal/mol\n";
+        std::cout << " Total S: " << std::setw(12) << r.S_tot << " J/mol/K" << std::setw(12) << r.S_tot / cal2J
+                  << " cal/mol/K    -TS:" << std::setw(10) << -r.S_tot / cal2J / 1000.0 * sys.T << " kcal/mol\n";
 
-        if (sys.T == 0.0)
-        {
-            thermU = ZPE;
-            thermH = ZPE;
-            thermG = ZPE;
-        }
-        else
-        {
-            thermU = U_trans + U_rot + U_vib + U_ele;
-            thermH = H_trans + U_rot + U_vib + U_ele;
-            thermG = thermH - sys.T * S_tot / 1000.0;
-        }
+        double thermU = r.corrU;
+        double thermH = r.corrH;
+        double thermG = r.corrG;
         sys.thermG = thermG;
 
         if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
         {
-            std::cout << std::setprecision(3) << " Zero point energy (ZPE):" << std::setw(11) << ZPE << " kJ/mol"
-                      << std::setw(11) << ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11)
-                      << ZPE / au2kJ_mol << " a.u.\n";
+            std::cout << std::setprecision(3) << " Zero point energy (ZPE):" << std::setw(11) << r.ZPE << " kJ/mol"
+                      << std::setw(11) << r.ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11)
+                      << r.ZPE / au2kJ_mol << " a.u.\n";
         }
         std::cout << std::setprecision(3) << " Thermal correction to U:" << std::setw(11) << thermU << " kJ/mol"
                   << std::setw(11) << thermU / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11)
@@ -885,7 +782,7 @@ namespace calc
                   << thermG / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11) << thermG / au2kJ_mol
                   << " a.u.\n";
 
-        double U0      = sys.E + ZPE / au2kJ_mol;
+        double U0      = sys.E + r.ZPE / au2kJ_mol;
         double U_final = sys.E + thermU / au2kJ_mol;
         double H_final = sys.E + thermH / au2kJ_mol;
         double G_final = sys.E + thermG / au2kJ_mol;
@@ -912,6 +809,60 @@ namespace calc
                       << std::setw(11) << Gconc / au2kJ_mol << " a.u.\n";
             std::cout << " Gibbs free energy at specified concentration: " << std::fixed << std::setprecision(7)
                       << std::setw(19) << (G_final + Gconc / au2kJ_mol) << " a.u.\n";
+        }
+    }
+
+    /// @brief Print per-mode vibrational partition functions and thermodynamic
+    ///        contributions to the given output stream.
+    ///
+    /// This function is called by showthermo() when sys.prtvib != 0 to display
+    /// (or export) detailed per-mode vibrational analysis.
+    ///
+    /// @param sys  System data (frequencies, scaling factors, low-vib treatment).
+    /// @param T    Temperature in K.
+    /// @param out  Output stream (std::cout or a file stream).
+    void showvibdetail(const SystemData& sys, double T, std::ostream& out)
+    {
+        // Partition function table header
+        if (sys.sclZPE != 1.0 || sys.sclheat != 1.0 || sys.sclS != 1.0 || sys.sclCV != 1.0)
+        {
+            out << "Note: The wavenumbers shown below are unscaled ones\n\n";
+        }
+        out << " Mode  Wavenumber    Freq        Vib. Temp.    q(V=0)        q(bot)\n";
+        out << "         cm^-1        GHz            K\n";
+
+        // Per-mode partition functions
+        for (int i = 0; i < sys.nfreq; ++i)
+        {
+            if (sys.freq[i] <= 0.0)
+                continue;
+            double freqtmp = sys.freq[i];
+            if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
+            {
+                freqtmp = sys.ravib * wave2freq;
+            }
+            double tmpv0  = 1.0 / (1.0 - std::exp(-h * freqtmp / (kb * T)));
+            double tmpbot = std::exp(-h * freqtmp / (kb * 2.0 * T)) / (1.0 - std::exp(-h * freqtmp / (kb * T)));
+            out << std::fixed << std::setprecision(2) << std::setw(5) << (i + 1) << std::setw(11)
+                << sys.wavenum[i] << std::scientific << std::setprecision(5) << std::setw(14)
+                << sys.freq[i] / 1e9 << std::fixed << std::setprecision(2) << std::setw(12)
+                << sys.freq[i] * h / kb << std::setprecision(8) << std::setw(14) << tmpv0 << std::setw(14)
+                << tmpbot << "\n";
+        }
+
+        // Thermodynamic contributions table header
+        out << "\n Mode  Wavenumber     ZPE      U(T)-U(0)    U(T)      CV(T)       S(T)\n";
+        out << "         cm^-1      kcal/mol   kcal/mol   kcal/mol  cal/mol/K  cal/mol/K\n";
+
+        // Per-mode thermodynamic contributions
+        for (int i = 0; i < sys.nfreq; ++i)
+        {
+            double tmpZPE, tmpheat, tmpCV, tmpS;
+            getvibcontri(sys, i, T, tmpZPE, tmpheat, tmpCV, tmpS);
+            out << std::fixed << std::setprecision(2) << std::setw(5) << (i + 1) << std::setw(11)
+                << sys.wavenum[i] << std::setprecision(5) << std::setw(11) << tmpZPE / cal2J << std::setw(11)
+                << tmpheat / cal2J << std::setw(11) << (tmpheat + tmpZPE) / cal2J << std::setw(11)
+                << tmpCV / cal2J << std::setw(11) << tmpS / cal2J << "\n";
         }
     }
 
@@ -986,12 +937,6 @@ namespace calc
         double t1_over_q = t1 / tmpq;
         tmpCV   = R * t2 / tmpq - R * t1_over_q * t1_over_q;
     }
-
-    void elecontri(const SystemData& sys, double& tmpq, double& tmpheat, double& tmpCV, double& tmpS)
-    {
-        elecontri(sys, sys.T, tmpq, tmpheat, tmpCV, tmpS);
-    }
-
 
     /**
      * @brief Calculate vibrational contributions from a single mode
@@ -1087,25 +1032,6 @@ namespace calc
         }
     }
 
-    void getvibcontri(const SystemData& sys, int i, double& tmpZPE, double& tmpheat, double& tmpCV, double& tmpS)
-    {
-        getvibcontri(sys, i, sys.T, tmpZPE, tmpheat, tmpCV, tmpS);
-    }
-
-
-    void calcthermo(SystemData& sys,
-                    double&     corrU,
-                    double&     corrH,
-                    double&     corrG,
-                    double&     S,
-                    double&     CV,
-                    double&     CP,
-                    double&     QV,
-                    double&     Qbot)
-    {
-        const SystemData& csys = sys;
-        calcthermo(csys, sys.T, sys.P, corrU, corrH, corrG, S, CV, CP, QV, Qbot);
-    }
 
     /**
      * @brief Calculate total vibrational contributions from all modes at temperature T

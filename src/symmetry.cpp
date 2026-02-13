@@ -231,7 +231,7 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
             double vn = std::sqrt(symm_dot(diff.data(), diff.data(), 3));
             if (vn <= delta) {
                 local_nc++;
-                ntrans[i] = j;
+                ntrans[i] = j; // Safe: each thread has unique i
 #ifdef _OPENMP
                 #pragma omp critical
 #endif

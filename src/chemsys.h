@@ -148,6 +148,7 @@ struct SystemData
     std::string     PGnameinit     = "?";                      // Initial point group label
     std::string     PGname         = "?";                      // Point group label used in OpenThermo
     std::string     concstr         = "0";                      // Concentration string
+    int             prtlevel        = 1;                        // Output verbosity: 0=minimal, 1=default, 2=verbose, 3=full
     int             prtvib          = 0;                        // Print vibration contributions
     LowVibTreatment lowVibTreatment = LowVibTreatment::Grimme;  // Low frequency treatment
     int             massmod         = 3;                        // Mass assignment mode

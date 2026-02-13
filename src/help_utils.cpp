@@ -49,6 +49,7 @@ namespace HelpUtils
         std::cout << "  -massmod <type>      Default mass type: 1=element, 2=most abundant isotope, 3=file\n";
         std::cout << "  -PGname <name>       Force point group symmetry\n";
         std::cout << "  -prtvib <mode>       Print vibration contributions: 0=no, 1=yes, -1=to file\n";
+        std::cout << "  -prtlevel <level>    Output verbosity: 0=minimal, 1=default, 2=verbose, 3=full\n";
         std::cout << "  -outotm <mode>       Output .otm file: 0=no, 1=yes\n";
         std::cout << "  -noset               Don't load settings from settings.ini\n";
         std::cout << "  --help               Show this help message\n";
@@ -195,6 +196,16 @@ namespace HelpUtils
              "   -1: Yes, to <basename>.vibcon file\n"
              "  Example: -prtvib 1\n"
              "  Default: 0"},
+            {"prtlevel",
+             "Output Verbosity Level\n"
+             "  -prtlevel <level>\n"
+             "  Controls how much information is printed:\n"
+             "    0: Minimal - banner + final data only\n"
+             "    1: Default - parameters + compact system info + final data\n"
+             "    2: Verbose - full system data + component breakdown (Translation/Rotation/Vibration/Electronic)\n"
+             "    3: Full    - everything in 2 + per-mode vibrational detail tables\n"
+             "  Example: -prtlevel 2\n"
+             "  Default: 1"},
             {"outotm",
              "Output OpenThermo File\n"
              "  -outotm <mode>\n"
@@ -279,11 +290,13 @@ namespace HelpUtils
     {
         std::cout << "OpenThermo Output Information\n\n";
         std::cout << "Console Output:\n";
-        std::cout << "  - Program version and developer information\n";
-        std::cout << "  - Running parameters (temperature, pressure, scaling factors, etc.)\n";
-        std::cout << "  - Molecular information (atoms, masses, point group, moments of inertia)\n";
-        std::cout << "  - Vibrational frequencies\n";
-        std::cout << "  - Thermodynamic properties at specified conditions\n\n";
+        std::cout << "  The amount of detail printed to the console is controlled by -prtlevel:\n";
+        std::cout << "    Level 0 (minimal):  Banner + final thermodynamic data only\n";
+        std::cout << "    Level 1 (default):  + parameter summary, compact system info (atom count,\n";
+        std::cout << "                          point group, frequency range)\n";
+        std::cout << "    Level 2 (verbose):  + per-atom masses, full frequency list, moments of inertia,\n";
+        std::cout << "                          translation/rotation/vibration/electronic breakdown\n";
+        std::cout << "    Level 3 (full):     + per-mode vibrational detail tables\n\n";
         std::cout << "Output Files:\n\n";
         std::cout << "1. <basename>.UHG (Temperature/Pressure Scan):\n";
         std::cout << "   Contains thermal corrections and total energies\n";
@@ -353,6 +366,7 @@ namespace HelpUtils
         std::cout << "massmod = 1\n";
         std::cout << "PGname = \"?\"\n\n";
         std::cout << "# Output options\n";
+        std::cout << "prtlevel = 1    # Verbosity: 0=minimal, 1=default, 2=verbose, 3=full\n";
         std::cout << "prtvib = 0\n";
         std::cout << "outotm = 0\n\n";
         std::cout << "# VASP energy selection\n";

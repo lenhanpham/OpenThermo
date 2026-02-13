@@ -345,6 +345,7 @@ massmod = 3       # Mass assignment: 1=average, 2=abundant, 3=file
 PGname = "?"     # Point group (auto-detect if "?")
 
 # Output options
+prtlevel = 1      # Verbosity: 0=minimal, 1=default, 2=verbose, 3=full
 prtvib = 0        # Vibration contributions: 0=no, 1=screen, -1=file
 outotm = 0        # Output .otm file: 0=no, 1=yes
 
@@ -367,6 +368,7 @@ extrape = false
 | Parameter    | Meaning                                                          | Default Value |
 | ------------ | ---------------------------------------------------------------- | ------------- |
 | `conc`       | Concentration string for solution phase Gibbs energy corrections | `0`           |
+| `prtlevel`   | Output verbosity level (0=minimal, 1=default, 2=verbose, 3=full) | `1`           |
 | `prtvib`     | Print vibration contributions (0=no, 1=screen, -1=file)          | `0`           |
 | `lowvibmeth` | Low frequency treatment method                                   | `2`           |
 | `massmod`    | Mass assignment mode (1=average, 2=abundant, 3=file)             | `3`           |
@@ -534,6 +536,20 @@ Settings are applied in this order:
 - **Example**: `-conc "2.5"`
 
 ### Output Control Options
+
+#### `-prtlevel <level>`
+
+- **Description**: Controls the amount of information printed to the console
+- **Values**:
+  - `0`: Minimal — banner + final thermodynamic data only
+  - `1`: Default — parameter summary, compact system info (atom count, point group, frequency range), and final data
+  - `2`: Verbose — full system data (per-atom masses, full frequency list, moments of inertia, rotational constants) and component breakdown (Translation/Rotation/Vibration/Electronic sections)
+  - `3`: Full — everything in level 2 plus per-mode vibrational detail tables (automatically enables `-prtvib 1` unless explicitly overridden)
+- **Default**: 1
+- **Examples**:
+  - `-prtlevel 0` (minimal output for scripting)
+  - `-prtlevel 2` (full output matching pre-0.001.1 behavior)
+- **Settings file**: `prtlevel = 1`
 
 #### `-prtvib <mode>`
 
@@ -897,6 +913,12 @@ echo "molecule-3.otm" >> batch.txt
 
 # Condensed phase calculation
 ./OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
+
+# Minimal output (final data only)
+./build/OpenThermo molecule.log -prtlevel 0
+
+# Verbose output with per-mode vibration detail
+./build/OpenThermo molecule.log -prtlevel 3
 ```
 
 ### Batch Processing Examples
@@ -1002,7 +1024,8 @@ ravib = 50.0
 
 #### Debug Output
 
-- Use `-prtvib 1` for detailed vibration analysis
+- Use `-prtlevel 2` or `-prtlevel 3` for more detailed output
+- Use `-prtvib 1` for detailed vibration analysis (auto-enabled at level 3)
 - Check `basename.vibcon` for individual contributions
 - Review scan files for temperature/pressure dependence
 

@@ -614,7 +614,7 @@ namespace calc
         ThermoResult r = calcthermo(sys, sys.T, sys.P);
 
         // Translation contribution
-        if (sys.ipmode == 0)
+        if (sys.ipmode == 0 && sys.prtlevel >= 2)
         {
             std::cout << "\nNote: Only for translation, U is different to H, and CV is different to CP\n"
                       << "\n";
@@ -634,13 +634,13 @@ namespace calc
             std::cout << " Translational CP:" << std::setw(10) << r.CP_trans << " J/mol/K" << std::setw(10)
                       << r.CP_trans / cal2J << " cal/mol/K\n";
         }
-        else if (sys.ipmode == 1)
+        else if (sys.ipmode == 1 && sys.prtlevel >= 2)
         {
             std::cout << "\nTranslation contribution is ignored since ipmode=1\n";
         }
 
         // Rotation contribution
-        if (sys.ipmode == 0)
+        if (sys.ipmode == 0 && sys.prtlevel >= 2)
         {
             std::cout << "\n                        -------- Rotation --------\n"
                       << "                        --------------------------\n";
@@ -652,7 +652,7 @@ namespace calc
             std::cout << " Rotational CV:" << std::setw(10) << r.CV_rot << " J/mol/K" << std::setw(10) << r.CV_rot / cal2J
                       << " cal/mol/K   =CP\n";
         }
-        else if (sys.ipmode == 1)
+        else if (sys.ipmode == 1 && sys.prtlevel >= 2)
         {
             std::cout << "\nRotation contribution is ignored since ipmode=1\n";
         }
@@ -668,6 +668,8 @@ namespace calc
                 throw std::runtime_error("showthermo: Unable to open " + vibcon_filename);
         }
 
+        if (sys.prtlevel >= 2)
+        {
         std::cout << "\n                        -------- Vibration --------\n"
                   << "                        ---------------------------\n";
         if (sys.lowVibTreatment == LowVibTreatment::Truhlar)
@@ -696,6 +698,7 @@ namespace calc
                       << "In this case ZPE and U(T)-U(0) cannot be separated and thus not shown. \n"
                          "Other terms are identical to harmonic oscillator model\n\n";
         }
+        } // end if (sys.prtlevel >= 2) for vibration header
 
         // Per-mode vibrational detail (partition functions & contributions)
         if (std::abs(sys.prtvib) == 1)
@@ -711,6 +714,8 @@ namespace calc
                       << vibcon_filename << " in current folder\n\n";
         }
 
+        if (sys.prtlevel >= 2)
+        {
         std::cout << std::scientific << std::setprecision(6) << " Vibrational q(V=0): " << std::setw(16) << r.qvib_v0
                   << "\n";
         std::cout << " Vibrational q(bot): " << std::setw(16) << r.qvib_bot << "\n";
@@ -731,8 +736,11 @@ namespace calc
                       << std::setw(10) << r.ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(12)
                       << r.ZPE / au2kJ_mol << " a.u.\n";
         }
+        } // end if (sys.prtlevel >= 2) for vibration details
 
         // Electronic contribution
+        if (sys.prtlevel >= 2)
+        {
         std::cout << "\n                 -------- Electronic excitation --------\n"
                   << "                 ---------------------------------------\n";
         std::cout << std::scientific << std::setprecision(6) << " Electronic q: " << std::setw(16) << r.q_ele << "\n";
@@ -742,6 +750,7 @@ namespace calc
                   << " cal/mol/K   -TS:" << std::setw(8) << -r.S_ele / cal2J / 1000.0 * sys.T << " kcal/mol\n";
         std::cout << " Electronic CV:" << std::setw(10) << r.CV_ele << " J/mol/K" << std::setw(10) << r.CV_ele / cal2J
                   << " cal/mol/K   =CP\n";
+        } // end if (sys.prtlevel >= 2) for electronic
 
         // Final summary
         std::cout << "\n\n"

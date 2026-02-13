@@ -410,15 +410,18 @@ namespace util
     void loadarguments(SystemData& sys, int argc, std::vector<std::string>& argv)
     {
         // Print full command line
-        std::string command = argv[0];
-        for (int i = 1; i < argc; ++i)
+        if (sys.prtlevel >= 2)
         {
-            command += " " + std::string(argv[i]);
+            std::string command = argv[0];
+            for (int i = 1; i < argc; ++i)
+            {
+                command += " " + std::string(argv[i]);
+            }
+            std::cout << "Command of invoking OpenThermo:\n " << command << "\n";
         }
-        std::cout << "Command of invoking OpenThermo:\n " << command << "\n";
 
         // Check if additional arguments override parameters
-        if (argc > 2)
+        if (argc > 2 && sys.prtlevel >= 2)
         {  // argv[0] = program, argv[1] = inputfile
             std::cout << "Note: One or more running parameters are overridden by arguments\n";
         }
@@ -560,6 +563,16 @@ namespace util
                     throw std::runtime_error("Error: Missing value for -conc");
                 sys.concstr = argv[iarg];
             }
+            else if (inputArgs == "-prtlevel")
+            {
+                if (++iarg >= argc)
+                    throw std::runtime_error("Error: Missing value for -prtlevel");
+                std::istringstream iss(argv[iarg]);
+                if (!(iss >> sys.prtlevel))
+                    throw std::runtime_error("Error: Invalid value for -prtlevel");
+                if (sys.prtlevel < 0 || sys.prtlevel > 3)
+                    throw std::runtime_error("Error: -prtlevel must be 0, 1, 2, or 3");
+            }
             else if (inputArgs == "-outotm")
             {
                 if (++iarg >= argc)
@@ -661,7 +674,8 @@ namespace util
         }
         if (file.is_open())
         {
-            std::cout << "\nLoading running parameters from settings.ini...\n";
+            if (sys.prtlevel >= 2)
+                std::cout << "\nLoading running parameters from settings.ini...\n";
             std::string inputArgs;
             get_option_str(file, "E", inputArgs);
             if (!inputArgs.empty())
@@ -671,6 +685,17 @@ namespace util
                 iss.ignore(1, '=');
                 if (!(iss >> sys.Eexter))
                     throw std::runtime_error("Error: Invalid value for E in settings.ini");
+            }
+            get_option_str(file, "prtlevel", inputArgs);
+            if (!inputArgs.empty())
+            {
+                std::istringstream iss(inputArgs);
+                iss >> std::ws;
+                iss.ignore(1, '=');
+                if (!(iss >> sys.prtlevel))
+                    throw std::runtime_error("Error: Invalid value for prtlevel in settings.ini");
+                if (sys.prtlevel < 0 || sys.prtlevel > 3)
+                    throw std::runtime_error("Error: prtlevel must be 0, 1, 2, or 3 in settings.ini");
             }
             get_option_str(file, "prtvib", inputArgs);
             if (!inputArgs.empty())
@@ -1418,7 +1443,13 @@ namespace util
         file << "\n";
 
         // Output options
-        file << "# Output options" << "\n";
+        file << "# Output verbosity level" << "\n";
+        file << "# 0 = Minimal (banner + final data only)" << "\n";
+        file << "# 1 = Default (parameters + compact system info + final data)" << "\n";
+        file << "# 2 = Verbose (full system data + component breakdown)" << "\n";
+        file << "# 3 = Full (everything + per-mode vibrational detail)" << "\n";
+        file << "prtlevel = 1" << "\n";
+        file << "\n";
         file << "# Print vibration contributions: 0=no, 1=yes, -1=to file" << "\n";
         file << "prtvib = 0" << "\n";
         file << "# Output .otm file: 0=no, 1=yes" << "\n";

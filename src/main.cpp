@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -157,8 +158,17 @@ auto main(int argc, char* argv[]) -> int
             util::loadarguments(sys, argc, args);
         }
 
+        // If prtlevel=3, auto-enable per-mode vibration output unless user explicitly set prtvib
+        if (sys.prtlevel >= 3 && sys.prtvib == 0)
+        {
+            sys.prtvib = 1;
+        }
+
         // Print running parameters
+        if (sys.prtlevel >= 1)
+        {
         std::cout << "\n                   --- Summary of Current Parameters ---\n\nRunning parameters:\n";
+        std::cout << " Print level: " << sys.prtlevel << " (0=minimal, 1=default, 2=verbose, 3=full)\n";
         if (sys.prtvib == 1)
         {
             std::cout << "Printing individual contribution of vibration modes: Yes\n";
@@ -228,6 +238,7 @@ auto main(int argc, char* argv[]) -> int
             std::cout << " Imaginary frequencies with norm < " << std::fixed << std::setprecision(2) << sys.imagreal
                       << " cm^-1 will be treated as real frequencies\n";
         }
+        } // end if (sys.prtlevel >= 1) for parameter summary
 
         // Load input file
         if (narg >= 1)
@@ -266,15 +277,19 @@ auto main(int argc, char* argv[]) -> int
         // Print start message
         auto        start_now      = std::chrono::system_clock::now();
         std::time_t start_now_time = std::chrono::system_clock::to_time_t(start_now);
-        std::cout << "                      -------- End of Summary --------\n";
-        std::cout << "\n";
-        std::cout << "OpenThermo started to process " << sys.inputfile << " at "
-                  << std::ctime(&start_now_time);  // << "\n";
+        if (sys.prtlevel >= 1)
+        {
+            std::cout << "                      -------- End of Summary --------\n";
+            std::cout << "\n";
+            std::cout << "OpenThermo started to process " << sys.inputfile << " at "
+                      << std::ctime(&start_now_time);  // << "\n";
+        }
 
         // Process input file
         if (sys.inputfile.find(".otm") != std::string::npos)
         {
-            std::cout << "\n Processing data from " << sys.inputfile << "\n";
+            if (sys.prtlevel >= 2)
+                std::cout << "\n Processing data from " << sys.inputfile << "\n";
             LoadFile::loadotm(sys);
         }
         else
@@ -282,6 +297,8 @@ auto main(int argc, char* argv[]) -> int
             auto qcprog = util::deterprog(sys);
             if (qcprog != util::QuantumChemistryProgram::Unknown)
             {
+                if (sys.prtlevel >= 2)
+                {
                 std::cout << "\n";
                 if (sys.massmod == 1)
                     std::cout << " Atomic masses used: Element\n";
@@ -289,29 +306,30 @@ auto main(int argc, char* argv[]) -> int
                     std::cout << " Atomic masses used: Most abundant isotope\n";
                 if (sys.massmod == 3)
                     std::cout << " Atomic masses used: Read from quantum chemical output\n";
+                }
                 if (qcprog == util::QuantumChemistryProgram::Gaussian)
                 {
-                    std::cout << "Processing Gaussian output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing Gaussian output file...\n";
                     LoadFile::loadgau(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Orca)
                 {
-                    std::cout << "Processing ORCA output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing ORCA output file...\n";
                     LoadFile::loadorca(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Gamess)
                 {
-                    std::cout << "Processing GAMESS-US output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing GAMESS-US output file...\n";
                     LoadFile::loadgms(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Nwchem)
                 {
-                    std::cout << "Processing NWChem output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing NWChem output file...\n";
                     LoadFile::loadnw(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Cp2k)
                 {
-                    std::cout << "Processing CP2K output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing CP2K output file...\n";
                     LoadFile::loadCP2K(sys);
                     if (sys.ipmode == 0)
                     {
@@ -325,12 +343,12 @@ auto main(int argc, char* argv[]) -> int
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Xtb)
                 {
-                    std::cout << "Processing xtb g98.out file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing xtb g98.out file...\n";
                     LoadFile::loadxtb(sys);
                 }
                 else if (qcprog == util::QuantumChemistryProgram::Vasp)
                 {
-                    std::cout << "Processing VASP output file...\n";
+                    if (sys.prtlevel >= 2) std::cout << "Processing VASP output file...\n";
                     LoadFile::loadvasp(sys);
                 }
                 util::modmass(sys);
@@ -405,11 +423,13 @@ auto main(int argc, char* argv[]) -> int
             if (sys.Eexter != 0.0)
             {
                 sys.E = sys.Eexter;
-                std::cout << "Note: The electronic energy specified by \"E\" parameter will be used\n";
+                if (sys.prtlevel >= 1)
+                    std::cout << "Note: The electronic energy specified by \"E\" parameter will be used\n";
             }
             else if (sys.E != 0.0)
             {
-                std::cout << "Note: The electronic energy extracted from input file will be used\n";
+                if (sys.prtlevel >= 2)
+                    std::cout << "Note: The electronic energy extracted from input file will be used\n";
             }
 
             if (sys.imagreal != 0.0)
@@ -443,7 +463,8 @@ auto main(int argc, char* argv[]) -> int
                 }
             }
             // Symmetry detection
-            std::cout << "Number of atoms loaded: " << sys.a.size() << "\n";
+            if (sys.prtlevel >= 2)
+                std::cout << "Number of atoms loaded: " << sys.a.size() << "\n";
             if (sys.a.empty())
             {
                 std::cerr << "Error: No atoms loaded from input file!" << "\n";
@@ -462,7 +483,7 @@ auto main(int argc, char* argv[]) -> int
             {
                 symDetector.a_index[i] = i;
             }
-            symDetector.detectPG(1);
+            symDetector.detectPG((sys.prtlevel >= 2) ? 1 : 0);
             sys.rotsym  = symDetector.rotsym;
             sys.PGname = symDetector.PGname;
 
@@ -487,38 +508,71 @@ auto main(int argc, char* argv[]) -> int
 
             // Print molecular information
             sys.ncenter = sys.a.size();
-            std::cout << "\n"
-                      << "                      -------- Chemical System Data -------\n"
-                      << "                      -------------------------------------\n"
-                      << " Electronic energy: " << std::fixed << std::setprecision(8) << std::setw(18) << sys.E
-                      << " a.u.\n";
-            if (sys.spinmult != 0)
+
+            if (sys.prtlevel >= 1)
             {
-                std::cout << " Spin multiplicity: " << std::setw(3) << sys.spinmult << "\n";
-            }
-            else
-            {
-                for (int ie = 0; ie < sys.nelevel; ++ie)
+                std::cout << "\n"
+                          << "                      -------- Chemical System Data -------\n"
+                          << "                      -------------------------------------\n"
+                          << " Electronic energy: " << std::fixed << std::setprecision(8) << std::setw(18) << sys.E
+                          << " a.u.\n";
+                if (sys.spinmult != 0)
                 {
-                    std::cout << " Electronic energy level " << ie + 1 << "     E= " << std::fixed
-                              << std::setprecision(6) << std::setw(12) << sys.elevel[ie]
-                              << " eV     Degeneracy= " << std::setw(3) << sys.edegen[ie] << "\n";
+                    std::cout << " Spin multiplicity: " << std::setw(3) << sys.spinmult << "\n";
+                }
+                else
+                {
+                    for (int ie = 0; ie < sys.nelevel; ++ie)
+                    {
+                        std::cout << " Electronic energy level " << ie + 1 << "     E = " << std::fixed
+                                  << std::setprecision(6) << std::setw(12) << sys.elevel[ie]
+                                  << " eV     Degeneracy = " << std::setw(3) << sys.edegen[ie] << "\n";
+                    }
                 }
             }
-            for (int iatm = 0; iatm < sys.ncenter; ++iatm)
-            {
-                std::cout << " Atom " << std::setw(5) << iatm + 1 << " (" << ind2name[sys.a[iatm].index]
-                          << ")   Mass: " << std::fixed << std::setprecision(6) << std::setw(12) << sys.a[iatm].mass
-                          << " amu\n";
-            }
-            std::cout << " Total mass: " << std::fixed << std::setprecision(6) << std::setw(16) << sys.totmass
-                      << " amu\n\n"
-                      << " Point group: " << sys.PGname << "\n";
-            if (sys.ipmode == 0)
-            {
-                std::cout << " Rotational symmetry number: " << std::setw(3) << sys.rotsym << "\n";
 
-                // Optional: sort moments for consistent output
+            if (sys.prtlevel >= 2)
+            {
+                // Level 2+: full per-atom listing
+                for (int iatm = 0; iatm < sys.ncenter; ++iatm)
+                {
+                    std::cout << " Atom " << std::setw(5) << iatm + 1 << " (" << ind2name[sys.a[iatm].index]
+                              << ")   Mass: " << std::fixed << std::setprecision(6) << std::setw(12) << sys.a[iatm].mass
+                              << " amu\n";
+                }
+                std::cout << " Total mass: " << std::fixed << std::setprecision(6) << std::setw(16) << sys.totmass
+                          << " amu\n\n";
+            }
+            else if (sys.prtlevel == 1)
+            {
+                // Level 1: compact atom count summary
+                std::map<int, int> elem_count;
+                for (int iatm = 0; iatm < sys.ncenter; ++iatm)
+                {
+                    elem_count[sys.a[iatm].index]++;
+                }
+                std::cout << " Atoms: " << sys.ncenter << " (";
+                bool first = true;
+                for (const auto& [idx, count] : elem_count)
+                {
+                    if (!first) std::cout << ", ";
+                    std::cout << count << " " << ind2name[idx];
+                    first = false;
+                }
+                std::cout << ")  Total mass: " << std::fixed << std::setprecision(6) << sys.totmass << " amu\n";
+            }
+
+            if (sys.prtlevel >= 1)
+            {
+                std::cout << " Point group: " << sys.PGname;
+                if (sys.ipmode == 0)
+                    std::cout << "   Rotational symmetry number: " << std::setw(3) << sys.rotsym;
+                std::cout << "\n";
+            }
+
+            if (sys.prtlevel >= 2 && sys.ipmode == 0)
+            {
+                // Level 2+: moments of inertia and rotational constants
                 std::array<double, 3> sorted_inert = sys.inert;
                 std::sort(sorted_inert.begin(), sorted_inert.end());
 
@@ -535,8 +589,7 @@ auto main(int argc, char* argv[]) -> int
                 }
                 else if (sys.ilinear == 1)
                 {
-                    // Use the largest (non-zero) moment for linear molecules
-                    double largest_inert = sorted_inert[2];  // Since sorted, largest is last
+                    double largest_inert = sorted_inert[2];
                     double rotcst1       = h / (8.0 * pi * pi * largest_inert * amu2kg * (b2a * 1e-10) * (b2a * 1e-10));
                     std::cout << " Rotational constant (GHz): " << std::fixed << std::setprecision(6) << std::setw(14)
                               << rotcst1 / 1e9 << "\n"
@@ -546,7 +599,6 @@ auto main(int argc, char* argv[]) -> int
                 }
                 else
                 {
-                    // Non-linear: compute all three
                     for (int i = 0; i < 3; ++i)
                     {
                         rotcst[i] = h / (8.0 * pi * pi * sys.inert[i] * amu2kg * (b2a * 1e-10) * (b2a * 1e-10));
@@ -564,20 +616,38 @@ auto main(int argc, char* argv[]) -> int
                     std::cout << "\nThis is not a linear molecule\n";
                 }
             }
-            else
+            else if (sys.prtlevel >= 2 && sys.ipmode == 1)
             {
                 std::cout << "Rotation information is not shown here since ipmode=1\n";
             }
+
             if (sys.nfreq > 0)
             {
-                std::cout << "\n There are " << sys.nfreq << " frequencies (cm^-1):\n";
-                for (int ifreq = 0; ifreq < sys.nfreq; ++ifreq)
+                if (sys.prtlevel >= 2)
                 {
-                    std::cout << std::fixed << std::setprecision(1) << std::setw(8) << sys.wavenum[ifreq];
-                    if ((ifreq + 1) % 9 == 0 || ifreq == sys.nfreq - 1)
-                        std::cout << "\n";
+                    // Level 2+: full frequency listing
+                    std::cout << "\n There are " << sys.nfreq << " frequencies (cm^-1):\n";
+                    for (int ifreq = 0; ifreq < sys.nfreq; ++ifreq)
+                    {
+                        std::cout << std::fixed << std::setprecision(1) << std::setw(8) << sys.wavenum[ifreq];
+                        if ((ifreq + 1) % 9 == 0 || ifreq == sys.nfreq - 1)
+                            std::cout << "\n";
+                    }
+                }
+                else if (sys.prtlevel == 1)
+                {
+                    // Level 1: compact frequency count + range
+                    double wmin = sys.wavenum[0], wmax = sys.wavenum[0];
+                    for (int ifreq = 1; ifreq < sys.nfreq; ++ifreq)
+                    {
+                        if (sys.wavenum[ifreq] < wmin) wmin = sys.wavenum[ifreq];
+                        if (sys.wavenum[ifreq] > wmax) wmax = sys.wavenum[ifreq];
+                    }
+                    std::cout << " Frequencies: " << sys.nfreq << " (range: " << std::fixed << std::setprecision(1)
+                              << wmin << " -- " << wmax << " cm^-1)\n";
                 }
             }
+
             sys.freq.resize(sys.nfreq);
             for (int i = 0; i < sys.nfreq; ++i)
             {

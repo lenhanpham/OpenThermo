@@ -61,6 +61,8 @@ auto main(int argc, char* argv[]) -> int
 {
     try
     {
+        configure_openmp();  // Prevent nested parallelism / oversubscription
+
         SystemData            sys;                       // Main system data structure
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 

@@ -216,7 +216,7 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
     int local_nc = 0;
     double local_delta3 = 0.0;
 #ifdef _OPENMP
-    #pragma omp parallel for reduction(+:local_nc) if(natoms > 50)
+    #pragma omp parallel for reduction(+:local_nc) reduction(max:local_delta3) schedule(static) if(natoms > 50)
 #endif
     for (int i = 0; i < natoms; ++i) {
         for (int j = 0; j < natoms; ++j) {
@@ -231,13 +231,8 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
             double vn = std::sqrt(symm_dot(diff.data(), diff.data(), 3));
             if (vn <= delta) {
                 local_nc++;
-                ntrans[i] = j; // Safe: each thread has unique i
-#ifdef _OPENMP
-                #pragma omp critical
-#endif
-                {
-                    if (vn > local_delta3) local_delta3 = vn;
-                }
+                ntrans[i] = j; // Safe: each thread has unique i with static scheduling
+                if (vn > local_delta3) local_delta3 = vn;
                 break;
             }
         }

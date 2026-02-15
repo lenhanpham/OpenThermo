@@ -19,7 +19,7 @@ namespace HelpUtils
     void print_help(const std::string& program_name)
     {
         std::cout << "OpenThermo: A Comprehensive C++ Program for Calculation of Thermochemical Properties\n"
-                  << "Version 0.001.1\n"
+                  << "Version 0.001.2\n"
                   << "Developer: Le Nhan Pham\n\n";
         std::cout << "Usage: " << program_name << " [input_file] [options]\n\n";
         std::cout << "Description:\n";

@@ -105,7 +105,7 @@ src/
   - Truhlar's frequency raising method
   - Grimme's entropy interpolation
   - Minenkov's energy + entropy interpolation
-  - Head-Gordon's energy interpolation (with optional entropy)
+  - Head-Gordon's energy interpolation (with optional entropy) [Experimental]
 - **Electronic Contributions**: Multi-level electronic structure support
 - **Concentration Corrections**: Solution-phase Gibbs energy adjustments
 
@@ -411,7 +411,7 @@ extrape = false
 - 1/Truhlar =  Truhlar's QRRHO method
 - 2/Grimme = Grimme's method
 - 3/Minenkov = Minenkov's method
-- 4/HeadGordon = Head-Gordon's energy interpolation (with optional entropy)
+- 4/HeadGordon = Head-Gordon's energy interpolation (with optional entropy) [Experimental]
 
 ### Parameter Precedence
 
@@ -499,7 +499,7 @@ Settings are applied in this order:
   - `1` or `Truhlar`: Truhlar's QRRHO (frequency raising)
   - `2` or `Grimme`: Grimme's entropy interpolation
   - `3` or `Minenkov`: Minenkov's entropy + energy interpolation
-  - `4` or `HeadGordon`: Head-Gordon's energy interpolation (+ optional entropy)
+  - `4` or `HeadGordon`: Head-Gordon's energy interpolation (+ optional entropy) [Experimental]
 - **Default**: Grimme
 - **Example**: `-lowvibmeth 1` or `-lowvibmeth Truhlar`
 

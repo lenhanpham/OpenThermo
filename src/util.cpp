@@ -355,9 +355,11 @@ namespace util
                     return LowVibTreatment::Grimme;
                 case 3:
                     return LowVibTreatment::Minenkov;
+                case 4:
+                    return LowVibTreatment::HeadGordon;
                 default:
                     throw std::runtime_error("Invalid low frequency treatment value: " + str +
-                                             ". Must be 0-3 or method name.");
+                                             ". Must be 0-4 or method name.");
             }
         }
 
@@ -373,9 +375,11 @@ namespace util
             return LowVibTreatment::Grimme;
         if (lowVibMth == "minenkov")
             return LowVibTreatment::Minenkov;
+        if (lowVibMth == "headgordon")
+            return LowVibTreatment::HeadGordon;
 
         throw std::runtime_error("Invalid low frequency treatment method: " + str +
-                                 ". Valid options: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov");
+                                 ". Valid options: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadGordon");
     }
 
     /**
@@ -540,6 +544,27 @@ namespace util
                 std::istringstream iss(argv[iarg]);
                 if (!(iss >> sys.ravib))
                     throw std::runtime_error("Error: Invalid value for -ravib");
+            }
+            else if (inputArgs == "-intpvib")
+            {
+                if (++iarg >= argc)
+                    throw std::runtime_error("Error: Missing value for -intpvib");
+                std::istringstream iss(argv[iarg]);
+                if (!(iss >> sys.intpvib))
+                    throw std::runtime_error("Error: Invalid value for -intpvib");
+            }
+            else if (inputArgs == "-hg_entropy")
+            {
+                if (++iarg >= argc)
+                    throw std::runtime_error("Error: Missing value for -hg_entropy");
+                std::string val = argv[iarg];
+                std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+                if (val == "true" || val == "1")
+                    sys.hgEntropy = true;
+                else if (val == "false" || val == "0")
+                    sys.hgEntropy = false;
+                else
+                    throw std::runtime_error("Error: Invalid value for -hg_entropy. Use true/false or 1/0");
             }
             else if (inputArgs == "-ipmode")
             {
@@ -898,6 +923,30 @@ namespace util
                     std::istringstream iss(valueStr);
                     if (!(iss >> sys.intpvib))
                         throw std::runtime_error("Error: Invalid value for intpvib in settings.ini");
+                }
+            }
+            get_option_str(file, "hg_entropy", inputArgs);
+            if (!inputArgs.empty())
+            {
+                size_t eqPos = inputArgs.find('=');
+                if (eqPos != std::string::npos)
+                {
+                    std::string valueStr = inputArgs.substr(eqPos + 1);
+                    size_t start = valueStr.find_first_not_of(" \t");
+                    if (start != std::string::npos)
+                        valueStr = valueStr.substr(start);
+                    size_t end = valueStr.find_last_not_of(" \t");
+                    if (end != std::string::npos)
+                        valueStr = valueStr.substr(0, end + 1);
+
+                    std::string val = valueStr;
+                    std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+                    if (val == "true" || val == "1")
+                        sys.hgEntropy = true;
+                    else if (val == "false" || val == "0")
+                        sys.hgEntropy = false;
+                    else
+                        throw std::runtime_error("Error: Invalid value for hg_entropy in settings.ini. Use true/false or 1/0");
                 }
             }
             get_option_str(file, "imagreal", inputArgs);
@@ -1443,6 +1492,7 @@ namespace util
         file << "# 1 = Truhlar's QRRHO (frequency raising)" << "\n";
         file << "# 2 = Grimme's entropy interpolation (default)" << "\n";
         file << "# 3 = Minenkov's entropy + energy interpolation" << "\n";
+        file << "# 4 = Head-Gordon's energy (+ optional entropy) interpolation" << "\n";
         file << "lowvibmeth = 2" << "\n";
         file << "\n";
 
@@ -1450,6 +1500,12 @@ namespace util
         file << "# Parameters for low frequency treatments" << "\n";
         file << "ravib = 100.0" << "\n";
         file << "intpvib = 100.0" << "\n";
+        file << "\n";
+
+        // Head-Gordon entropy interpolation
+        file << "# Enable entropy interpolation for Head-Gordon method (default: true)" << "\n";
+        file << "# When true, entropy is interpolated like Grimme's method in addition to energy" << "\n";
+        file << "hg_entropy = true" << "\n";
         file << "\n";
 
         // Calculation mode

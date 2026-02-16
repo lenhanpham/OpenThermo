@@ -423,6 +423,8 @@ namespace calc
         const double prefac_trunc    = (lowVib == LowVibTreatment::Truhlar) ? h_over_kbT * ravib_freq : 0.0;
         const double term_trunc      = (lowVib == LowVibTreatment::Truhlar) ? std::exp(-prefac_trunc) : 0.0;
         const bool   do_grimme_interp = (lowVib == LowVibTreatment::Grimme || lowVib == LowVibTreatment::Minenkov);
+        const bool   do_hg_energy_interp = (lowVib == LowVibTreatment::HeadGordon);
+        const bool   do_hg_entropy = (lowVib == LowVibTreatment::HeadGordon && sys.hgEntropy);
         constexpr double eight_pi2    = 8.0 * M_PI * M_PI;
         const double grimme_log_base  = 8.0 * M_PI * M_PI * M_PI * 1e-44 * kb * T / (h * h);
 
@@ -482,6 +484,16 @@ namespace calc
                     double tmpval = 1.0 + r2 * r2;
                     local_heat = (1.0 / tmpval) * UvRRHO + (1.0 - 1.0 / tmpval) * Ufree;
                 }
+                else if (do_hg_energy_interp)
+                {
+                    double UvRRHO = local_ZPE + RT_1000 * pf_h * tm_h / (1.0 - tm_h);
+                    local_ZPE = 0.0;
+                    double Ufree = RT_1000 * 0.5;
+                    double ra = sys.intpvib / wi;
+                    double r2 = ra * ra;
+                    double tmpval = 1.0 + r2 * r2;
+                    local_heat = (1.0 / tmpval) * UvRRHO + (1.0 - 1.0 / tmpval) * Ufree;
+                }
                 else
                 {
                     local_heat = RT_1000 * pf_h * tm_h / (1.0 - tm_h);
@@ -502,6 +514,15 @@ namespace calc
             double omt_cv   = 1.0 - tm_cv;
             double local_CV  = R * pf_cv * pf_cv * tm_cv / (omt_cv * omt_cv);
 
+            if (do_hg_energy_interp)
+            {
+                double cv_free = R * 0.5;
+                double ra = sys.intpvib / wi;
+                double r2 = ra * ra;
+                double wei = 1.0 / (1.0 + r2 * r2);
+                local_CV = wei * local_CV + (1.0 - wei) * cv_free;
+            }
+
             double pf_s, tm_s;
             if (uniform_scaling)
             {
@@ -515,7 +536,7 @@ namespace calc
             }
             double local_S = R * (pf_s * tm_s / (1.0 - tm_s) - std::log(1.0 - tm_s));
 
-            if (do_grimme_interp)
+            if (do_grimme_interp || do_hg_entropy)
             {
                 double miu  = h / (eight_pi2 * fi);
                 constexpr double Bav = 1e-44;
@@ -701,6 +722,17 @@ namespace calc
                       << "In this case ZPE and U(T)-U(0) cannot be separated and thus not shown. \n"
                          "Other terms are identical to harmonic oscillator model\n\n";
         }
+        else if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+        {
+            std::cout << "Note: Head-Gordon's interpolation between harmonic oscillator model and free rotor\n"
+                         "      model is used to evaluate U(T). In this case ZPE and U(T)-U(0) cannot be\n"
+                         "      separated and thus not shown. ";
+            if (sys.hgEntropy)
+                std::cout << "Entropy is also interpolated.\n";
+            else
+                std::cout << "Entropy uses standard harmonic oscillator model.\n";
+            std::cout << "Other terms are identical to harmonic oscillator model\n\n";
+        }
         } // end if (sys.prtlevel >= 2) for vibration header
 
         // Per-mode vibrational detail (partition functions & contributions)
@@ -722,7 +754,7 @@ namespace calc
         std::cout << std::scientific << std::setprecision(6) << " Vibrational q(V=0): " << std::setw(16) << r.qvib_v0
                   << "\n";
         std::cout << " Vibrational q(bot): " << std::setw(16) << r.qvib_bot << "\n";
-        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov && sys.lowVibTreatment != LowVibTreatment::HeadGordon)
         {
             std::cout << std::fixed << std::setprecision(3) << " Vibrational U(T)-U(0):" << std::setw(10) << r.U_vib_heat
                       << " kJ/mol" << std::setw(10) << r.U_vib_heat / cal2J << " kcal/mol   =H(T)-H(0)\n";
@@ -733,7 +765,7 @@ namespace calc
                   << " cal/mol/K   -TS:" << std::setw(8) << -r.S_vib / cal2J / 1000.0 * sys.T << " kcal/mol\n";
         std::cout << " Vibrational CV:" << std::setw(10) << r.CV_vib << " J/mol/K" << std::setw(10) << r.CV_vib / cal2J
                   << " cal/mol/K   =CP\n";
-        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov && sys.lowVibTreatment != LowVibTreatment::HeadGordon)
         {
             std::cout << std::setprecision(2) << " Zero-point energy (ZPE):" << std::setw(10) << r.ZPE << " kJ/mol,"
                       << std::setw(10) << r.ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(12)
@@ -778,7 +810,7 @@ namespace calc
         double thermG = r.corrG;
         sys.thermG = thermG;
 
-        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov && sys.lowVibTreatment != LowVibTreatment::HeadGordon)
         {
             std::cout << std::setprecision(3) << " Zero point energy (ZPE):" << std::setw(11) << r.ZPE << " kJ/mol"
                       << std::setw(11) << r.ZPE / cal2J << " kcal/mol" << std::setprecision(6) << std::setw(11)
@@ -800,7 +832,7 @@ namespace calc
         double G_final = sys.E + thermG / au2kJ_mol;
 
         std::cout << std::fixed << std::setprecision(7) << " Electronic energy:" << std::setw(19) << sys.E << " a.u.\n";
-        if (sys.lowVibTreatment != LowVibTreatment::Minenkov)
+        if (sys.lowVibTreatment != LowVibTreatment::Minenkov && sys.lowVibTreatment != LowVibTreatment::HeadGordon)
         {
             std::cout << " Sum of electronic energy and ZPE, namely U/H/G at 0 K:" << std::setw(19) << U0 << " a.u.\n";
         }
@@ -1006,6 +1038,16 @@ namespace calc
                 double tmpval = 1.0 + intpvib_r2 * intpvib_r2;
                 tmpheat = (1.0 / tmpval) * UvRRHO + (1.0 - 1.0 / tmpval) * Ufree;
             }
+            else if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+            {
+                double UvRRHO = tmpZPE + R * T * prefac * term / (1.0 - term) / 1000.0;
+                tmpZPE = 0.0;
+                double Ufree = R * T / 2.0 / 1000.0;
+                double intpvib_ratio = sys.intpvib / sys.wavenum[i];
+                double intpvib_r2 = intpvib_ratio * intpvib_ratio;
+                double tmpval = 1.0 + intpvib_r2 * intpvib_r2;
+                tmpheat = (1.0 / tmpval) * UvRRHO + (1.0 - 1.0 / tmpval) * Ufree;
+            }
             else
             {
                 tmpheat = R * T * prefac * term / (1.0 - term) / 1000.0;
@@ -1022,6 +1064,15 @@ namespace calc
         double one_minus_term = 1.0 - term;
         tmpCV = R * prefac * prefac * term / (one_minus_term * one_minus_term);
 
+        if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+        {
+            double cv_free = R * 0.5;
+            double ra = sys.intpvib / sys.wavenum[i];
+            double r2 = ra * ra;
+            double wei = 1.0 / (1.0 + r2 * r2);
+            tmpCV = wei * tmpCV + (1.0 - wei) * cv_free;
+        }
+
         prefac = h * sys.freq[i] * sys.sclS / (kb * T);
         term   = std::exp(-h * sys.freq[i] * sys.sclS / (kb * T));
         if (sys.lowVibTreatment == LowVibTreatment::Truhlar && sys.wavenum[i] < sys.ravib)
@@ -1031,7 +1082,8 @@ namespace calc
         }
         tmpS = R * (prefac * term / (1.0 - term) - std::log(1.0 - term));  // RRHO
 
-        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov)
+        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov
+            || (sys.lowVibTreatment == LowVibTreatment::HeadGordon && sys.hgEntropy))
         {  // Grimme's entropy interpolation
             double miu   = h / (8.0 * M_PI * M_PI * sys.freq[i]);
             double Bav   = 1e-44;  // kg*m^2

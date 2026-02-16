@@ -91,6 +91,7 @@ namespace HelpUtils
         std::cout << "  -ravib <value>       Raising value for low frequencies in cm^-1 (default: 100.0)\n";
         std::cout << "  -intpvib <value>     Interpolation frequency threshold in cm^-1 (default: 100.0)\n";
         std::cout << "  -hg_entropy <bool>   Entropy interpolation for Head-Gordon: true/false (default: true)\n";
+        std::cout << "  -bav <preset>        Bav for HeadGordon method: grimme, qchem (default for HeadGordon)\n";
         std::cout << "  -ipmode <mode>       Calculation mode: 0=gas phase, 1=condensed phase\n";
         std::cout << "  -imagreal <value>    Treat imaginary freq < value as real (default: 0.0)\n";
         std::cout << "  -conc <string>       Concentration string for phase correction\n";
@@ -216,6 +217,20 @@ namespace HelpUtils
              "  Accepts: true/false or 1/0\n"
              "  Example: -hg_entropy false\n"
              "  Default: true"},
+            {"bav",
+             "Average Moment of Inertia (Bav) Preset\n"
+             "  -bav <preset>\n"
+             "  Selects the average moment of inertia used in the free-rotor entropy term\n"
+             "  of quasi-RRHO interpolation. Only applicable to the HeadGordon method.\n"
+             "  Grimme and Minenkov methods always use the grimme value (1e-44 kg m^2).\n"
+             "  Available presets (HeadGordon only):\n"
+             "    grimme : I_av = 1e-44 kg m^2 (Grimme 2012, ORCA/xtb/GoodVibes)\n"
+             "    qchem  : I_av = 2.79928e-46 kg m^2 (B_av = 1 cm^-1, Q-Chem manual)\n"
+             "  The Q-Chem value corresponds to B_av = 1 cm^-1 via I = h/(8 pi^2 c B).\n"
+             "  Grimme's value is the original mu'_av from the 2012 paper.\n"
+             "  If used with Grimme or Minenkov, a warning is issued and the setting is ignored.\n"
+             "  Example: -bav grimme\n"
+             "  Default: qchem (for HeadGordon)"},
             {"ipmode",
              "Calculation Mode\n"
              "  -ipmode <mode>\n"
@@ -453,7 +468,8 @@ namespace HelpUtils
         std::cout << "# Low frequency treatment\n";
         std::cout << "lowvibmeth = Grimme\n";
         std::cout << "ravib = 100.0\n";
-        std::cout << "intpvib = 100.0\n\n";
+        std::cout << "intpvib = 100.0\n";
+        std::cout << "# bav = qchem   # Only for HeadGordon: grimme or qchem (default: qchem)\n\n";
         std::cout << "# Calculation mode and options\n";
         std::cout << "ipmode = 0\n";
         std::cout << "imagreal = 0.0\n";

@@ -383,6 +383,27 @@ namespace util
     }
 
     /**
+     * @brief Parse a Bav preset string into a BavPreset enum value.
+     *
+     * Accepts case-insensitive strings "qchem" and "grimme".
+     *
+     * @param str Input string to parse
+     * @return BavPreset enum value
+     * @throws std::runtime_error if input is invalid
+     */
+    BavPreset parseBavPreset(const std::string& str)
+    {
+        std::string lower = str;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (lower == "qchem")
+            return BavPreset::QChem;
+        if (lower == "grimme")
+            return BavPreset::Grimme;
+        throw std::runtime_error("Invalid Bav preset: " + str +
+                                 ". Valid options: qchem, grimme");
+    }
+
+    /**
      * @brief Parse command-line arguments and update system parameters
      *
      * Processes command-line
@@ -565,6 +586,14 @@ namespace util
                     sys.hgEntropy = false;
                 else
                     throw std::runtime_error("Error: Invalid value for -hg_entropy. Use true/false or 1/0");
+            }
+            else if (inputArgs == "-bav")
+            {
+                if (++iarg >= argc)
+                    throw std::runtime_error("Error: Missing value for -bav");
+                sys.bavPreset       = parseBavPreset(argv[iarg]);
+                sys.Bav             = bavPresetValue(sys.bavPreset);
+                sys.bavUserOverride = true;
             }
             else if (inputArgs == "-ipmode")
             {
@@ -947,6 +976,25 @@ namespace util
                         sys.hgEntropy = false;
                     else
                         throw std::runtime_error("Error: Invalid value for hg_entropy in settings.ini. Use true/false or 1/0");
+                }
+            }
+            get_option_str(file, "bav", inputArgs);
+            if (!inputArgs.empty())
+            {
+                size_t eqPos = inputArgs.find('=');
+                if (eqPos != std::string::npos)
+                {
+                    std::string valueStr = inputArgs.substr(eqPos + 1);
+                    size_t start = valueStr.find_first_not_of(" \t");
+                    if (start != std::string::npos)
+                        valueStr = valueStr.substr(start);
+                    size_t end = valueStr.find_last_not_of(" \t");
+                    if (end != std::string::npos)
+                        valueStr = valueStr.substr(0, end + 1);
+
+                    sys.bavPreset       = parseBavPreset(valueStr);
+                    sys.Bav             = bavPresetValue(sys.bavPreset);
+                    sys.bavUserOverride  = true;
                 }
             }
             get_option_str(file, "imagreal", inputArgs);
@@ -1506,6 +1554,14 @@ namespace util
         file << "# Enable entropy interpolation for Head-Gordon method (default: true)" << "\n";
         file << "# When true, entropy is interpolated like Grimme's method in addition to energy" << "\n";
         file << "hg_entropy = true" << "\n";
+        file << "\n";
+
+        // Average moment of inertia (Bav) for free-rotor entropy
+        file << "# Average moment of inertia for free-rotor entropy (only for HeadGordon method)" << "\n";
+        file << "# grimme = 1e-44 kg m^2 (Grimme 2012)" << "\n";
+        file << "# qchem  = 2.79928e-46 kg m^2 (B_av = 1 cm^-1, Q-Chem manual, HeadGordon default)" << "\n";
+        file << "# Grimme/Minenkov methods always use grimme; this option is ignored for them." << "\n";
+        file << "# bav = qchem" << "\n";
         file << "\n";
 
         // Calculation mode

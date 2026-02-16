@@ -340,6 +340,7 @@ lowvibmeth = Grimme  # 0/Harmonic=RRHO, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadG
 ravib = 100.0     # Raising threshold for Truhlar method
 intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov/HeadGordon
 hg_entropy = true # Enable entropy interpolation for Head-Gordon method
+# bav = qchem    # Bav for HeadGordon only: grimme or qchem (default: qchem). Ignored for Grimme/Minenkov.
 
 # Calculation options
 ipmode = 0         # 0=gas phase, 1=condensed phase
@@ -392,6 +393,7 @@ extrape = false
 | `ravib`      | Raising threshold for Truhlar method (cm⁻¹)                      | `100.0`       |
 | `intpvib`    | Interpolation threshold for Grimme/Minenkov/HeadGordon (cm⁻¹)    | `100.0`       |
 | `hg_entropy` | Entropy interpolation for Head-Gordon method                     | `true`        |
+| `bav`        | Bav preset for HeadGordon free-rotor entropy (grimme/qchem)          | `qchem`       |
 | `imagreal`   | Imaginary frequency threshold (cm⁻¹)                             | `0.0`         |
 | `Eexter`     | External electronic energy override (a.u.)                       | `0.0`         |
 | `extrape`    | VASP electronic energy selection                                 | `false`       |
@@ -521,6 +523,15 @@ Settings are applied in this order:
 - **Values**: `true`/`false` or `1`/`0`
 - **Default**: true
 - **Example**: `-hg_entropy false`
+
+#### `-bav <preset>`
+
+- **Description**: Average moment of inertia (Bav) used in the free-rotor entropy term. **Only applicable to the HeadGordon method** (`lowvibmeth=4`). Grimme and Minenkov methods always use `grimme` (1×10⁻⁴⁴ kg m²); this option is ignored for them.
+- **Values**:
+  - `grimme`: I_av = 1×10⁻⁴⁴ kg m² (μ'_av from Grimme 2012, used by ORCA/xtb/GoodVibes/Shermo)
+  - `qchem`: I_av = 2.79928×10⁻⁴⁶ kg m² (B_av = 1 cm⁻¹, as specified in the Q-Chem manual)
+- **Default**: `qchem` (for HeadGordon)
+- **Example**: `-bav grimme`
 
 #### `-ipmode <mode>`
 
@@ -848,6 +859,7 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Weighting**: `w = 1 / (1 + (ν_threshold/ν)^4)`
 - **Entropy**: `S = w × S_RRHO + (1-w) × S_free`
 - **Free rotor entropy**: `S_free = R [ 1/2 + ln(√(8π³I kT / h²)) ]`
+- **Moment of inertia I**: Uses Bav = 1×10⁻⁴⁴ kg m² (Grimme's original μ'_av, fixed for this method)
 - **Threshold**: Configurable via `intpvib` parameter
 
 #### 3. Minenkov's Interpolation (`lowvibmeth = 3`)
@@ -871,6 +883,9 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Cv interpolation**: `Cv = w × Cv_HO + (1-w) × R/2`
 - **Optional entropy interpolation** (`hg_entropy = true`, default): uses the same Grimme free-rotor entropy formula
 - **Entropy off** (`hg_entropy = false`): entropy uses the standard harmonic oscillator model (paper's original behavior)
+- **Bav**: Configurable via `-bav` option (only for this method):
+  - `qchem` (default): I_av = 2.79928×10⁻⁴⁶ kg m² (B_av = 1 cm⁻¹, Q-Chem manual)
+  - `grimme`: I_av = 1×10⁻⁴⁴ kg m² (Grimme 2012)
 - **Threshold**: Configurable via `intpvib` parameter
 - **Reference**: Li, Guo, Head-Gordon, Bell, *J. Phys. Chem. C*, 2015
 

@@ -77,7 +77,8 @@ src/
 ├── symmetry.cpp
 ├── symmetry.h
 ├── util.cpp
-└── util.h
+├── util.h
+└── version.h
 ```
 
 ### Development Status

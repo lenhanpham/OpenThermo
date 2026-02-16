@@ -83,10 +83,10 @@ src/
 
 ### Development Status
 
-- **Version**: 0.001.1
+- **Version**: 0.001.4
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
-- **Testing**: 25-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
+- **Testing**: 27-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
 - **Documentation**: Doxygen-generated API documentation
 
 ## Key Features
@@ -104,7 +104,8 @@ src/
 - **Quasi-RRHO Treatments**:
   - Truhlar's frequency raising method
   - Grimme's entropy interpolation
-  - Minenkov's energy interpolation
+  - Minenkov's energy + entropy interpolation
+  - Head-Gordon's energy interpolation (with optional entropy)
 - **Electronic Contributions**: Multi-level electronic structure support
 - **Concentration Corrections**: Solution-phase Gibbs energy adjustments
 
@@ -335,9 +336,10 @@ sclS = 1.0        # Entropy scaling
 sclCV = 1.0       # Heat capacity scaling
 
 # Low frequency treatment
-lowvibmeth = Grimme  # 0/Harmonic=RRHO, 1/Truhlar, 2/Grimme, 3/Minenkov
+lowvibmeth = Grimme  # 0/Harmonic=RRHO, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadGordon
 ravib = 100.0     # Raising threshold for Truhlar method
-intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov
+intpvib = 100.0   # Interpolation threshold for Grimme/Minenkov/HeadGordon
+hg_entropy = true # Enable entropy interpolation for Head-Gordon method
 
 # Calculation options
 ipmode = 0         # 0=gas phase, 1=condensed phase
@@ -388,7 +390,8 @@ extrape = false
 | `sclS`       | Entropy scaling factor                                           | `1.0`         |
 | `sclCV`      | Heat capacity scaling factor                                     | `1.0`         |
 | `ravib`      | Raising threshold for Truhlar method (cm⁻¹)                      | `100.0`       |
-| `intpvib`    | Interpolation threshold for Grimme/Minenkov (cm⁻¹)               | `100.0`       |
+| `intpvib`    | Interpolation threshold for Grimme/Minenkov/HeadGordon (cm⁻¹)    | `100.0`       |
+| `hg_entropy` | Entropy interpolation for Head-Gordon method                     | `true`        |
 | `imagreal`   | Imaginary frequency threshold (cm⁻¹)                             | `0.0`         |
 | `Eexter`     | External electronic energy override (a.u.)                       | `0.0`         |
 | `extrape`    | VASP electronic energy selection                                 | `false`       |
@@ -406,6 +409,7 @@ extrape = false
 - 1/Truhlar =  Truhlar's QRRHO method
 - 2/Grimme = Grimme's method
 - 3/Minenkov = Minenkov's method
+- 4/HeadGordon = Head-Gordon's energy interpolation (with optional entropy)
 
 ### Parameter Precedence
 
@@ -493,6 +497,7 @@ Settings are applied in this order:
   - `1` or `Truhlar`: Truhlar's QRRHO (frequency raising)
   - `2` or `Grimme`: Grimme's entropy interpolation
   - `3` or `Minenkov`: Minenkov's entropy + energy interpolation
+  - `4` or `HeadGordon`: Head-Gordon's energy interpolation (+ optional entropy)
 - **Default**: Grimme
 - **Example**: `-lowvibmeth 1` or `-lowvibmeth Truhlar`
 
@@ -502,6 +507,20 @@ Settings are applied in this order:
 - **Units**: cm⁻¹
 - **Default**: 100.0
 - **Example**: `-ravib 50.0`
+
+#### `-intpvib <value>`
+
+- **Description**: Interpolation frequency threshold for Grimme, Minenkov, and Head-Gordon methods
+- **Units**: cm⁻¹
+- **Default**: 100.0
+- **Example**: `-intpvib 50.0`
+
+#### `-hg_entropy <bool>`
+
+- **Description**: Enable or disable entropy interpolation for the Head-Gordon method
+- **Values**: `true`/`false` or `1`/`0`
+- **Default**: true
+- **Example**: `-hg_entropy false`
 
 #### `-ipmode <mode>`
 
@@ -841,6 +860,20 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Free rotor energy**: `U_free = RT/2`
 - **Note**: ZPE = 0 for free rotor contribution
 
+#### 4. Head-Gordon's Interpolation (`lowvibmeth = 4`)
+
+**Energy interpolation with optional entropy interpolation (Li et al., 2015):**
+
+- **Energy interpolation**: `U = w × U_RRHO + (1-w) × U_free`
+- **Weighting**: `w = 1 / (1 + (ν_threshold/ν)^4)` (same damping function as Grimme/Minenkov)
+- **Free rotor energy**: `U_free = RT/2`
+- **ZPE handling**: ZPE is folded into the interpolated total vibrational energy (damped for low-frequency modes, as per eq. 4 of the paper). Separate ZPE is not displayed.
+- **Cv interpolation**: `Cv = w × Cv_HO + (1-w) × R/2`
+- **Optional entropy interpolation** (`hg_entropy = true`, default): uses the same Grimme free-rotor entropy formula
+- **Entropy off** (`hg_entropy = false`): entropy uses the standard harmonic oscillator model (paper's original behavior)
+- **Threshold**: Configurable via `intpvib` parameter
+- **Reference**: Li, Guo, Head-Gordon, Bell, *J. Phys. Chem. C*, 2015
+
 ### Low Frequency Detection
 
 - **Automatic threshold**: Based on `ravib` or `intpvib` parameters
@@ -977,6 +1010,13 @@ sclZPE = 0.98
 sclheat = 0.99
 sclS = 0.99
 sclCV = 0.99
+
+# Head-Gordon quasi-RRHO (energy + entropy)
+T = 298.15
+P = 1.0
+lowvibmeth = HeadGordon
+intpvib = 100.0
+hg_entropy = true
 
 # Low temperature analysis
 T = 100

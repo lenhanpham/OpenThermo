@@ -236,7 +236,15 @@ auto main(int argc, char* argv[]) -> int
         {
             std::cout << " Low frequencies treatment: Minenkov's interpolation for entropy and internal energy\n";
         }
-        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov)
+        else if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+        {
+            std::cout << " Low frequencies treatment: Head-Gordon's interpolation for energy";
+            if (sys.hgEntropy)
+                std::cout << " and entropy";
+            std::cout << "\n";
+        }
+        if (sys.lowVibTreatment == LowVibTreatment::Grimme || sys.lowVibTreatment == LowVibTreatment::Minenkov
+            || sys.lowVibTreatment == LowVibTreatment::HeadGordon)
         {
             std::cout << " Vibrational frequency threshold used in the interpolation is " << std::fixed
                       << std::setprecision(2) << sys.intpvib << " cm^-1\n";

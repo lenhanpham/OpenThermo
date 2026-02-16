@@ -117,10 +117,11 @@ const std::array<std::string, nelesupp + 1> ind2name{
  */
 enum class LowVibTreatment : std::uint8_t
 {
-    Harmonic = 0, /**< Standard rigid rotor harmonic oscillator */
-    Truhlar  = 1, /**< Quasi-rigid rotor harmonic oscillator (raises low frequencies) */
-    Grimme   = 2, /**< Grimme's interpolation between harmonic and free rotor */
-    Minenkov = 3  /**< Minenkov's interpolation scheme */
+    Harmonic    = 0, /**< Standard rigid rotor harmonic oscillator */
+    Truhlar     = 1, /**< Quasi-rigid rotor harmonic oscillator (raises low frequencies) */
+    Grimme      = 2, /**< Grimme's interpolation between harmonic and free rotor */
+    Minenkov    = 3, /**< Minenkov's interpolation scheme */
+    HeadGordon  = 4  /**< Head-Gordon's interpolation for energy (+ optional entropy) */
 };
 
 // Structure to hold system data
@@ -164,6 +165,7 @@ struct SystemData
     double          sclCV    = 1.0;                        // CV scaling factor
     double          ravib    = 100.0;                      // Vibrational averaging parameter
     double          intpvib  = 100.0;                      // Vibrational interpolation parameter
+    bool            hgEntropy = true;                      // Enable entropy interpolation for Head-Gordon method
     double          imagreal = 0.0;                        // Imaginary frequency threshold
     double          Eexter   = 0.0;                        // External electronic energy
     int vasp_energy_select   = 0;  // VASP energy selection: 0=energy  without entropy (default), 1=energy(sigma->0)

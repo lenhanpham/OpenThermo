@@ -87,8 +87,10 @@ namespace HelpUtils
         std::cout << "  -sclheat <factor>    Scale factor for thermal energy frequencies (default: 1.0)\n";
         std::cout << "  -sclS <factor>       Scale factor for entropy frequencies (default: 1.0)\n";
         std::cout << "  -sclCV <factor>      Scale factor for heat capacity frequencies (default: 1.0)\n";
-        std::cout << "  -lowvibmeth <mode>     Low frequency treatment: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov\n";
+        std::cout << "  -lowvibmeth <mode>     Low frequency treatment: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadGordon\n";
         std::cout << "  -ravib <value>       Raising value for low frequencies in cm^-1 (default: 100.0)\n";
+        std::cout << "  -intpvib <value>     Interpolation frequency threshold in cm^-1 (default: 100.0)\n";
+        std::cout << "  -hg_entropy <bool>   Entropy interpolation for Head-Gordon: true/false (default: true)\n";
         std::cout << "  -ipmode <mode>       Calculation mode: 0=gas phase, 1=condensed phase\n";
         std::cout << "  -imagreal <value>    Treat imaginary freq < value as real (default: 0.0)\n";
         std::cout << "  -conc <string>       Concentration string for phase correction\n";
@@ -189,6 +191,7 @@ namespace HelpUtils
              "    1/Truhlar: Raise frequencies below threshold to ravib value\n"
              "    2/Grimme: Grimme's interpolation for entropy\n"
              "    3/Minenkov: Minenkov's interpolation for entropy and internal energy\n"
+             "    4/HeadGordon: Head-Gordon's interpolation for energy (+ optional entropy)\n"
              "  Example: -lowvibmeth 2 or -lowvibmeth Grimme\n"
              "  Default: Grimme"},
             {"ravib",
@@ -197,6 +200,22 @@ namespace HelpUtils
              "  Frequency value (cm^-1) to which low frequencies are raised when lowvibmeth=1\n"
              "  Example: -ravib 50.0\n"
              "  Default: 100.0"},
+            {"intpvib",
+             "Interpolation Frequency Threshold\n"
+             "  -intpvib <value>\n"
+             "  Frequency threshold (cm^-1) used for interpolation in Grimme, Minenkov, and Head-Gordon methods\n"
+             "  Controls the damping function w(v) = 1/(1 + (intpvib/v)^4)\n"
+             "  Example: -intpvib 50.0\n"
+             "  Default: 100.0"},
+            {"hg_entropy",
+             "Head-Gordon Entropy Interpolation\n"
+             "  -hg_entropy <bool>\n"
+             "  Enable or disable entropy interpolation for the Head-Gordon method (lowvibmeth=4)\n"
+             "  When true, entropy is interpolated between harmonic and free-rotor models (like Grimme)\n"
+             "  When false, only energy is interpolated; entropy uses standard harmonic model\n"
+             "  Accepts: true/false or 1/0\n"
+             "  Example: -hg_entropy false\n"
+             "  Default: true"},
             {"ipmode",
              "Calculation Mode\n"
              "  -ipmode <mode>\n"

@@ -209,6 +209,18 @@ DEFAULT_TESTS = [
         "extra_args": ["-lowvibmeth", "3"],
     },
     {
+        "id": "gaussian_h2co_headgordon",
+        "description": "H2CO with Head-Gordon quasi-RRHO (energy + entropy interpolation)",
+        "input_file": "Gaussian_16_H2CO_freq.out",
+        "extra_args": ["-lowvibmeth", "4"],
+    },
+    {
+        "id": "gaussian_h2co_headgordon_no_entropy",
+        "description": "H2CO with Head-Gordon quasi-RRHO (energy only, no entropy interpolation)",
+        "input_file": "Gaussian_16_H2CO_freq.out",
+        "extra_args": ["-lowvibmeth", "4", "-hg_entropy", "false"],
+    },
+    {
         "id": "gaussian_h2co_scaled",
         "description": "H2CO with ZPE scaling 0.96",
         "input_file": "Gaussian_16_H2CO_freq.out",

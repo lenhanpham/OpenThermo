@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0",
-    "generated_at": "2026-02-02T09:48:52.726932+00:00",
-    "generated_by": "OpenThermo (057dffe)",
+    "generated_at": "2026-02-16T06:22:07.358273+00:00",
+    "generated_by": "OpenThermo (3e92b84)",
     "tolerances": {
       "energy_au": 1e-06,
       "energy_kJ": 0.01,
@@ -418,6 +418,60 @@
         "thermal_correction_G_kJ": 14.729755,
         "thermal_correction_G_au": 0.00561,
         "total_CV_J": 26.818,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_U_au": -114.5197771,
+        "E_plus_H_au": -114.5188329,
+        "E_plus_G_au": -114.5436437
+      }
+    },
+    {
+      "id": "gaussian_h2co_headgordon",
+      "description": "H2CO with Head-Gordon quasi-RRHO (energy + entropy interpolation)",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-lowvibmeth",
+        "4"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.870574,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.729755,
+        "thermal_correction_G_au": 0.00561,
+        "total_CV_J": 26.819,
+        "total_CP_J": 35.133,
+        "total_S_J": 218.483,
+        "E_plus_U_au": -114.5197771,
+        "E_plus_H_au": -114.5188329,
+        "E_plus_G_au": -114.5436437
+      }
+    },
+    {
+      "id": "gaussian_h2co_headgordon_no_entropy",
+      "description": "H2CO with Head-Gordon quasi-RRHO (energy only, no entropy interpolation)",
+      "input_file": "Gaussian_16_H2CO_freq.out",
+      "extra_args": [
+        "-lowvibmeth",
+        "4",
+        "-hg_entropy",
+        "false"
+      ],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -114.549254,
+        "thermal_correction_U_kJ": 77.392,
+        "thermal_correction_U_au": 0.029477,
+        "thermal_correction_H_kJ": 79.870574,
+        "thermal_correction_H_au": 0.030421,
+        "thermal_correction_G_kJ": 14.72979,
+        "thermal_correction_G_au": 0.00561,
+        "total_CV_J": 26.819,
         "total_CP_J": 35.133,
         "total_S_J": 218.483,
         "E_plus_U_au": -114.5197771,

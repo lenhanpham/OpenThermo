@@ -499,7 +499,7 @@ Settings are applied in this order:
   - `1` or `Truhlar`: Truhlar's QRRHO (frequency raising)
   - `2` or `Grimme`: Grimme's entropy interpolation
   - `3` or `Minenkov`: Minenkov's entropy + energy interpolation
-  - `4` or `HeadGordon`: Head-Gordon's energy interpolation (+ optional entropy)
+  - `4` or `HeadGordon`: Head-Gordon's energy interpolation (+ optional entropy) [Experimental]
 - **Default**: Grimme
 - **Example**: `-lowvibmeth 1` or `-lowvibmeth Truhlar`
 

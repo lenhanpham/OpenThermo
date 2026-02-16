@@ -9,18 +9,64 @@
  */
 
 #include "help_utils.h"
+#include "version.h"
+#include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
 namespace HelpUtils
 {
 
+    void print_version()
+    {
+        // Build version/date line and pad to fixed width
+        std::ostringstream ver_line;
+        ver_line << "Version " << OpenThermo::VERSION
+                 << "  Release date: " << OpenThermo::RELEASE_DATE;
+        std::string ver_str = ver_line.str();
+
+        // Build developers line
+        std::ostringstream dev_line;
+        dev_line << "Developers: " << OpenThermo::AUTHORS;
+        std::string dev_str = dev_line.str();
+
+        // Build project URL line
+        std::string url_str = OpenThermo::PROJECT_URL;
+
+        // Fixed-width field (73 chars between "# " and " #")
+        constexpr int field_width = 73;
+
+        std::cout << "  " << "                                                                                     \n"
+                  << "  " << "   ***********************************************************************     " << " \n"
+                  << "  " << "                                OPENTHERMO                                     " << " \n"
+                  << "  " << "   ***********************************************************************     " << " \n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
+                  << "# " << std::left << std::setw(field_width) << ver_str << " " << "#\n"
+                  << "# " << std::left << std::setw(field_width) << dev_str << " " << "#\n"
+                  << "# " << std::left << std::setw(field_width) << url_str << " " << "#\n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
+
+        std::cout << "  " << "                                                                                     \n"
+                  << "  " << "                                                                               " << " \n"
+                  << "  " << "Please cite this preprint if you use OpenThermo for your research              " << " \n"
+                  << "  " << "                                                                               " << " \n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
+                  << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of           " << "#\n"
+                  << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363 " << "#\n"
+                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
+
+        // Restore default right-alignment (std::left is sticky and would
+        // break std::setw formatting in subsequent output, e.g. calc.cpp)
+        std::cout << std::right;
+    }
+
     void print_help(const std::string& program_name)
     {
         std::cout << "OpenThermo: A Comprehensive C++ Program for Calculation of Thermochemical Properties\n"
-                  << "Version 0.001.2\n"
-                  << "Developer: Le Nhan Pham\n\n";
+                  << "Version " << OpenThermo::VERSION << "\n"
+                  << "Developers: " << OpenThermo::AUTHORS << "\n\n";
         std::cout << "Usage: " << program_name << " [input_file] [options]\n\n";
         std::cout << "Description:\n";
         std::cout << "  OpenThermo calculates thermochemical properties from quantum chemistry output files.\n";
@@ -51,8 +97,10 @@ namespace HelpUtils
         std::cout << "  -prtvib <mode>       Print vibration contributions: 0=no, 1=yes, -1=to file\n";
         std::cout << "  -prtlevel <level>    Output verbosity: 0=minimal, 1=default, 2=verbose, 3=full\n";
         std::cout << "  -outotm <mode>       Output .otm file: 0=no, 1=yes\n";
+        std::cout << "  -omp-threads <N>     OpenMP thread count (default: half physical cores)\n";
         std::cout << "  -noset               Don't load settings from settings.ini\n";
         std::cout << "  --help               Show this help message\n";
+        std::cout << "  --version, -v        Show version, authors, and citation\n";
         std::cout << "  --create-config      Create a default settings.ini file\n";
         std::cout << "  --help-input         Show input file format help\n";
         std::cout << "  --help-output        Show output format help\n";
@@ -228,7 +276,35 @@ namespace HelpUtils
              "  This creates a settings.ini file in the current directory that you can\n"
              "  edit to customize your default calculation parameters.\n"
              "  Example: ./OpenThermo --create-config\n"
-             "  Note: This command exits immediately after creating the file"}};
+             "  Note: This command exits immediately after creating the file"},
+            {"omp-threads",
+             "OpenMP Thread Count\n"
+             "  -omp-threads <N>\n"
+             "  Set the number of OpenMP threads for parallel computation.\n"
+             "  Default behavior (no flag): uses half of the detected physical CPU cores.\n"
+             "  This conservative default is designed for HPC headnode environments\n"
+             "  where oversubscription can destabilize shared login nodes.\n\n"
+             "  HPC job scheduler support:\n"
+             "    On managed HPC systems, OpenThermo automatically detects allocated CPUs\n"
+             "    from scheduler environment variables (checked in order):\n"
+             "      SLURM_CPUS_PER_TASK, PBS_NUM_PPN, PBS_NP, NSLOTS, LSB_DJOB_NUMPROC\n"
+             "    When detected, the scheduler allocation is used as the ceiling instead\n"
+             "    of total hardware cores, and the default becomes half of that allocation.\n\n"
+             "  Clamping: If N exceeds the effective core ceiling (scheduler allocation\n"
+             "  or physical cores), the request is ignored and the default is used\n"
+             "  with a warning.\n\n"
+             "  Strategy auto-selection:\n"
+             "    - Outer: When there are many T/P scan points (>= nthreads), the T/P\n"
+             "      loop is parallelized and vibrational loops run serially.\n"
+             "    - Inner: When there are few T/P points but many frequencies (>50),\n"
+             "      the vibrational loop is parallelized instead.\n\n"
+             "  Can also be set in settings.ini:\n"
+             "    omp-threads = 4\n"
+             "  Command-line -omp-threads overrides the settings.ini value.\n\n"
+             "  Examples:\n"
+             "    -omp-threads 4   (use 4 threads, if <= effective core ceiling)\n"
+             "    -omp-threads 2   (use 2 threads)\n\n"
+             "  Default: half of physical cores or scheduler allocation (minimum 1)"}};
 
         auto it = option_descriptions.find(option);
         if (it != option_descriptions.end())
@@ -375,11 +451,20 @@ namespace HelpUtils
         std::cout << "# modmass should match exactly the index order of atoms in quantum chemical outputs\n";
         std::cout << "# 1 1.007825  # Atom index, element, mass\n";
         std::cout << "# 2 12.0      # Use specific isotope mass\n\n";
+        std::cout << "# OpenMP threading\n";
+        std::cout << "# Default: half of physical CPU cores or scheduler-allocated CPUs\n";
+        std::cout << "# On HPC, SLURM_CPUS_PER_TASK / PBS_NP / NSLOTS are auto-detected\n";
+        std::cout << "# omp-threads = 4\n";
+        std::cout << "# Override on command line with: -omp-threads N (takes precedence)\n";
+        std::cout << "# If N > effective cores, the default (half) is used with a warning\n";
+        std::cout << "# Strategy (outer T/P vs inner vibrational) is auto-selected\n\n";
         std::cout << "Notes:\n";
         std::cout << "  - Parameters set in command line override settings file values\n";
         std::cout << "  - Use -noset to skip loading settings file\n";
         std::cout << "  - Mass modifications section is optional and allows per-atom mass changes\n";
-        std::cout << "  - Empty or missing settings file uses program defaults\n\n";
+        std::cout << "  - Empty or missing settings file uses program defaults\n";
+        std::cout << "  - OpenMP threading can be set via omp-threads in settings.ini or -omp-threads on CLI\n";
+        std::cout << "  - HPC scheduler CPUs (SLURM, PBS, SGE, LSF) are auto-detected\n\n";
     }
 
 }  // namespace HelpUtils

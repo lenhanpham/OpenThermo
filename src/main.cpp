@@ -17,6 +17,7 @@
 #include "symmetry.h"
 #include "util.h"
 #include "omp_config.h"
+#include "version.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -61,39 +62,24 @@ auto main(int argc, char* argv[]) -> int
 {
     try
     {
-        configure_openmp();  // Prevent nested parallelism / oversubscription
+        // OpenMP thread detection and configuration is deferred until after
+        // argument parsing, so that -omp-threads can be read first.
 
         SystemData            sys;                       // Main system data structure
         std::array<double, 3> rotcst = {0.0, 0.0, 0.0};  // Rotational constants
 
-        // Print program information
-        std::cout << "  " << "                                                                                     \n"
-                  << "  " << "   ***********************************************************************     " << " \n"
-                  << "  " << "                                OPENTHERMO                                     " << " \n"
-                  << "  " << "   ***********************************************************************     " << " \n"
-                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
-                  << "# " << "Version 0.001.2  Release date: 2026                                            " << "#\n"
-                  << "# " << "Developers: Le Nhan Pham, Romain Despoullains                                  " << "#\n"
-                  << "# " << "https://github.com/lenhanpham/openthermo                                       " << "#\n"
-                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
-
-        std::cout << "  " << "                                                                                     \n"
-                  << "  " << "                                                                               " << " \n"
-                  << "  " << "Please cite this preprint if you use OpenThermo for your research              " << " \n"
-                  << "  " << "                                                                               " << " \n"
-                  << "# " << "-------------------------------------------------------------------------------" << "#\n"
-                  << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of           " << "#\n"
-                  << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363 " << "#\n"
-                  << "# " << "-------------------------------------------------------------------------------" << "#\n";
-
-
-        // Handle help options before any other processing
+        // Handle early-exit options before any other processing
         if (argc > 1)
         {
             std::string first_arg = argv[1];
             if (first_arg == "--help")
             {
                 HelpUtils::print_help(argv[0]);
+                return 0;
+            }
+            else if (first_arg == "--version" || first_arg == "-v")
+            {
+                HelpUtils::print_version();
                 return 0;
             }
             else if (first_arg == "--help-input")
@@ -132,6 +118,9 @@ auto main(int argc, char* argv[]) -> int
             }
         }
 
+        // Print program banner
+        HelpUtils::print_version();
+
         // Initialize isotope mass table
         atommass::initmass(sys);
 
@@ -158,6 +147,23 @@ auto main(int argc, char* argv[]) -> int
         {
             std::vector<std::string> args(argv, argv + argc);
             util::loadarguments(sys, argc, args);
+        }
+
+        // --- OpenMP thread detection and configuration ---
+        sys.physical_cores_detected = detect_physical_cores();
+        sys.scheduler_cpus_detected = detect_scheduler_cpus();
+        std::string thread_notification = validate_thread_count(
+            sys.omp_threads_requested,
+            sys.physical_cores_detected,
+            sys.scheduler_cpus_detected,
+            sys.omp_threads_actual,
+            sys.omp_user_override
+        );
+        configure_openmp(sys.omp_threads_actual);
+
+        if (sys.prtlevel >= 1 && !thread_notification.empty())
+        {
+            std::cout << "\n" << thread_notification << "\n";
         }
 
         // If prtlevel=3, auto-enable per-mode vibration output unless user explicitly set prtvib
@@ -664,6 +670,14 @@ auto main(int argc, char* argv[]) -> int
             // Output thermochemistry results
             if (sys.Tstep == 0.0 && sys.Pstep == 0.0)
             {
+                // Single T/P point: always use inner strategy if beneficial
+                sys.omp_strategy = static_cast<int>(
+                    select_strategy(1, sys.nfreq, sys.omp_threads_actual));
+                if (sys.prtlevel >= 2)
+                {
+                    std::cout << strategy_description(
+                        static_cast<OMPStrategy>(sys.omp_strategy), 1, sys.nfreq) << "\n";
+                }
                 calc::showthermo(sys);
             }
             else
@@ -711,24 +725,51 @@ auto main(int argc, char* argv[]) -> int
                     const int num_step_P = static_cast<int>((P2 - P1) / Ps) + 1;
                     const int total_points = num_step_T * num_step_P;
 
+                    // Auto-select parallelization strategy
+                    OMPStrategy strategy = select_strategy(total_points, sys.nfreq, sys.omp_threads_actual);
+                    sys.omp_strategy = static_cast<int>(strategy);
+
+                    if (sys.prtlevel >= 2)
+                    {
+                        std::cout << strategy_description(strategy, total_points, sys.nfreq) << "\n";
+                    }
+
                     struct ScanResult {
                         double T, P;
                         double corrU, corrH, corrG, S, CV, CP, QV, Qbot;
                     };
                     std::vector<ScanResult> results(total_points);
 
+                    if (strategy == OMPStrategy::Outer)
+                    {
+                        // Outer strategy: parallelize T/P scan, calcthermo runs serially
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
-                    for (int idx = 0; idx < total_points; ++idx)
+                        for (int idx = 0; idx < total_points; ++idx)
+                        {
+                            int i = idx / num_step_P;
+                            int j = idx % num_step_P;
+                            auto& r = results[idx];
+                            r.T = T1 + i * Ts;
+                            r.P = P1 + j * Ps;
+                            calc::calcthermo(sys, r.T, r.P, r.corrU, r.corrH, r.corrG,
+                                             r.S, r.CV, r.CP, r.QV, r.Qbot);
+                        }
+                    }
+                    else
                     {
-                        int i = idx / num_step_P;
-                        int j = idx % num_step_P;
-                        auto& r = results[idx];
-                        r.T = T1 + i * Ts;
-                        r.P = P1 + j * Ps;
-                        calc::calcthermo(sys, r.T, r.P, r.corrU, r.corrH, r.corrG,
-                                         r.S, r.CV, r.CP, r.QV, r.Qbot);
+                        // Inner strategy: serial T/P scan, vibrational loop parallelized in calc.cpp
+                        for (int idx = 0; idx < total_points; ++idx)
+                        {
+                            int i = idx / num_step_P;
+                            int j = idx % num_step_P;
+                            auto& r = results[idx];
+                            r.T = T1 + i * Ts;
+                            r.P = P1 + j * Ps;
+                            calc::calcthermo(sys, r.T, r.P, r.corrU, r.corrH, r.corrG,
+                                             r.S, r.CV, r.CP, r.QV, r.Qbot);
+                        }
                     }
 
                     for (int idx = 0; idx < total_points; ++idx)

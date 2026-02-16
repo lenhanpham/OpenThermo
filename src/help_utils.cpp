@@ -56,6 +56,10 @@ namespace HelpUtils
                   << "# " << "L.N Pham, \"OpenThermo A Comprehensive C++ Program for Calculation of           " << "#\n"
                   << "# " << "Thermochemical Properties\" 2025, http://dx.doi.org/10.13140/RG.2.2.22380.63363 " << "#\n"
                   << "# " << "-------------------------------------------------------------------------------" << "#\n";
+
+        // Restore default right-alignment (std::left is sticky and would
+        // break std::setw formatting in subsequent output, e.g. calc.cpp)
+        std::cout << std::right;
     }
 
     void print_help(const std::string& program_name)

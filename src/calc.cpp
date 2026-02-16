@@ -426,7 +426,7 @@ namespace calc
         const bool   do_hg_energy_interp = (lowVib == LowVibTreatment::HeadGordon);
         const bool   do_hg_entropy = (lowVib == LowVibTreatment::HeadGordon && sys.hgEntropy);
         constexpr double eight_pi2    = 8.0 * M_PI * M_PI;
-        const double grimme_log_base  = 8.0 * M_PI * M_PI * M_PI * 1e-44 * kb * T / (h * h);
+        const double grimme_log_base  = 8.0 * M_PI * M_PI * M_PI * sys.Bav * kb * T / (h * h);
 
 #ifdef _OPENMP
         // Only parallelize vibrational loop when Inner strategy is active
@@ -539,9 +539,8 @@ namespace calc
             if (do_grimme_interp || do_hg_entropy)
             {
                 double miu  = h / (eight_pi2 * fi);
-                constexpr double Bav = 1e-44;
-                double miup = miu * Bav / (miu + Bav);
-                double Sfree = R * (0.5 + 0.5 * std::log(grimme_log_base * miup / Bav));
+                double miup = miu * sys.Bav / (miu + sys.Bav);
+                double Sfree = R * (0.5 + 0.5 * std::log(grimme_log_base * miup / sys.Bav));
                 double gr  = sys.intpvib / wi;
                 double gr2 = gr * gr;
                 double wei = 1.0 / (1.0 + gr2 * gr2);
@@ -1086,8 +1085,7 @@ namespace calc
             || (sys.lowVibTreatment == LowVibTreatment::HeadGordon && sys.hgEntropy))
         {  // Grimme's entropy interpolation
             double miu   = h / (8.0 * M_PI * M_PI * sys.freq[i]);
-            double Bav   = 1e-44;  // kg*m^2
-            double miup  = miu * Bav / (miu + Bav);
+            double miup  = miu * sys.Bav / (miu + sys.Bav);
             double Sfree = R * (0.5 + std::log(std::sqrt(8.0 * M_PI * M_PI * M_PI * miup * kb * T / (h * h))));
             double grim_ratio = sys.intpvib / sys.wavenum[i];
             double grim_r2 = grim_ratio * grim_ratio;

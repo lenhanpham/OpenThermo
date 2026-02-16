@@ -124,6 +124,38 @@ enum class LowVibTreatment : std::uint8_t
     HeadGordon  = 4  /**< Head-Gordon's interpolation for energy (+ optional entropy) */
 };
 
+/**
+ * @brief Enumeration for the average moment of inertia (Bav) preset
+ *        used in the free-rotor entropy term of quasi-RRHO methods.
+ */
+enum class BavPreset : std::uint8_t
+{
+    QChem  = 0, /**< B_av = 1 cm^-1 => I_av = 2.79928e-46 kg m^2 (Q-Chem manual) */
+    Grimme = 1  /**< mu'_av = 1e-44 kg m^2 (Grimme 2012, ORCA/xtb/GoodVibes/Shermo) */
+};
+
+/// Return the numeric Bav value (kg m^2) for a given preset.
+inline double bavPresetValue(BavPreset p)
+{
+    switch (p)
+    {
+        case BavPreset::QChem:  return 2.79928e-46;
+        case BavPreset::Grimme: return 1e-44;
+        default:                return 2.79928e-46;
+    }
+}
+
+/// Return a human-readable label for a BavPreset.
+inline const char* bavPresetName(BavPreset p)
+{
+    switch (p)
+    {
+        case BavPreset::QChem:  return "qchem";
+        case BavPreset::Grimme: return "grimme";
+        default:                return "qchem";
+    }
+}
+
 // Structure to hold system data
 struct SystemData
 {
@@ -166,6 +198,9 @@ struct SystemData
     double          ravib    = 100.0;                      // Vibrational averaging parameter
     double          intpvib  = 100.0;                      // Vibrational interpolation parameter
     bool            hgEntropy = true;                      // Enable entropy interpolation for Head-Gordon method
+    BavPreset       bavPreset = BavPreset::Grimme;          // Bav preset for free-rotor entropy
+    double          Bav       = 1e-44;                     // Average moment of inertia (kg m^2)
+    bool            bavUserOverride = false;                // Whether user explicitly set -bav
     double          imagreal = 0.0;                        // Imaginary frequency threshold
     double          Eexter   = 0.0;                        // External electronic energy
     int vasp_energy_select   = 0;  // VASP energy selection: 0=energy  without entropy (default), 1=energy(sigma->0)

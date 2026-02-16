@@ -149,6 +149,31 @@ auto main(int argc, char* argv[]) -> int
             util::loadarguments(sys, argc, args);
         }
 
+        // --- Apply method-dependent Bav ---
+        // Only HeadGordon supports the -bav option (grimme or qchem).
+        // Grimme/Minenkov always use Grimme's Bav (1e-44 kg m^2).
+        if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+        {
+            if (!sys.bavUserOverride)
+            {
+                // HeadGordon defaults to Q-Chem's Bav
+                sys.bavPreset = BavPreset::QChem;
+                sys.Bav       = bavPresetValue(BavPreset::QChem);
+            }
+        }
+        else
+        {
+            // Grimme/Minenkov: always use Grimme's Bav; warn if user tried to override
+            if (sys.bavUserOverride && sys.bavPreset != BavPreset::Grimme)
+            {
+                std::cerr << "Warning: -bav option is only applicable to HeadGordon method. "
+                          << "Ignoring -bav " << bavPresetName(sys.bavPreset)
+                          << "; using grimme (1e-44 kg m^2).\n";
+            }
+            sys.bavPreset = BavPreset::Grimme;
+            sys.Bav       = bavPresetValue(BavPreset::Grimme);
+        }
+
         // --- OpenMP thread detection and configuration ---
         sys.physical_cores_detected = detect_physical_cores();
         sys.scheduler_cpus_detected = detect_scheduler_cpus();
@@ -248,6 +273,12 @@ auto main(int argc, char* argv[]) -> int
         {
             std::cout << " Vibrational frequency threshold used in the interpolation is " << std::fixed
                       << std::setprecision(2) << sys.intpvib << " cm^-1\n";
+        }
+        if (sys.lowVibTreatment == LowVibTreatment::HeadGordon)
+        {
+            std::cout << " Average moment of inertia (Bav): " << bavPresetName(sys.bavPreset)
+                      << " (" << std::scientific << std::setprecision(2) << sys.Bav << " kg m^2)\n"
+                      << std::fixed;
         }
         if (sys.imagreal != 0.0)
         {

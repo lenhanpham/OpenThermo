@@ -595,6 +595,21 @@ namespace util
                     throw std::runtime_error("Error: Missing value for -PGname");
                 sys.PGnameinit = argv[iarg];
             }
+            else if (inputArgs == "-omp-threads")
+            {
+                if (++iarg >= argc)
+                    throw std::runtime_error("Error: Missing value for -omp-threads");
+                std::istringstream iss(argv[iarg]);
+                int threads = 0;
+                if (!(iss >> threads) || threads <= 0)
+                {
+                    std::cerr << "Warning: Invalid -omp-threads value '" << argv[iarg] << "', using default\n";
+                }
+                else
+                {
+                    sys.omp_threads_requested = threads;
+                }
+            }
             else if (inputArgs == "-noset")
             {
                 continue;
@@ -1022,6 +1037,32 @@ namespace util
                     {
                         throw std::runtime_error(
                             "Error: Invalid value for extrape in settings.ini. Use true/yes/1 or false/no/0");
+                    }
+                }
+            }
+            get_option_str(file, "omp-threads", inputArgs);
+            if (!inputArgs.empty())
+            {
+                size_t eqPos = inputArgs.find('=');
+                if (eqPos != std::string::npos)
+                {
+                    std::string valueStr = inputArgs.substr(eqPos + 1);
+                    size_t start = valueStr.find_first_not_of(" \t");
+                    if (start != std::string::npos)
+                        valueStr = valueStr.substr(start);
+                    size_t end = valueStr.find_last_not_of(" \t");
+                    if (end != std::string::npos)
+                        valueStr = valueStr.substr(0, end + 1);
+
+                    std::istringstream iss(valueStr);
+                    int threads = 0;
+                    if (!(iss >> threads) || threads <= 0)
+                    {
+                        std::cerr << "Warning: Invalid omp-threads value in settings.ini, using default\n";
+                    }
+                    else
+                    {
+                        sys.omp_threads_requested = threads;
                     }
                 }
             }
@@ -1461,6 +1502,16 @@ namespace util
         file << "# Select which energy to use from OUTCAR 'energy without entropy' line" << "\n";
         file << "# false/no/0 = energy  without entropy (default), true/yes/1 = energy(sigma->0)" << "\n";
         file << "extrape = false" << "\n";
+        file << "\n";
+
+        // OpenMP threading
+        file << "# OpenMP threading" << "\n";
+        file << "# Number of OpenMP threads to use for parallel computation" << "\n";
+        file << "# Default: half of physical CPU cores (or half of scheduler-allocated CPUs on HPC)" << "\n";
+        file << "# This conservative default prevents overloading shared HPC headnodes" << "\n";
+        file << "# On HPC, SLURM_CPUS_PER_TASK / PBS_NP / NSLOTS are detected automatically" << "\n";
+        file << "# Command-line -omp-threads overrides this setting" << "\n";
+        file << "# omp-threads = 4" << "\n";
         file << "\n";
 
         // Mass modifications section

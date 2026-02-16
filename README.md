@@ -356,6 +356,12 @@ conc = 1.0
 # false/no/0 = energy  without entropy (default), true/yes/1 = energy(sigma->0)
 extrape = false
 
+# OpenMP threading (command-line or settings.ini)
+# Default: half of physical CPU cores or scheduler-allocated CPUs
+# On HPC: SLURM_CPUS_PER_TASK / PBS_NP / NSLOTS are auto-detected
+# omp-threads = 4
+# Override with CLI: -omp-threads N (takes precedence)
+# Strategy (outer T/P vs inner vibrational) is auto-selected
 
 # Mass modifications (optional section)
 # modmass
@@ -386,6 +392,7 @@ extrape = false
 | `Eexter`     | External electronic energy override (a.u.)                       | `0.0`         |
 | `extrape`    | VASP electronic energy selection                                 | `false`       |
 | `PGname`     | Point group name ("?" for auto-detect)                           | `"?"`         |
+| `omp-threads`| OpenMP thread count (clamped to effective cores)                 | Half of effective cores |
 
 **Details for `extrape`:**
 
@@ -576,6 +583,26 @@ Settings are applied in this order:
 
 - **Description**: Skip loading settings from `settings.ini`
 - **Example**: `-noset`
+
+### OpenMP / Performance Options
+
+#### `-omp-threads <N>`
+
+- **Description**: Set the number of OpenMP threads for parallel computation
+- **Default**: Half of the detected physical CPU cores (minimum 1), or half of scheduler-allocated CPUs on HPC
+- **HPC scheduler support**: Automatically detects allocated CPUs from `SLURM_CPUS_PER_TASK`, `PBS_NUM_PPN`, `PBS_NP`, `NSLOTS`, `LSB_DJOB_NUMPROC`
+- **Behavior**:
+  - If not specified: uses half of effective cores (scheduler allocation or physical)
+  - If `N` ≤ effective cores: uses `N` threads
+  - If `N` > effective cores: clamps to default (half) with a warning
+- **Strategy auto-selection**: OpenThermo automatically selects the best parallelization strategy:
+  - **Outer** (T/P scan parallel): when many T/P scan points are available (≥ nthreads)
+  - **Inner** (vibrational parallel): when few T/P points but many frequencies (>50)
+- **Precedence**: CLI `-omp-threads` > `settings.ini` `omp-threads` > auto-detect
+- **Examples**:
+  - `-omp-threads 4` (use 4 threads, if ≤ effective cores)
+  - `-omp-threads 2` (use 2 threads)
+- **Settings file**: `omp-threads = 4` (in settings.ini)
 
 ### Help Options
 
@@ -1013,6 +1040,9 @@ ravib = 50.0
 
 - Enable batch processing with smaller chunks
 - Build with OpenMP (`make OPENMP=1`) for temperature/pressure scans
+- Use `-omp-threads N` to control thread count (default: half of physical cores)
+- For dedicated compute nodes, use `-omp-threads` with the full core count for maximum performance
+- On shared HPC headnodes, the conservative default (half cores) prevents overloading
 
 ### Validation
 
@@ -1081,16 +1111,60 @@ const double au2cm_1 = 219474.6363;   // Hartree to cm⁻¹
 ### Performance Optimizations
 
 - **OpenMP parallelization** (optional) for temperature/pressure scans, vibrational loops, and symmetry calculations
+- **Auto-strategy selection**: OpenThermo chooses between parallelizing the T/P scan (outer) or the vibrational loop (inner) based on workload characteristics
+- **HPC-friendly defaults**: Uses half of physical CPU cores to avoid headnode overload
 - **Efficient algorithms** for partition function calculation
 - **Optimized mathematical operations**
 
 #### OpenMP Parallelization
 
-When built with OpenMP enabled (`make OPENMP=1` or `cmake -DENABLE_OPENMP=ON`), temperature/pressure scans, vibrational loops, moment of inertia, and symmetry detection are parallelized. Control threads via `OMP_NUM_THREADS`:
+When built with OpenMP enabled (`make OPENMP=1` or `cmake -DENABLE_OPENMP=ON`), OpenThermo automatically parallelizes computation with conservative, HPC-friendly defaults.
+
+**Thread management:**
+
+- **Default**: Half of detected physical CPU cores (minimum 1)
+- **HPC scheduler**: Automatically detects allocated CPUs from `SLURM_CPUS_PER_TASK`, `PBS_NUM_PPN`, `PBS_NP`, `NSLOTS`, `LSB_DJOB_NUMPROC` — when detected, uses half of the scheduler allocation instead of hardware cores
+- **Override**: Use `-omp-threads N` (CLI) or `omp-threads = N` (settings.ini); CLI takes precedence
+- **Safety clamp**: If `N` exceeds effective cores (scheduler or hardware), the default is used with a warning
+- **Rationale**: Prevents overloading shared HPC headnodes while leaving resources for other users and system processes
+
+**Strategy auto-selection:**
+
+- **Outer strategy**: When many T/P scan points are available (≥ nthreads), the T/P loop is parallelized and vibrational calculations run serially inside each iteration
+- **Inner strategy**: When few T/P points but many vibrational frequencies (>50), the vibrational loop is parallelized instead
+- The strategy is selected automatically — users don't need to understand the internal parallelism patterns
+
+**Examples:**
 
 ```bash
-export OMP_NUM_THREADS=4
+# Default: uses half of physical cores, auto-selects strategy
 ./build/OpenThermo molecule.log -T 100 5000 1
+
+# Explicit thread count for a dedicated compute node
+./build/OpenThermo molecule.log -T 100 5000 1 -omp-threads 8
+
+# Verbose output shows thread count and strategy selection
+./build/OpenThermo molecule.log -T 100 500 10 -prtlevel 2
+```
+
+**Example output notifications:**
+
+```
+# Default (4 physical cores detected, no scheduler)
+OpenMP threads: 2 (default: half of 4 physical cores). Use -omp-threads N to override.
+Strategy: outer (parallel T/P scan, 32 points, 30 frequencies)
+
+# On HPC with SLURM_CPUS_PER_TASK=8
+OpenMP threads: 4 (default: half of 8 scheduler-allocated CPUs). Use -omp-threads N to override.
+Strategy: outer (parallel T/P scan, 32 points, 30 frequencies)
+
+# Explicit valid request
+OpenMP threads: 4 (user-specified)
+Strategy: inner (serial T/P scan, parallel vibrational, 200 frequencies)
+
+# Excessive request (clamped)
+Warning: Requested 100 threads exceeds 4 physical cores. Using default (2).
+Use -omp-threads <= 4 to use more threads.
 ```
 
 The code compiles and runs correctly both with and without OpenMP.

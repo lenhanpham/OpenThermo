@@ -87,7 +87,7 @@ namespace HelpUtils
         std::cout << "  -sclheat <factor>    Scale factor for thermal energy frequencies (default: 1.0)\n";
         std::cout << "  -sclS <factor>       Scale factor for entropy frequencies (default: 1.0)\n";
         std::cout << "  -sclCV <factor>      Scale factor for heat capacity frequencies (default: 1.0)\n";
-        std::cout << "  -lowvibmeth <mode>     Low frequency treatment: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadGordon\n";
+        std::cout << "  -lowvibmeth <mode>   Low frequency treatment: 0/Harmonic, 1/Truhlar, 2/Grimme, 3/Minenkov, 4/HeadGordon\n";
         std::cout << "  -ravib <value>       Raising value for low frequencies in cm^-1 (default: 100.0)\n";
         std::cout << "  -intpvib <value>     Interpolation frequency threshold in cm^-1 (default: 100.0)\n";
         std::cout << "  -hg_entropy <bool>   Entropy interpolation for Head-Gordon: true/false (default: true)\n";

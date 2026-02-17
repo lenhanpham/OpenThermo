@@ -43,9 +43,9 @@ namespace HelpUtils
                   << "  " << "                                OPENTHERMO                                     " << " \n"
                   << "  " << "   ***********************************************************************     " << " \n"
                   << "# " << "-------------------------------------------------------------------------------" << "#\n"
-                  << "# " << std::left << std::setw(field_width) << ver_str << " " << "#\n"
-                  << "# " << std::left << std::setw(field_width) << dev_str << " " << "#\n"
-                  << "# " << std::left << std::setw(field_width) << url_str << " " << "#\n"
+                  << "# " << std::left << std::setw(field_width) << ver_str << " " << "     #\n"
+                  << "# " << std::left << std::setw(field_width) << dev_str << " " << "     #\n"
+                  << "# " << std::left << std::setw(field_width) << url_str << " " << "     #\n"
                   << "# " << "-------------------------------------------------------------------------------" << "#\n";
 
         std::cout << "  " << "                                                                                     \n"

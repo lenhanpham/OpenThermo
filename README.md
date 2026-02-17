@@ -733,34 +733,58 @@ molecule-b.out
 ### Console Output
 
 ```
-OpenThermo: A general program for calculating molecular thermochemistry properties
-Version 0.001.1  Release date:
-Developer: Le Nhan Pham
+OpenMP threads: 24 (default: half of 48 physical cores). Use -omp-threads N to override.
+
+                   --- Summary of Current Parameters ---
 
 Running parameters:
- Temperature: 298.15 K
- Pressure: 1.0 atm
- Scale factor of vibrational frequencies for ZPE: 1.000
- ...
+ Print level: 1 (0=minimal, 1=default, 2=verbose, 3=full)
+Printing individual contribution of vibration modes: No
+ Temperature:          298.150 K
+ Pressure:             1.000 atm
+ Scaling factor of vibrational frequencies for ZPE:         1.0000
+ Scaling factor of vibrational frequencies for U(T)-U(0):   1.0000
+ Scaling factor of vibrational frequencies for S(T):        1.0000
+ Scaling factor of vibrational frequencies for CV:          1.0000
+ Low frequencies treatment: Grimme's interpolation for entropy
+ Vibrational frequency threshold used in the interpolation is 100.00 cm^-1
+                      -------- End of Summary --------
 
-                      ======= Molecular information =======
- Electronic energy: -76.384729 a.u.
- Spin multiplicity: 1
- Total mass: 16.031300 amu
- Point group: C2v
- Rotational symmetry number: 2
+OpenThermo started to process BIH-conformers-1.log at Tue Feb 17 14:10:27 2026
 
- There are 9 frequencies (cm^-1):
-  456.7  789.0  1234.5  1456.7  1678.9  1890.1  2123.4  2345.6  2567.8
+                      -------- Chemical System Data -------
+                      -------------------------------------
+ Electronic energy:      -690.56452500 a.u.
+ Electronic energy level 1     E =     0.000000 eV     Degeneracy =   1
+ Atoms: 33 (16 H, 15 C, 2 N)  Total mass: 224.131420 amu
+ Point group: Cs     Rotational symmetry number:   1
+ Frequencies: 93 (range: 25.1 -- 3233.0 cm^-1)
 
- Thermochemistry at 298.15 K and 1.0 atm:
- ZPE = 0.025 kJ/mol
- U(T) - U(0) = 0.045 kJ/mol
- H(T) - H(0) = 0.052 kJ/mol
- G(T) - H(0) = -0.012 kJ/mol
- S(T) = 0.064 kJ/mol/K
- CV = 0.028 kJ/mol/K
- CP = 0.036 kJ/mol/K
+
+                       ----------------------------
+                       -------- Final data --------
+                       ----------------------------
+ Total q(V=0):        8.578987e+42
+ Total q(bot):        8.806492e-87
+ Total q(V=0)/NA:     1.424574e+19
+ Total q(bot)/NA:    1.462352e-110
+ Total CV:     237.069 J/mol/K      56.661 cal/mol/K
+ Total CP:     245.383 J/mol/K      58.648 cal/mol/K
+ Total S:      484.246 J/mol/K     115.738 cal/mol/K    -TS:   -34.507 kcal/mol
+ Zero point energy (ZPE):    736.269 kJ/mol    175.973 kcal/mol   0.280430 a.u.
+ Thermal correction to U:    773.673 kJ/mol    184.912 kcal/mol   0.294677 a.u.
+ Thermal correction to H: 776.152210 kJ/mol 185.504830 kcal/mol   0.295621 a.u.
+ Thermal correction to G: 631.774188 kJ/mol 150.997655 kcal/mol   0.240630 a.u.
+ Electronic energy:       -690.5645250 a.u.
+ Sum of electronic energy and ZPE, namely U/H/G at 0 K:       -690.2840949 a.u.
+ Sum of electronic energy and thermal correction to U:        -690.2698485 a.u.
+ Sum of electronic energy and thermal correction to H:        -690.2689043 a.u.
+ Sum of electronic energy and thermal correction to G:        -690.3238950 a.u.
+
+Calculation completed at: Tue Feb 17 14:10:27 2026
+
+                    ---------- Happy calculation ----------
+                    ---- OpenThermo normally terminated ---
 ```
 
 ### Generated Files

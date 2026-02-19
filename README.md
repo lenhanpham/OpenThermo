@@ -19,12 +19,15 @@
 
 A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
 
+Online Document: [https://lenhanpham.github.io/OpenThermo](https://lenhanpham.github.io/OpenThermo) 
+
 # Important Note
 
 **The project is still in the early stage and not fully tested. Therefore, errors and inaccuracy may happen. Users are suggested to check calculated data against original data from outputs of corresponding quantum chemical programs (with default temperature, conentration, and pressure)**
 
 A graphical user interface (GUI) version is under development and can be found here: 
 [https://github.com/lenhanpham/OpenThermoGUI](https://github.com/lenhanpham/OpenThermoGUI) 
+
 
 ## Table of Contents
 

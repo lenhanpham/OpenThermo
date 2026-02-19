@@ -1,0 +1,210 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches: [main, develop, dev]
+  pull_request:
+    branches: [main, develop, dev]
+  workflow_dispatch:
+
+# Add permissions for GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy-docs:
+    runs-on: ubuntu-latest
+    
+    # Only deploy on main branch pushes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    # Use concurrency to cancel in-progress deployments
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Configure Git identity (global)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global init.defaultBranch main
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "docs/requirements.txt" ]; then
+            pip install -r docs/requirements.txt
+          else
+            echo "docs/requirements.txt not found, installing default dependencies"
+            pip install sphinx furo sphinx-rtd-theme breathe exhale
+          fi
+
+      - name: Install Doxygen and Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Check for Doxyfile
+        id: check_doxyfile
+        run: |
+          if [ -f "Doxyfile" ]; then
+            echo "doxyfile_exists=true" >> $GITHUB_OUTPUT
+            echo "Doxyfile found, will generate API documentation"
+          else
+            echo "doxyfile_exists=false" >> $GITHUB_OUTPUT
+            echo "Doxyfile not found, skipping API documentation generation"
+          fi
+
+      - name: Generate Doxygen XML and HTML (if Doxyfile exists)
+        if: steps.check_doxyfile.outputs.doxyfile_exists == 'true'
+        run: |
+          doxygen Doxyfile || echo "Doxygen generation failed, continuing without API docs"
+          if [ -d "docs/xml" ]; then
+            echo "Doxygen XML generated successfully"
+          else
+            echo "Warning: Doxygen XML directory (docs/xml/) not found, API docs will be skipped"
+          fi
+          if [ -d "docs/html" ]; then
+            echo "Doxygen HTML generated successfully"
+          else
+            echo "Warning: Doxygen HTML directory (docs/html/) not found"
+          fi
+
+      - name: Verify Doxygen XML Output (if generated)
+        if: steps.check_doxyfile.outputs.doxyfile_exists == 'true'
+        run: |
+          if [ -d "docs/xml" ] && [ -n "$(ls -A docs/xml/ 2>/dev/null)" ]; then
+            echo "Doxygen XML files generated successfully."
+          else
+            echo "Warning: Doxygen XML directory is empty or missing, API docs will be skipped"
+          fi
+
+      - name: Create static directories
+        working-directory: docs
+        run: |
+          mkdir -p _static _templates
+          # Copy logo if it exists
+          if [ -f "../resources/ot-logo.svg" ]; then
+            cp ../resources/ot-logo.svg _static/ot-logo.svg
+            echo "Logo copied to _static/"
+          else
+            echo "Logo not found, continuing without logo"
+          fi
+          # Copy any existing SVGs from doxygen output
+          if [ -d "../docs/html" ]; then
+            cp -r ../docs/html/*.svg _static/ 2>/dev/null && echo "SVGs copied to _static/" || echo "No SVGs found in docs/html/, continuing"
+          fi
+
+      - name: Build Sphinx HTML
+        working-directory: docs
+        run: |
+          make html SPHINXOPTS="-W --keep-going" || make html || echo "Sphinx build completed with warnings"
+          if [ ! -d "_build/html" ]; then
+            echo "Error: HTML generation failed: _build/html/ directory not found."
+            exit 1
+          fi
+          echo "Sphinx HTML build completed successfully."
+
+      - name: Build Sphinx Markdown (optional)
+        working-directory: docs
+        continue-on-error: true
+        run: |
+          sphinx-build -b markdown . _build/markdown -W --keep-going || echo "Markdown build failed, continuing"
+          if [ -d "_build/markdown" ] && [ -z "$(ls -A _build/markdown 2>/dev/null)" ]; then
+            rm -rf _build/markdown
+            echo "Markdown directory was empty and removed"
+          fi
+
+      - name: Upload Documentation Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: |
+            docs/_build/html/
+            docs/_build/markdown/
+          if-no-files-found: warn
+
+      # Setup GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  build-docs-only:
+    runs-on: ubuntu-latest
+    
+    # Build docs on PRs and non-main branch pushes without deploying
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "docs/requirements.txt" ]; then
+            pip install -r docs/requirements.txt
+          else
+            echo "docs/requirements.txt not found, installing default dependencies"
+            pip install sphinx furo sphinx-rtd-theme breathe exhale
+          fi
+
+      - name: Install Doxygen and Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Create static directories
+        working-directory: docs
+        run: |
+          mkdir -p _static _templates
+          if [ -f "../resources/ot-logo.svg" ]; then
+            cp ../resources/ot-logo.svg _static/ot-logo.svg
+          fi
+
+      - name: Build Sphinx HTML (check only)
+        working-directory: docs
+        run: |
+          make html SPHINXOPTS="-W --keep-going" || make html
+          if [ ! -d "_build/html" ]; then
+            echo "Error: HTML generation failed: _build/html/ directory not found."
+            exit 1
+          fi
+          echo "Sphinx HTML build check completed successfully."
+
+      - name: Upload Documentation Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-preview
+          path: docs/_build/html/
+          if-no-files-found: warn

@@ -90,7 +90,7 @@ src/
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
 - **Testing**: 27-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
-- **Documentation**: Doxygen-generated API documentation (not ready)
+- **Documentation**: Doxygen-generated API documentation 
 
 ## Key Features
 

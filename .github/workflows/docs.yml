@@ -56,10 +56,10 @@ jobs:
             pip install sphinx furo sphinx-rtd-theme breathe exhale
           fi
 
-      - name: Install Doxygen and Graphviz (optional)
+      - name: Install Doxygen and Graphviz
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz || echo "Doxygen/Graphviz installation failed, continuing without API docs"
+          sudo apt-get install -y doxygen graphviz
 
       - name: Check for Doxyfile
         id: check_doxyfile
@@ -178,6 +178,11 @@ jobs:
             echo "docs/requirements.txt not found, installing default dependencies"
             pip install sphinx furo sphinx-rtd-theme breathe exhale
           fi
+
+      - name: Install Doxygen and Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
 
       - name: Create static directories
         working-directory: docs

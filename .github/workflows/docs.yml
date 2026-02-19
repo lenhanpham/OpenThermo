@@ -1,4 +1,4 @@
-name: Build and Deploy Documentation 
+name: Build and Deploy Documentation
 
 on:
   push:
@@ -17,8 +17,8 @@ jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
     
-    # Only deploy on main/dev branch pushes, but build on all branches
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop')
+    # Only deploy on main branch pushes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     # Use concurrency to cancel in-progress deployments
     concurrency:
@@ -157,8 +157,8 @@ jobs:
   build-docs-only:
     runs-on: ubuntu-latest
     
-    # Build docs on PRs and other branches without deploying
-    if: github.event_name == 'pull_request' || !(github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop')
+    # Build docs on PRs and non-main branch pushes without deploying
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
 
     steps:
       - name: Checkout repository

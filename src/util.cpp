@@ -661,7 +661,7 @@ namespace util
                 }
                 else
                 {
-                    sys.omp_threads_requested = threads;
+                    sys.exec.omp_threads_requested = threads;
                 }
             }
             else if (inputArgs == "-noset")
@@ -1159,7 +1159,7 @@ namespace util
                     }
                     else
                     {
-                        sys.omp_threads_requested = threads;
+                        sys.exec.omp_threads_requested = threads;
                     }
                 }
             }

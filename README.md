@@ -236,6 +236,10 @@ cmake .. -DCMAKE_CXX_COMPILER=clang++
 
 #### Windows Build (MSYS2/MinGW)
 
+**For Windows Users, there is a binary package in [Release](https://github.com/lenhanpham/OpenThermo/releases). Download this package and unzip it for further instruction of installation.**
+
+For those who would like to complie OpenThermo from source code on Windows: 
+
 1. Install [MSYS2](https://www.msys2.org/) and open a MINGW64 terminal
 2. Install dependencies:
    ```bash
@@ -249,26 +253,42 @@ cmake .. -DCMAKE_CXX_COMPILER=clang++
 
 ### Post-Build Setup
 
-1. **Verify executable:**
-   
+1. **Add OpenThermo to PATH (Linux/macOS):**
+
+   Add the following line to your shell configuration file (`~/.bashrc`, `~/.zshrc`, or equivalent), replacing `/path/to/OpenThermo` with the actual path to the directory containing the `OpenThermo` binary (e.g. the repo root or `build/`):
+
    ```bash
-   ./build/OpenThermo --help
+   export PATH=$PATH:/path/to/OpenThermo
    ```
 
-2. **Create settings file (optional):**
-   
+   Then reload your shell:
+
    ```bash
-   ./build/OpenThermo --create-config
+   source ~/.bashrc   # or source ~/.zshrc
    ```
 
-3. **Compiler options:**
+   > **Windows users**: Add the directory containing `OpenThermo.exe` to the System PATH via *Settings → System → Advanced system settings → Environment Variables*.
+
+2. **Verify executable:**
+   
+   ```bash
+   OpenThermo --help
+   ```
+
+3. **Create settings file (optional):**
+   
+   ```bash
+   OpenThermo --create-config
+   ```
+
+4. **Compiler options:**
    
    ```bash
    make CXX=g++     # Force GCC compilation
    make CXX=icpc    # Force Intel compiler
    ```
 
-4. **Clean build:**
+5. **Clean build:**
    
    ```bash
    make clean
@@ -310,7 +330,7 @@ OpenThermo supports configuration through:
 Generate a default settings file:
 
 ```bash
-./build/OpenThermo --create-config
+OpenThermo --create-config
 ```
 
 This creates `settings.ini` with all available parameters and their default values.
@@ -643,7 +663,7 @@ Settings are applied in this order:
 #### `--help`
 
 - **Description**: Show general help
-- **Example**: `./OpenThermo --help`
+- **Example**: `OpenThermo --help`
 
 #### `--help-<option>`
 
@@ -928,13 +948,13 @@ H    1.007825   0.000000   0.000000   1.089000
 
 ```bash
 # Temperature range
-./OpenThermo molecule.log -T 200 400 25
+OpenThermo molecule.log -T 200 400 25
 
 # Pressure range
-./OpenThermo molecule.log -P 0.5 2.0 0.2
+OpenThermo molecule.log -P 0.5 2.0 0.2
 
 # Combined range
-./OpenThermo molecule.log -T 273 373 50 -P 0.5 2.0 0.5
+OpenThermo molecule.log -T 273 373 50 -P 0.5 2.0 0.5
 ```
 
 ### Mass Modifications
@@ -984,7 +1004,7 @@ echo "molecule-2.out" >> batch.txt
 echo "molecule-3.otm" >> batch.txt
 
 # Process batch
-./build/OpenThermo batch.txt
+OpenThermo batch.txt
 ```
 
 ## Usage Examples
@@ -993,35 +1013,35 @@ echo "molecule-3.otm" >> batch.txt
 
 ```bash
 # Standard calculation at 298.15 K, 1 atm
-./build/OpenThermo water.log
+OpenThermo water.log
 
 # Custom conditions
-./build/OpenThermo methane.out -T 300 -P 2.0
+OpenThermo methane.out -T 300 -P 2.0
 
 # High precision calculation
-./build/OpenThermo benzene.otm -T 298.15 -lowvibmeth 2 -sclZPE 0.98
+OpenThermo benzene.otm -T 298.15 -lowvibmeth 2 -sclZPE 0.98
 ```
 
 ### Advanced Calculations
 
 ```bash
 # Temperature scan with Grimme's method
-./build/OpenThermo molecule.log -T 200 400 25 -lowvibmeth 2
+OpenThermo molecule.log -T 200 400 25 -lowvibmeth 2
 
 # Pressure scan with custom scaling
-./build/OpenThermo molecule.log -P 0.1 10 0.5 -sclS 0.99 -sclCV 0.99
+OpenThermo molecule.log -P 0.1 10 0.5 -sclS 0.99 -sclCV 0.99
 
 # Transition state calculation
-./build/OpenThermo ts.out -imagreal 100 -lowvibmeth 1 -ravib 50
+OpenThermo ts.out -imagreal 100 -lowvibmeth 1 -ravib 50
 
 # Condensed phase calculation
-./OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
+OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
 
 # Minimal output (final data only)
-./build/OpenThermo molecule.log -prtlevel 0
+OpenThermo molecule.log -prtlevel 0
 
 # Verbose output with per-mode vibration detail
-./build/OpenThermo molecule.log -prtlevel 3
+OpenThermo molecule.log -prtlevel 3
 ```
 
 ### Batch Processing Examples
@@ -1029,10 +1049,10 @@ echo "molecule-3.otm" >> batch.txt
 ```bash
 # Process all .log files in directory
 ls *.log > files.txt
-./OpenThermo files.txt
+OpenThermo files.txt
 
 # Custom analysis for multiple molecules
-./OpenThermo molecules.txt -T 298 -lowvibmeth 3 -prtvib 1 -outotm 1
+OpenThermo molecules.txt -T 298 -lowvibmeth 3 -prtvib 1 -outotm 1
 ```
 
 ### Settings File Examples
@@ -1221,13 +1241,13 @@ When built with OpenMP enabled (`make OPENMP=1` or `cmake -DENABLE_OPENMP=ON`), 
 
 ```bash
 # Default: uses half of physical cores, auto-selects strategy
-./build/OpenThermo molecule.log -T 100 5000 1
+OpenThermo molecule.log -T 100 5000 1
 
 # Explicit thread count for a dedicated compute node
-./build/OpenThermo molecule.log -T 100 5000 1 -omp-threads 8
+OpenThermo molecule.log -T 100 5000 1 -omp-threads 8
 
 # Verbose output shows thread count and strategy selection
-./build/OpenThermo molecule.log -T 100 500 10 -prtlevel 2
+OpenThermo molecule.log -T 100 500 10 -prtlevel 2
 ```
 
 **Example output notifications:**
@@ -1335,7 +1355,7 @@ We welcome contributions to OpenThermo! Here's how you can help:
    
    ```bash
    make clean && make debug  # Build with debug symbols
-   ./build/OpenThermo --help # Verify installation
+   OpenThermo --help          # Verify installation
    ```
 
 4. **Create a feature branch:**

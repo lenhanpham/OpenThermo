@@ -11,13 +11,13 @@ Quick Start
 .. code-block:: bash
 
    # Calculate thermochemistry from quantum chemistry output
-   ./build/OpenThermo molecule.log
+   OpenThermo molecule.log
 
    # Custom temperature and pressure
-   ./build/OpenThermo molecule.log -T 300 -P 2.0
+   OpenThermo molecule.log -T 300 -P 2.0
 
    # Get help
-   ./build/OpenThermo --help
+   OpenThermo --help
 
 Command-Line Options
 ====================
@@ -64,7 +64,7 @@ Thermochemistry Options
 
 .. code-block:: bash
 
-   ./build/OpenThermo molecule.log -sclZPE 0.98 -sclheat 0.99
+   OpenThermo molecule.log -sclZPE 0.98 -sclheat 0.99
 
 Low Frequency Treatment Options
 --------------------------------
@@ -212,7 +212,7 @@ Help Options
 **``--help``**
 
 - **Description**: Show general help
-- **Example**: ``./OpenThermo --help``
+- **Example**: ``OpenThermo --help``
 
 **``--help-<option>``**
 
@@ -242,7 +242,7 @@ Generate a default settings file:
 
 .. code-block:: bash
 
-   ./build/OpenThermo --create-config
+   OpenThermo --create-config
 
 This creates ``settings.ini`` with all available parameters and their default values.
 
@@ -668,13 +668,13 @@ Basic Calculations
 .. code-block:: bash
 
    # Standard calculation at 298.15 K, 1 atm
-   ./build/OpenThermo water.log
+   OpenThermo water.log
 
    # Custom conditions
-   ./build/OpenThermo methane.out -T 300 -P 2.0
+   OpenThermo methane.out -T 300 -P 2.0
 
    # High precision calculation
-   ./build/OpenThermo benzene.otm -T 298.15 -lowvibmeth 2 -sclZPE 0.98
+   OpenThermo benzene.otm -T 298.15 -lowvibmeth 2 -sclZPE 0.98
 
 Advanced Calculations
 ---------------------
@@ -682,22 +682,22 @@ Advanced Calculations
 .. code-block:: bash
 
    # Temperature scan with Grimme's method
-   ./build/OpenThermo molecule.log -T 200 400 25 -lowvibmeth 2
+   OpenThermo molecule.log -T 200 400 25 -lowvibmeth 2
 
    # Pressure scan with custom scaling
-   ./build/OpenThermo molecule.log -P 0.1 10 0.5 -sclS 0.99 -sclCV 0.99
+   OpenThermo molecule.log -P 0.1 10 0.5 -sclS 0.99 -sclCV 0.99
 
    # Transition state calculation
-   ./build/OpenThermo ts.out -imagreal 100 -lowvibmeth 1 -ravib 50
+   OpenThermo ts.out -imagreal 100 -lowvibmeth 1 -ravib 50
 
    # Condensed phase calculation
-   ./build/OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
+   OpenThermo crystal.out -ipmode 1 -conc "1.0 M"
 
    # Minimal output (final data only)
-   ./build/OpenThermo molecule.log -prtlevel 0
+   OpenThermo molecule.log -prtlevel 0
 
    # Verbose output with per-mode vibration detail
-   ./build/OpenThermo molecule.log -prtlevel 3
+   OpenThermo molecule.log -prtlevel 3
 
 Batch Processing Examples
 -------------------------
@@ -706,10 +706,10 @@ Batch Processing Examples
 
    # Process all .log files in directory
    ls *.log > files.txt
-   ./build/OpenThermo files.txt
+   OpenThermo files.txt
 
    # Custom analysis for multiple molecules
-   ./build/OpenThermo molecules.txt -T 298 -lowvibmeth 3 -prtvib 1 -outotm 1
+   OpenThermo molecules.txt -T 298 -lowvibmeth 3 -prtvib 1 -outotm 1
 
 Settings File Examples
 -----------------------
@@ -753,13 +753,13 @@ Temperature and Pressure Scanning
 .. code-block:: bash
 
    # Temperature range
-   ./build/OpenThermo molecule.log -T 200 400 25
+   OpenThermo molecule.log -T 200 400 25
 
    # Pressure range
-   ./build/OpenThermo molecule.log -P 0.5 2.0 0.2
+   OpenThermo molecule.log -P 0.5 2.0 0.2
 
    # Combined range
-   ./build/OpenThermo molecule.log -T 273 373 50 -P 0.5 2.0 0.5
+   OpenThermo molecule.log -T 273 373 50 -P 0.5 2.0 0.5
 
 Mass Modifications
 ------------------
@@ -815,7 +815,7 @@ Batch Processing
    echo "molecule-3.otm" >> batch.txt
 
    # Process batch
-   ./build/OpenThermo batch.txt
+   OpenThermo batch.txt
 
 Troubleshooting
 ===============

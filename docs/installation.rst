@@ -145,6 +145,13 @@ CMake Build System
 Windows Build (MSYS2/MinGW)
 ----------------------------
 
+.. note::
+   **For Windows Users, there is a binary package in the**
+   `Releases <https://github.com/lenhanpham/OpenThermo/releases>`_.
+   **Download this package and unzip it for further installation instructions.**
+
+For those who would like to compile OpenThermo from source code on Windows:
+
 **1. Install MSYS2:**
 
 Download and install `MSYS2 <https://www.msys2.org/>`_ and open a MINGW64 terminal.
@@ -166,6 +173,35 @@ The Makefile auto-detects Windows and adds ``-static`` linking so the binary run
 Post-Build Setup
 ================
 
+Add OpenThermo to PATH
+-----------------------
+
+**Linux/macOS:**
+
+Add the following line to your shell configuration file (``~/.bashrc``, ``~/.zshrc``, or equivalent),
+replacing ``/path/to/OpenThermo`` with the actual path to the directory containing the ``OpenThermo``
+binary (e.g. the repo root or ``build/``):
+
+.. code-block:: bash
+
+   export PATH=$PATH:/path/to/OpenThermo
+
+Then reload your shell:
+
+.. code-block:: bash
+
+   source ~/.bashrc   # or source ~/.zshrc
+
+**Windows:**
+
+1. Open *Settings → System → Advanced system settings → Environment Variables*
+2. Add the directory containing ``OpenThermo.exe`` to the ``Path`` variable
+3. Open a new Command Prompt and test:
+
+   .. code-block:: batch
+
+      OpenThermo --help
+
 Verification
 ------------
 
@@ -173,13 +209,13 @@ Verification
 
 .. code-block:: bash
 
-   ./build/OpenThermo --help
+   OpenThermo --help
 
 **2. Create settings file (optional):**
 
 .. code-block:: bash
 
-   ./build/OpenThermo --create-config
+   OpenThermo --create-config
 
 This creates ``settings.ini`` with all available parameters and their default values.
 
@@ -188,7 +224,7 @@ This creates ``settings.ini`` with all available parameters and their default va
 .. code-block:: bash
 
    # Run a test calculation (if test files are available)
-   ./build/OpenThermo test_molecule.log
+   OpenThermo test_molecule.log
 
 Successful Compilation Output
 ------------------------------
@@ -206,23 +242,9 @@ Expected output during compilation:
 Environment Setup
 -----------------
 
-**Linux/macOS:**
-
-Add to PATH (add to ``~/.bashrc`` or ``~/.zshrc``):
-
-.. code-block:: bash
-
-   export PATH=$PATH:/path/to/OpenThermo/build
-
-**Windows:**
-
-1. Open System Properties → Advanced → Environment Variables
-2. Add the OpenThermo build directory to PATH
-3. Open new Command Prompt and test:
-
-   .. code-block:: batch
-
-      OpenThermo --version
+.. note::
+   After adding OpenThermo to PATH (see :ref:`Post-Build Setup` above), you can call ``OpenThermo``
+   directly from any directory without specifying its full path.
 
 Troubleshooting
 ===============
@@ -290,7 +312,7 @@ Runtime Issues
    ls -la molecule.log
 
    # Ensure file is in current directory or provide full path
-   ./build/OpenThermo /full/path/to/molecule.log
+   OpenThermo /full/path/to/molecule.log
 
 **Unrecognized Program Format:**
 
@@ -301,10 +323,10 @@ Ensure the input file contains frequency analysis output from a supported quantu
 .. code-block:: bash
 
    # Check argument syntax
-   ./build/OpenThermo --help-T
+   OpenThermo --help-T
 
    # Use proper format for temperature scan
-   ./build/OpenThermo molecule.log -T 200 400 25
+   OpenThermo molecule.log -T 200 400 25
 
 Performance Optimization
 ========================
@@ -343,7 +365,7 @@ OpenThermo automatically uses half of detected physical CPU cores by default. Fo
 .. code-block:: bash
 
    # Use explicit thread count
-   ./build/OpenThermo molecule.log -omp-threads 8
+   OpenThermo molecule.log -omp-threads 8
 
 Testing
 =======
@@ -400,7 +422,7 @@ If you encounter issues:
 .. code-block:: bash
 
    # Get version information
-   ./build/OpenThermo --help
+   OpenThermo --help
 
    # Check compiler information
    make compiler-info

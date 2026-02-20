@@ -609,10 +609,10 @@ Performance Testing
 .. code-block:: bash
 
    # Profile application
-   valgrind --tool=callgrind ./build/OpenThermo molecule.log
+   valgrind --tool=callgrind OpenThermo molecule.log
 
    # Memory profiling
-   valgrind --tool=massif ./build/OpenThermo molecule.log
+   valgrind --tool=massif OpenThermo molecule.log
 
 Continuous Integration
 ======================

@@ -61,16 +61,16 @@ Quick Start
 .. code-block:: bash
 
    # Basic usage - calculate thermochemistry from Gaussian output
-   ./build/OpenThermo molecule.log
+   OpenThermo molecule.log
 
    # Custom temperature and pressure
-   ./build/OpenThermo molecule.log -T 300 -P 2.0
+   OpenThermo molecule.log -T 300 -P 2.0
 
    # Temperature scan with Grimme's method
-   ./build/OpenThermo molecule.log -T 200 400 25 -lowvibmeth Grimme
+   OpenThermo molecule.log -T 200 400 25 -lowvibmeth Grimme
 
    # Get help
-   ./build/OpenThermo --help
+   OpenThermo --help
 
 Important Note
 --------------
@@ -95,6 +95,12 @@ Contents
    :caption: Developer Guide:
 
    developer
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference:
+
+   api/api
 
 Indices and Tables
 ==================

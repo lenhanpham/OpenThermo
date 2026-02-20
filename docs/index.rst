@@ -96,6 +96,12 @@ Contents
 
    developer
 
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference:
+
+   api/api
+
 Indices and Tables
 ==================
 

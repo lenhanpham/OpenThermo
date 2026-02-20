@@ -46,6 +46,7 @@ jobs:
           mingw-w64-x86_64-lld
           mingw-w64-x86_64-gcc-libs
           mingw-w64-x86_64-binutils
+          mingw-w64-x86_64-openmp
 
     - name: Configure and Build
       shell: msys2 {0}
@@ -57,7 +58,7 @@ jobs:
 
         # Configure with CMake for static linking with Clang
         echo "Configuring with CMake (static linking with Clang)..."
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_RC_COMPILER=windres -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++ -fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-static -static-libgcc -static-libstdc++ -fuse-ld=lld"
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OPENMP=ON -DCMAKE_RC_COMPILER=windres -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++ -fuse-ld=lld" -DCMAKE_SHARED_LINKER_FLAGS="-static -static-libgcc -static-libstdc++ -fuse-ld=lld"
         if [ $? -ne 0 ]; then
             echo "Error configuring with CMake"
             exit 1
@@ -65,7 +66,7 @@ jobs:
 
         # Build the project
         echo "Building project (static linking)..."
-        make
+        make -j$(nproc)
         if [ $? -ne 0 ]; then
             echo "Error building project"
             exit 1
@@ -106,38 +107,35 @@ jobs:
         fi
 
     - name: Prepare Release Assets
+      shell: pwsh
       run: |
-        # Copy the executable to release assets
         New-Item -Path "ReleaseAssets" -ItemType Directory -Force
         Copy-Item -Path "build/OpenThermo.exe" -Destination "ReleaseAssets/OpenThermo.exe" -Force
-
-        # Create ZIP file
-        Compress-Archive -Path "ReleaseAssets/OpenThermo.exe" -DestinationPath "OpenThermo.zip" -Force
-
-        # Verify files
+        Compress-Archive -Path "ReleaseAssets/OpenThermo.exe" -DestinationPath "OpenThermo-windows-x64.zip" -Force
         Write-Host "Release assets:"
         Get-ChildItem -Path "ReleaseAssets"
         Write-Host "ZIP file:"
-        Get-ChildItem -Path "OpenThermo.zip"
-    - name: Install GitHub CLI
-      run: |
-        choco install gh -y
+        Get-ChildItem -Path "OpenThermo-windows-x64.zip"
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
       run: |
-        $args = @(
-          "release", "create", "${{ inputs.tag_name }}",
-          "--title", "${{ inputs.release_name }}",
-          "--notes", "${{ inputs.release_notes }}",
-          "OpenThermo.zip"
-        )
+        $notes = "${{ inputs.release_notes }}"
         if ("${{ inputs.prerelease }}" -eq "true") {
-          $args += "--prerelease"
+          gh release create "${{ inputs.tag_name }}" `
+            --title "${{ inputs.release_name }}" `
+            --notes $notes `
+            --prerelease `
+            "OpenThermo-windows-x64.zip"
+        } else {
+          gh release create "${{ inputs.tag_name }}" `
+            --title "${{ inputs.release_name }}" `
+            --notes $notes `
+            "OpenThermo-windows-x64.zip"
         }
-        & gh @args
 
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: ./OpenThermo.zip
+        subject-path: ./OpenThermo-windows-x64.zip

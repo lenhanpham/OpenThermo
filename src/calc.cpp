@@ -432,7 +432,7 @@ namespace calc
         // Only parallelize vibrational loop when Inner strategy is active
         // and we are not already inside a parallel region (from outer T/P scan)
 #pragma omp parallel for reduction(+:log_qvib_v0,log_qvib_bot,ZPE,U_vib_heat,CV_vib,S_vib) \
-        if(sys.omp_strategy == 1 && nfreq > 50 && omp_get_level() == 0)
+        if(sys.exec.omp_strategy == 1 && nfreq > 50 && omp_get_level() == 0)
 #endif
         for (int i = 0; i < nfreq; ++i)
         {

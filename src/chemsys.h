@@ -156,6 +156,24 @@ inline const char* bavPresetName(BavPreset p)
     }
 }
 
+/**
+ * @brief Hardware and OpenMP parallelisation configuration
+ *
+ * Encapsulates all fields related to thread detection, validation, and
+ * strategy selection. Separated from SystemData because execution
+ * configuration is orthogonal to molecular chemistry: thermochemical
+ * functions should not need to know about thread counts or HPC schedulers.
+ */
+struct ExecutionConfig
+{
+    int  omp_threads_requested   = 0;      ///< 0 = auto (default), >0 = user-specified
+    int  omp_threads_actual      = 0;      ///< Final thread count after validation
+    int  physical_cores_detected = 0;      ///< Hardware info for notifications
+    int  scheduler_cpus_detected = 0;      ///< HPC scheduler allocated CPUs (0 = no scheduler)
+    bool omp_user_override       = false;  ///< Whether user explicitly set thread count via -omp-threads
+    int  omp_strategy            = 0;      ///< 0=outer (T/P scan), 1=inner (vibrational loop)
+};
+
 // Structure to hold system data
 struct SystemData
 {
@@ -205,13 +223,8 @@ struct SystemData
     double          Eexter   = 0.0;                        // External electronic energy
     int vasp_energy_select   = 0;  // VASP energy selection: 0=energy  without entropy (default), 1=energy(sigma->0)
 
-    // OpenMP configuration
-    int  omp_threads_requested   = 0;      // 0 = auto (default), >0 = user-specified
-    int  omp_threads_actual      = 0;      // Final thread count after validation
-    int  physical_cores_detected = 0;      // Hardware info for notifications
-    int  scheduler_cpus_detected = 0;      // HPC scheduler allocated CPUs (0 = no scheduler)
-    bool omp_user_override       = false;  // Whether user explicitly set thread count
-    int  omp_strategy            = 0;      // 0=outer (T/P scan), 1=inner (vibrational)
+    // OpenMP / execution configuration
+    ExecutionConfig exec;  ///< Hardware and OpenMP parallelisation settings
 
     // Special
     int inoset = 0;  // Skip settings.ini if 1

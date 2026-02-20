@@ -175,16 +175,16 @@ auto main(int argc, char* argv[]) -> int
         }
 
         // --- OpenMP thread detection and configuration ---
-        sys.physical_cores_detected = detect_physical_cores();
-        sys.scheduler_cpus_detected = detect_scheduler_cpus();
+        sys.exec.physical_cores_detected = detect_physical_cores();
+        sys.exec.scheduler_cpus_detected = detect_scheduler_cpus();
         std::string thread_notification = validate_thread_count(
-            sys.omp_threads_requested,
-            sys.physical_cores_detected,
-            sys.scheduler_cpus_detected,
-            sys.omp_threads_actual,
-            sys.omp_user_override
+            sys.exec.omp_threads_requested,
+            sys.exec.physical_cores_detected,
+            sys.exec.scheduler_cpus_detected,
+            sys.exec.omp_threads_actual,
+            sys.exec.omp_user_override
         );
-        configure_openmp(sys.omp_threads_actual);
+        configure_openmp(sys.exec.omp_threads_actual);
 
         if (sys.prtlevel >= 1 && !thread_notification.empty())
         {
@@ -710,12 +710,12 @@ auto main(int argc, char* argv[]) -> int
             if (sys.Tstep == 0.0 && sys.Pstep == 0.0)
             {
                 // Single T/P point: always use inner strategy if beneficial
-                sys.omp_strategy = static_cast<int>(
-                    select_strategy(1, sys.nfreq, sys.omp_threads_actual));
+                sys.exec.omp_strategy = static_cast<int>(
+                    select_strategy(1, sys.nfreq, sys.exec.omp_threads_actual));
                 if (sys.prtlevel >= 2)
                 {
                     std::cout << strategy_description(
-                        static_cast<OMPStrategy>(sys.omp_strategy), 1, sys.nfreq) << "\n";
+                        static_cast<OMPStrategy>(sys.exec.omp_strategy), 1, sys.nfreq) << "\n";
                 }
                 calc::showthermo(sys);
             }
@@ -765,8 +765,8 @@ auto main(int argc, char* argv[]) -> int
                     const int total_points = num_step_T * num_step_P;
 
                     // Auto-select parallelization strategy
-                    OMPStrategy strategy = select_strategy(total_points, sys.nfreq, sys.omp_threads_actual);
-                    sys.omp_strategy = static_cast<int>(strategy);
+                    OMPStrategy strategy = select_strategy(total_points, sys.nfreq, sys.exec.omp_threads_actual);
+                    sys.exec.omp_strategy = static_cast<int>(strategy);
 
                     if (sys.prtlevel >= 2)
                     {

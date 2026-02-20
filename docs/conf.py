@@ -85,6 +85,7 @@ exhale_args = {
     "createTreeView": True,
     "afterTitleDescription": "Comprehensive API documentation for OpenThermo.",
     "verboseBuild": False,
+    "contentsDirectives": False,
 }
 
 

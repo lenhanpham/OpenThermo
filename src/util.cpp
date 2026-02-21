@@ -1437,11 +1437,11 @@ namespace util
         }
 
         // Write electronic energy
-        file << "*E  //Electronic energy (a.u.)\n";
+        file << "<E>  //Electronic energy (a.u.)\n";
         file << std::fixed << std::setprecision(10) << std::setw(20) << sys.E << "\n";
 
         // Write wavenumbers
-        file << "*wavenum  //Wavenumbers (cm-1).\n";
+        file << "<frequency>  //Wavenumbers (cm**-1).\n";
         if (sys.nfreq != static_cast<int>(sys.wavenum.size()))
         {
             file.close();
@@ -1453,7 +1453,7 @@ namespace util
         }
 
         // Write atoms
-        file << "*atoms  //System infor: Name, mass (amu), X, Y, Z (Angstrom)\n";
+        file << "<system>  //Name, mass (amu), X, Y, Z (Angstrom)\n";
         if (sys.ncenter != static_cast<int>(sys.a.size()))
         {
             file.close();
@@ -1472,7 +1472,7 @@ namespace util
         }
 
         // Write energy levels
-        file << "*elevel  //Energy (eV) and degeneracy of electronic energy levels\n";
+        file << "<elevel>  //Energy (eV) and degeneracy of electronic energy levels\n";
         if (sys.nelevel != static_cast<int>(sys.elevel.size()) || sys.nelevel != static_cast<int>(sys.edegen.size()))
         {
             file.close();

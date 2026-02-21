@@ -16,7 +16,7 @@
 namespace OpenThermo
 {
     /// Program version string (e.g. "0.001.3")
-    inline constexpr const char* VERSION       = "0.001.4";
+    inline constexpr const char* VERSION       = "0.001.5";
 
     /// Release year shown in the banner
     inline constexpr const char* RELEASE_DATE  = "2026";

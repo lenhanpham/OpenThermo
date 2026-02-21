@@ -1,0 +1,9 @@
+<E>  //Electronic energy (a.u.)
+     -113.1853770000
+<frequency>  //Wavenumbers (cm**-1).
+ 2278.7548
+<system>  //Name, mass (amu), X, Y, Z (Angstrom)
+C   12.000000   -2.180053   -0.725039   -0.000000   
+O   15.994910   -1.206127   -0.155521   0.000000    
+<elevel>  //Energy (eV) and degeneracy of electronic energy levels
+0.000000    1   

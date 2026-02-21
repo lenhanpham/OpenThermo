@@ -286,6 +286,24 @@ DEFAULT_TESTS = [
         "extra_args": [],
         "test_mode": "batch",
     },
+    {
+        "id": "orca_triplet",
+        "description": "ORCA triplet-state molecule",
+        "input_file": "Orca-triplet.out",
+        "extra_args": [],
+    },
+    {
+        "id": "orca_triplet_otm",
+        "description": "ORCA triplet-state molecule (.otm)",
+        "input_file": "Orca-triplet.otm",
+        "extra_args": [],
+    },
+    {
+        "id": "nwchem_nh2coh_otm",
+        "description": "NWChem NH2COH opt+freq (.otm)",
+        "input_file": "NWChem_NH2COH_optfreq.otm",
+        "extra_args": [],
+    },
 ]
 
 

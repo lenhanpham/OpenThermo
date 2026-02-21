@@ -397,20 +397,20 @@ Native format containing all molecular data:
 
 .. code-block:: text
 
-   *E  //Electronic energy (a.u.)
+   <E>  //Electronic energy (a.u.)
    -76.384729
 
-   *wavenum  //Wavenumbers (cm^-1)
+   <frequency>  //Wavenumbers (cm^-1)
    1234.5
    2345.6
    ...
 
-   *atoms  //Name, mass (amu), X, Y, Z (Angstrom)
+   <system>  //Name, mass (amu), X, Y, Z (Angstrom)
    C   12.000000   0.000000   0.000000   0.000000
    H    1.007825   0.000000   0.000000   1.089000
    ...
 
-   *elevel  //Energy (eV) and degeneracy
+   <elevel>  //Energy (eV) and degeneracy
    0.0 1
    1.5 3
 
@@ -575,15 +575,15 @@ Native format file (when outotm = 1):
 
 .. code-block:: text
 
-   *E  //Electronic energy (a.u.)
+   <E>  //Electronic energy (a.u.)
    -76.384729
 
-   *wavenum  //Wavenumbers (cm^-1)
+   <frequency>  //Wavenumbers (cm^-1)
    456.7
    789.0
    ...
 
-   *atoms  //Name, mass (amu), X, Y, Z (Angstrom)
+   <system>  //Name, mass (amu), X, Y, Z (Angstrom)
    C   12.000000   0.000000   0.000000   0.000000
    H    1.007825   0.000000   0.000000   1.089000
    ...

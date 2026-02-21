@@ -336,7 +336,10 @@ auto main(int argc, char* argv[]) -> int
         if (sys.inputfile.find(".otm") != std::string::npos)
         {
             if (sys.prtlevel >= 2)
+            {
                 std::cout << "\n Processing data from " << sys.inputfile << "\n";
+                std::cout << " Atomic masses used: Read from OTM file\n";
+            }
             LoadFile::loadotm(sys);
         }
         else
@@ -467,7 +470,8 @@ auto main(int argc, char* argv[]) -> int
                     throw std::runtime_error("Unknown file format");
                 }
             }
-            if (sys.Eexter != 0.0)
+        }
+        if (sys.Eexter != 0.0)
             {
                 sys.E = sys.Eexter;
                 if (sys.prtlevel >= 1)
@@ -833,7 +837,6 @@ auto main(int argc, char* argv[]) -> int
                           << " " << uhg_filename << " contains thermal correction to U, H and G, and sum of electronic energy and corresponding corrections\n"
                           << " " << scq_filename << " contains S, CV, CP, q(V=0) and q(bot)\n";
             }
-        }
 
         if (narg == 0)
         {

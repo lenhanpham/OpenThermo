@@ -359,10 +359,10 @@ namespace HelpUtils
         std::cout << "1. OpenThermo Format (.otm):\n";
         std::cout << "   Native format containing all necessary molecular data\n";
         std::cout << "   Sections:\n";
-        std::cout << "     *E          Electronic energy in a.u.\n";
-        std::cout << "     *wavenum    Vibrational frequencies in cm^-1\n";
-        std::cout << "     *atoms      Atomic coordinates and masses\n";
-        std::cout << "     *elevel     Electronic energy levels and degeneracies\n\n";
+        std::cout << "     <E>          Electronic energy in a.u.\n";
+        std::cout << "     <frequency>  Vibrational frequencies in cm^-1\n";
+        std::cout << "     <system>     Atomic coordinates and masses\n";
+        std::cout << "     <elevel>     Electronic energy levels and degeneracies\n\n";
         std::cout << "2. Quantum Chemistry Output Files:\n";
         std::cout << "   Gaussian (.log, .out):\n";
         std::cout << "     - Frequency analysis output\n";

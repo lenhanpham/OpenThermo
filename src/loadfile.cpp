@@ -179,63 +179,69 @@ double LoadFile::readaftersign_from_line(const std::string& line, const std::str
 void LoadFile::elename2idx(const std::string& element, int& index)
 {
     // Convert element name to atomic number using the ind2name array from chemsys.h
+    // Trim trailing whitespace from input for robust comparison
+    // (ind2name is inconsistent: "Y ", "I ", "W ", "U " have trailing spaces,
+    //  while "H", "C", "N", "O", etc. do not)
     std::string elem = element;
-    // Pad single character elements with space for comparison
-    if (elem.length() == 1)
-        elem += " ";
+    elem.erase(elem.find_last_not_of(" \t") + 1);
 
     for (int i = 1; i <= nelesupp; ++i)
     {
-        if (ind2name[i] == elem)
+        std::string name = ind2name[i];
+        name.erase(name.find_last_not_of(" \t") + 1);  // trim trailing spaces from ind2name entry
+        if (name == elem)
         {
             index = i;
             return;
         }
     }
 
+    // We just do not need these if and else if anymore 
+    // because everything is covered in the ind2name array.
     // If not found in standard list, try common variations
-    if (element == "H")
-        index = 1;
-    else if (element == "He")
-        index = 2;
-    else if (element == "Li")
-        index = 3;
-    else if (element == "Be")
-        index = 4;
-    else if (element == "B")
-        index = 5;
-    else if (element == "C")
-        index = 6;
-    else if (element == "N")
-        index = 7;
-    else if (element == "O")
-        index = 8;
-    else if (element == "F")
-        index = 9;
-    else if (element == "Ne")
-        index = 10;
-    else if (element == "Na")
-        index = 11;
-    else if (element == "Mg")
-        index = 12;
-    else if (element == "Al")
-        index = 13;
-    else if (element == "Si")
-        index = 14;
-    else if (element == "P")
-        index = 15;
-    else if (element == "S")
-        index = 16;
-    else if (element == "Cl")
-        index = 17;
-    else if (element == "Ar")
-        index = 18;
-    else if (element == "K")
-        index = 19;
-    else if (element == "Ca")
-        index = 20;
-    else
-        index = 0;  // Unknown element
+    //if (element == "H")
+    //    index = 1;
+    //else if (element == "He")
+    //    index = 2;
+    //else if (element == "Li")
+    //    index = 3;
+    //else if (element == "Be")
+    //    index = 4;
+    //else if (element == "B")
+    //    index = 5;
+    //else if (element == "C")
+    //    index = 6;
+    //else if (element == "N")
+    //    index = 7;
+    //else if (element == "O")
+    //    index = 8;
+    //else if (element == "F")
+    //    index = 9;
+    //else if (element == "Ne")
+    //    index = 10;
+    //else if (element == "Na")
+    //    index = 11;
+    //else if (element == "Mg")
+    //    index = 12;
+    //else if (element == "Al")
+    //    index = 13;
+    //else if (element == "Si")
+    //    index = 14;
+    //else if (element == "P")
+    //    index = 15;
+    //else if (element == "S")
+    //    index = 16;
+    //else if (element == "Cl")
+    //    index = 17;
+    //else if (element == "Ar")
+    //    index = 18;
+    //else if (element == "K")
+    //    index = 19;
+    //else if (element == "Ca")
+    //    index = 20;
+    //else
+    //    index = 0;  // Unknown element
+    index = 0;  // Default to 0 for unknown elements
 }
 
 void LoadFile::setatmmass(SystemData& sys)
@@ -267,8 +273,8 @@ void LoadFile::setatmmass(SystemData& sys)
  * molecular data
  *
  * @throws std::runtime_error if file cannot be opened or parsed
- * @note .otm files contain: *E
- * (energy), *wavenum (frequencies), *atoms (geometry)
+ * @note .otm files contain: <E>
+ * (energy), <frequency> (frequencies), <system> (geometry)
  * @note This is OpenThermo's native format for storing processed
  * molecular data
  */
@@ -287,13 +293,13 @@ void LoadFile::loadotm(SystemData& sys)
     std::string line, strtmp;
 
     // Load energy
-    if (loclabel(file, "*E"))
+    if (loclabel(file, "<E>", 1))
     {
         file >> sys.E;
     }
 
     // Load wave numbers
-    if (loclabel(file, "*wavenum"))
+    if (loclabel(file, "<frequency>", 1))
     {
         sys.nfreq = 0;
         double         tmpval;
@@ -318,13 +324,13 @@ void LoadFile::loadotm(SystemData& sys)
     // Load atoms
     file.clear();
     file.seekg(0);
-    if (loclabel(file, "*atoms"))
+    if (loclabel(file, "<system>", 1))
     {
         sys.ncenter = 0;
         std::string    loadArgs;
         std::streampos pos = file.tellg();
 
-        while (std::getline(file, loadArgs) && !loadArgs.empty() && loadArgs.find('*') == std::string::npos)
+        while (std::getline(file, loadArgs) && !loadArgs.empty() && loadArgs.find('<') == std::string::npos)
         {
             if (!loadArgs.empty() && loadArgs != " ")
                 sys.ncenter++;
@@ -344,13 +350,13 @@ void LoadFile::loadotm(SystemData& sys)
     // Load energy levels
     file.clear();
     file.seekg(0);
-    if (loclabel(file, "*elevel"))
+    if (loclabel(file, "<elevel>", 1))
     {
         sys.nelevel = 0;
         std::string    loadArgs;
         std::streampos pos = file.tellg();
 
-        while (std::getline(file, loadArgs) && !loadArgs.empty() && loadArgs.find('*') == std::string::npos)
+        while (std::getline(file, loadArgs) && !loadArgs.empty() && loadArgs.find('<') == std::string::npos)
         {
             if (!loadArgs.empty() && loadArgs != " ")
                 sys.nelevel++;
@@ -936,7 +942,6 @@ void LoadFile::loadorca(SystemData& sys)
     rawfile.close();
     std::istringstream file(filecontents);
 
-    // Load energy
     // Load energy
     int ncount;
     if (!loclabelfinal(file, "FINAL SINGLE POINT ENERGY", ncount))

@@ -715,6 +715,87 @@
         "weighted_CP_J": 244.603,
         "conf_entropy_J": 2.265
       }
+    },
+    {
+      "id": "orca_triplet",
+      "description": "ORCA triplet-state molecule",
+      "input_file": "Orca-triplet.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C1",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -773.67526718,
+        "zpe_kJ": 654.097,
+        "zpe_kcal": 156.333,
+        "zpe_au": 0.249133,
+        "thermal_correction_U_kJ": 696.064,
+        "thermal_correction_U_au": 0.265117,
+        "thermal_correction_H_kJ": 698.543072,
+        "thermal_correction_H_au": 0.266061,
+        "thermal_correction_G_kJ": 543.234123,
+        "thermal_correction_G_au": 0.206907,
+        "total_CV_J": 249.371,
+        "total_CP_J": 257.685,
+        "total_S_J": 520.909,
+        "E_plus_ZPE_au": -773.4261347,
+        "E_plus_U_au": -773.4101504,
+        "E_plus_H_au": -773.4092062,
+        "E_plus_G_au": -773.4683603
+      }
+    },
+    {
+      "id": "orca_triplet_otm",
+      "description": "ORCA triplet-state molecule (.otm)",
+      "input_file": "Orca-triplet.otm",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C1",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -773.67526718,
+        "zpe_kJ": 654.097,
+        "zpe_kcal": 156.333,
+        "zpe_au": 0.249133,
+        "thermal_correction_U_kJ": 696.064,
+        "thermal_correction_U_au": 0.265117,
+        "thermal_correction_H_kJ": 698.543072,
+        "thermal_correction_H_au": 0.266061,
+        "thermal_correction_G_kJ": 543.234123,
+        "thermal_correction_G_au": 0.206907,
+        "total_CV_J": 249.371,
+        "total_CP_J": 257.685,
+        "total_S_J": 520.909,
+        "E_plus_ZPE_au": -773.4261347,
+        "E_plus_U_au": -773.4101504,
+        "E_plus_H_au": -773.4092062,
+        "E_plus_G_au": -773.4683603
+      }
+    },
+    {
+      "id": "nwchem_nh2coh_otm",
+      "description": "NWChem NH2COH opt+freq (.otm)",
+      "input_file": "NWChem_NH2COH_optfreq.otm",
+      "extra_args": [],
+      "expected": {
+        "point_group": "Cs",
+        "rotational_symmetry_number": 1,
+        "electronic_energy_au": -169.8888416,
+        "zpe_kJ": 118.811,
+        "zpe_kcal": 28.397,
+        "zpe_au": 0.045253,
+        "thermal_correction_U_kJ": 129.331,
+        "thermal_correction_U_au": 0.049259,
+        "thermal_correction_H_kJ": 131.809736,
+        "thermal_correction_H_au": 0.050204,
+        "thermal_correction_G_kJ": 53.257114,
+        "thermal_correction_G_au": 0.020285,
+        "total_CV_J": 45.706,
+        "total_CP_J": 54.020,
+        "total_S_J": 263.467,
+        "E_plus_ZPE_au": -169.8435889,
+        "E_plus_U_au": -169.8395821,
+        "E_plus_H_au": -169.8386379,
+        "E_plus_G_au": -169.8685570
+      }
     }
   ]
 }

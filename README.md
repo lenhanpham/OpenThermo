@@ -86,7 +86,7 @@ src/
 
 ### Development Status
 
-- **Version**: 0.001.4
+- **Version**: 0.001.5
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
 - **Testing**: 27-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
@@ -1453,7 +1453,7 @@ OpenThermo is licensed under the **MIT License**.
 
 ---
 
-**OpenThermo v0.001.4** - High-performance molecular thermochemistry calculations
+**OpenThermo v0.001.5** - High-performance molecular thermochemistry calculations
 Developed by Le Nhan Pham | [GitHub](https://github.com/lenhanpham/OpenThermo)
 
 For more information, visit the project documentation or use `OpenThermo --help`

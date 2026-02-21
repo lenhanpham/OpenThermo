@@ -97,6 +97,16 @@ jobs:
             echo "llvm-objdump not available, skipping dependency check"
         fi
 
+        # Collect required MINGW DLLs (exclude Windows system DLLs)
+        echo "Collecting required DLLs..."
+        mkdir -p dist
+        cp build/OpenThermo.exe dist/
+        ldd build/OpenThermo.exe \
+          | grep -i '/mingw64/' \
+          | awk '{print $3}' \
+          | xargs -I{} cp {} dist/
+        echo "Contents of dist/:" && ls -lh dist/
+
         # Test executable
         echo "Testing executable..."
         ./build/OpenThermo.exe --help
@@ -109,11 +119,9 @@ jobs:
     - name: Prepare Release Assets
       shell: pwsh
       run: |
-        New-Item -Path "ReleaseAssets" -ItemType Directory -Force
-        Copy-Item -Path "build/OpenThermo.exe" -Destination "ReleaseAssets/OpenThermo.exe" -Force
-        Compress-Archive -Path "ReleaseAssets/OpenThermo.exe" -DestinationPath "OpenThermo-windows-x64.zip" -Force
-        Write-Host "Release assets:"
-        Get-ChildItem -Path "ReleaseAssets"
+        Compress-Archive -Path "dist/*" -DestinationPath "OpenThermo-windows-x64.zip" -Force
+        Write-Host "ZIP contents:"
+        Get-ChildItem -Path "dist"
         Write-Host "ZIP file:"
         Get-ChildItem -Path "OpenThermo-windows-x64.zip"
     - name: Create GitHub Release

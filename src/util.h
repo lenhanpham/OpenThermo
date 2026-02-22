@@ -37,7 +37,8 @@ namespace util
         Cp2k     = 5,
         Xtb      = 6,
         Vasp     = 7,
-        Otm      = 8
+        Otm      = 8,
+        QChem    = 9
     };
 
     /**

@@ -75,7 +75,7 @@ namespace HelpUtils
             << "  including Gibbs free energy, enthalpy, entropy, heat capacity, and vibrational corrections.\n\n";
         std::cout << "Input Files:\n";
         std::cout << "  input_file    Path to input file (.otm format or quantum chemistry output)\n";
-        std::cout << "                Supported formats: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP\n";
+        std::cout << "                Supported formats: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, Q-Chem\n";
         std::cout << "                If no file specified, program will prompt for input\n\n";
         std::cout << "Options:\n";
         std::cout << "  -E <value>           Electronic energy in a.u. (overrides file value)\n";
@@ -381,8 +381,9 @@ namespace HelpUtils
         std::cout << "     - Vibrational analysis output\n";
         std::cout << "     - Supports both molecular and periodic systems\n";  
         std::cout << "     - Both CONTCAR and OUTCAR are needed \n\n";        
-        //std::cout << "   xtb (g98.out):\n";
-        //std::cout << "     - xtb frequency analysis output in Gaussian format\n\n";
+        std::cout << "   Q-Chem (.out):\n";
+        std::cout << "     - Combined OPT+FREQ or frequency-only output\n";
+        std::cout << "     - Supports gas-phase and SMD solvation jobs\n\n";
         std::cout << "3. List Files (text file):\n";
         std::cout << "   Text file containing paths to multiple input files (one per line)\n";
         std::cout << "   Useful for batch processing of multiple molecules\n\n";

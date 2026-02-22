@@ -6,7 +6,7 @@
  *
  * This header file declares functions for reading and parsing various
  * computational chemistry output file formats including Gaussian, ORCA,
- * NWChem, GAMESS, CP2K, and xTB outputs, as well as OpenThermo's native
+ * NWChem, GAMESS, CP2K, Q-Chem, and xTB outputs, as well as OpenThermo's native
  * .otm format.
  */
 
@@ -22,7 +22,7 @@
  * @brief Class for loading quantum chemistry output files
  *
  * This class provides functionality to read and parse various quantum chemistry
- * output file formats including Gaussian, ORCA, CP2K, GAMESS-US, NWChem, and XTB.
+ * output file formats including Gaussian, ORCA, CP2K, GAMESS-US, NWChem, Q-Chem, and XTB.
  * All data is loaded into a SystemData structure to maintain modularity.
  */
 class LoadFile
@@ -55,6 +55,10 @@ private:
     static void loadVASPEnergy(std::istream& file, SystemData& sys);
     static void loadVASPfreq(std::istream& file, SystemData& sys);
 
+    // Q-Chem loading functions
+    static void loadQChemgeom(std::istream& file, SystemData& sys);
+    static void loadQChemfreq(std::istream& file, SystemData& sys);
+
 
 public:
     // Main loading functions
@@ -66,6 +70,7 @@ public:
     static void loadnw(SystemData& sys);
     static void loadxtb(SystemData& sys);
     static void loadvasp(SystemData& sys);
+    static void loadqchem(SystemData& sys);
 };
 
 

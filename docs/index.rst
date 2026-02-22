@@ -6,7 +6,7 @@
 OpenThermo User Manual
 =======================
 
-**OpenThermo** is a comprehensive C++17 program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
+**OpenThermo** is a comprehensive C++17 program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP, Q-Chem). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
 
 .. image:: _static/ot-logo.svg
     :alt: OpenThermo Logo
@@ -18,7 +18,7 @@ Overview
 
 OpenThermo provides a comprehensive suite of tools for molecular thermochemistry calculations:
 
-* **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP
+* **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, Q-Chem
 * **Advanced Thermochemistry**: Standard RRHO and quasi-RRHO treatments for low-frequency modes
 * **Statistical Mechanics**: Rigorous implementation of partition functions and thermodynamic properties
 * **Symmetry Analysis**: Automatic point group detection and rotational symmetry number calculation

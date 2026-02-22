@@ -449,6 +449,13 @@ Native format containing all molecular data:
 - **Features**: Supports molecular and periodic systems
 - **Note**: For condensed phase systems (ipmode=1): contributions of translation and rotation are ignored
 
+**Q-Chem (.out)**
+
+- **Requirements**: Frequency calculation output (standalone FREQ job or combined OPT+FREQ two-job file)
+- **Extracts**: Geometry from last ``Standard Nuclear Orientation`` block (converged structure), SCF energy, spin multiplicity, atomic masses
+- **Features**: Supports gas-phase and implicit solvent (SMD/PCM) jobs; negative (imaginary) frequencies handled correctly
+- **Note**: Energy used is ``SCF   energy =`` (G_ENP), not ``Total energy`` which includes non-electrostatic solvation corrections
+
 **3. List Files (.txt)**
 
 Batch processing of multiple files:

@@ -1411,6 +1411,11 @@ namespace util
             file.close();
             return QuantumChemistryProgram::Vasp;  // VASP
         }
+        if (loclabel(file, "Welcome to Q-Chem", nskip, true, false, 200))
+        {
+            file.close();
+            return QuantumChemistryProgram::QChem;  // Q-Chem
+        }
         file.close();
         return QuantumChemistryProgram::Unknown;  // Undetermined
     }

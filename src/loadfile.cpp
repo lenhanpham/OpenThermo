@@ -6,7 +6,7 @@
  *
  * This file contains the implementation of functions for reading and parsing
  * various computational chemistry output file formats including Gaussian,
- * ORCA, NWChem, GAMESS, CP2K, and xTB outputs, as well as OpenThermo's native
+ * ORCA, NWChem, GAMESS, CP2K, Q-Chem, and xTB outputs, as well as OpenThermo's native
  * .otm format.
  */
 
@@ -2470,4 +2470,326 @@ void LoadFile::loadVASPfreq(std::istream& file, SystemData& sys)
     {
         std::cerr << "No vibrational frequencies found in VASP file." << '\n';
     }
+}
+
+// =============================================================================
+// Q-Chem
+// =============================================================================
+
+/**
+ * @brief Load the final geometry from a Q-Chem output file.
+ *
+ * Locates the last "Standard Nuclear Orientation (Angstroms)" block
+ * (which corresponds to the frequency job or the last optimisation step)
+ * and reads element symbols plus Cartesian coordinates.
+ *
+ * @param file In-memory stream of the Q-Chem output.
+ * @param sys  SystemData structure to populate.
+ */
+void LoadFile::loadQChemgeom(std::istream& file, SystemData& sys)
+{
+    // Find the LAST occurrence of the geometry header so we always
+    // pick up the converged (frequency-job) geometry.
+    int ncount = 0;
+    if (!loclabelfinal(file, "Standard Nuclear Orientation (Angstroms)", ncount))
+    {
+        throw std::runtime_error(
+            "Q-Chem: 'Standard Nuclear Orientation (Angstroms)' not found");
+    }
+
+    // loclabelfinal leaves the stream at the start of the matching line.
+    // The block looks like:
+    //   "             Standard Nuclear Orientation (Angstroms)"  ← label line
+    //   "    I     Atom           X                Y                Z "
+    //   " ----------------------------------------------------------------"
+    //   "    1      O   ..."   ← first atom
+    // So we skip 3 lines to land on the first atom row.
+    skiplines(file, 3);
+
+    // --- count atoms ---
+    sys.ncenter        = 0;
+    std::streampos pos = file.tellg();
+    std::string    line;
+    while (std::getline(file, line))
+    {
+        if (line.find("----") != std::string::npos)
+            break;
+        // Expect columns: index  symbol  x  y  z
+        int         idx;
+        std::string sym;
+        double      x, y, z;
+        std::istringstream iss(line);
+        if (iss >> idx >> sym >> x >> y >> z)
+            sys.ncenter++;
+    }
+
+    if (sys.ncenter == 0)
+        throw std::runtime_error("Q-Chem: No atoms found in geometry section");
+
+    sys.a.resize(sys.ncenter);
+
+    // --- read coordinates ---
+    file.clear();
+    file.seekg(pos);
+    for (int i = 0; i < sys.ncenter; ++i)
+    {
+        if (!std::getline(file, line))
+            throw std::runtime_error(
+                "Q-Chem: Unexpected end of file reading atom " + std::to_string(i + 1));
+
+        int         idx;
+        std::string sym;
+        double      x, y, z;
+        std::istringstream iss(line);
+        if (!(iss >> idx >> sym >> x >> y >> z))
+            throw std::runtime_error(
+                "Q-Chem: Failed to parse atom line: " + line);
+
+        sys.a[i].x = x;
+        sys.a[i].y = y;
+        sys.a[i].z = z;
+        elename2idx(sym, sys.a[i].index);
+    }
+}
+
+/**
+ * @brief Load vibrational frequencies from a Q-Chem output file.
+ *
+ * Finds the last VIBRATIONAL ANALYSIS block and collects all values
+ * from "Frequency:" lines (up to three per line).  Negative values
+ * (imaginary modes) are stored as-is; OpenThermo handles them downstream.
+ *
+ * @param file In-memory stream of the Q-Chem output.
+ * @param sys  SystemData structure to populate.
+ */
+void LoadFile::loadQChemfreq(std::istream& file, SystemData& sys)
+{
+    int ncount = 0;
+    if (!loclabelfinal(file, "VIBRATIONAL ANALYSIS", ncount))
+    {
+        throw std::runtime_error(
+            "Q-Chem: VIBRATIONAL ANALYSIS section not found — "
+            "make sure the file contains a frequency job");
+    }
+
+    // Collect all frequency values from "Frequency:" lines that follow
+    std::vector<double> allFreqs;
+    std::string         line;
+    while (std::getline(file, line))
+    {
+        // Each "Frequency:" line may hold up to 3 values (one per mode column)
+        size_t pos = line.find(" Frequency:");
+        if (pos == std::string::npos)
+            continue;
+
+        std::string        freqPart = line.substr(pos + 11);  // skip " Frequency:"
+        std::istringstream iss(freqPart);
+        double             val;
+        int                cnt = 0;
+        while (iss >> val && cnt < 3)
+        {
+            allFreqs.push_back(val);
+            ++cnt;
+        }
+    }
+
+    if (allFreqs.empty())
+    {
+        throw std::runtime_error(
+            "Q-Chem: No vibrational frequencies found in VIBRATIONAL ANALYSIS block");
+    }
+
+    sys.nfreq = static_cast<int>(allFreqs.size());
+    sys.wavenum.resize(sys.nfreq);
+    sys.freq.resize(sys.nfreq);
+
+    for (int i = 0; i < sys.nfreq; ++i)
+    {
+        sys.wavenum[i] = allFreqs[i];
+        sys.freq[i]    = allFreqs[i] * wave2freq;  // cm⁻¹ → Hz
+    }
+}
+
+/**
+ * @brief Load molecular data from a Q-Chem output file.
+ *
+ * Reads electronic energy, spin multiplicity, geometry, atomic masses,
+ * and vibrational frequencies from a Q-Chem output file that contains
+ * (at minimum) a frequency job.  Combined OPT+FREQ two-job files are
+ * also fully supported; the converged geometry and frequency-job energy
+ * are always used.
+ *
+ * Energy stored: last "SCF   energy =" value (G_ENP, i.e. the SCF energy
+ * including the electrostatic PCM solvation correction).  The "Total energy"
+ * line is intentionally ignored because it includes the non-electrostatic CDS
+ * solvation free-energy correction, which is not a pure electronic energy.
+ *
+ * @param sys SystemData structure to populate.
+ * @throws std::runtime_error if the file cannot be opened or required
+ *         sections are missing.
+ */
+void LoadFile::loadqchem(SystemData& sys)
+{
+    // ── Read entire file into memory for fast multi-pass seeking ──────────
+    std::ifstream rawfile(sys.inputfile, std::ios::binary);
+    if (!rawfile.is_open())
+        throw std::runtime_error("Cannot open input file: " + sys.inputfile);
+
+    std::string filecontents(
+        (std::istreambuf_iterator<char>(rawfile)),
+        std::istreambuf_iterator<char>());
+    rawfile.close();
+    std::istringstream file(filecontents);
+
+    // ── Spin multiplicity ─────────────────────────────────────────────────
+    // The "$molecule" section in the User input block contains the charge and
+    // multiplicity on its second data line, e.g. "0 1" or "0 3".
+    // There may be two occurrences (OPT job + FREQ job); we use the first.
+    file.clear();
+    file.seekg(0);
+    sys.spinmult = 1;  // safe default
+    if (loclabel(file, "User input:", 0))
+    {
+        // Advance into the user-input block and look for "$molecule"
+        if (loclabel(file, "$molecule", 0))
+        {
+            std::string line;
+            std::getline(file, line);  // consume the "$molecule" line itself
+            // Next non-blank line is either "charge mult" or "read"
+            while (std::getline(file, line))
+            {
+                // Trim leading whitespace
+                size_t first = line.find_first_not_of(" \t\r\n");
+                if (first == std::string::npos)
+                    continue;
+                std::string trimmed = line.substr(first);
+
+                // Skip if this is the "read" keyword (second job)
+                if (trimmed.substr(0, 4) == "read")
+                    break;
+
+                std::istringstream iss(trimmed);
+                int                charge, mult;
+                if (iss >> charge >> mult)
+                {
+                    sys.spinmult = mult;
+                    break;
+                }
+                break;  // unexpected format — keep default
+            }
+        }
+    }
+    else
+    {
+        std::cout << "Note: Q-Chem: Could not locate User input block; "
+                     "defaulting spin multiplicity to 1\n";
+    }
+
+    // ── Electronic energy ─────────────────────────────────────────────────
+    // Use the last "SCF   energy =" line (the frequency job's SCF energy).
+    // This equals G_ENP = E_SCF + G_PCM (electrostatic solvation only),
+    // which is the correct electronic energy to pass to OpenThermo.
+    file.clear();
+    file.seekg(0);
+    int ncount = 0;
+    if (!loclabelfinal(file, "SCF   energy =", ncount))
+    {
+        // Fallback: try without solvation ("Total energy" not available)
+        file.clear();
+        file.seekg(0);
+        if (!loclabelfinal(file, "SCF   energy =", ncount))
+        {
+            if (sys.Eexter == 0.0)
+            {
+                std::cout << "Warning: Q-Chem: 'SCF   energy =' not found; "
+                             "electronic energy set to zero.  "
+                             "You can specify it via 'E' in settings.ini\n";
+                std::cin.get();
+            }
+            sys.E = 0.0;
+        }
+    }
+    if (ncount > 0)
+    {
+        std::string line;
+        std::getline(file, line);
+        size_t pos = line.find("SCF   energy =");
+        if (pos != std::string::npos)
+        {
+            std::istringstream iss(line.substr(pos + 14));
+            if (!(iss >> sys.E))
+                throw std::runtime_error(
+                    "Q-Chem: Failed to parse SCF energy from: " + line);
+        }
+    }
+
+    // ── Geometry ──────────────────────────────────────────────────────────
+    loadQChemgeom(file, sys);
+
+    // ── Atomic masses ─────────────────────────────────────────────────────
+    if (sys.massmod == 1 || sys.massmod == 2)
+    {
+        setatmmass(sys);
+    }
+    else  // massmod == 3 : read masses from the Q-Chem thermodynamics block
+    {
+        // Lines have the form:
+        //   "   Atom    N Element SYM  Has Mass   VALUE"
+        // They appear inside "STANDARD THERMODYNAMIC QUANTITIES" (last occurrence).
+        file.clear();
+        file.seekg(0);
+        bool massSectionFound = false;
+        {
+            int nc2 = 0;
+            if (loclabelfinal(file, "STANDARD THERMODYNAMIC QUANTITIES", nc2))
+                massSectionFound = true;
+        }
+
+        if (massSectionFound)
+        {
+            int              found = 0;
+            std::string      line;
+            while (found < sys.ncenter && std::getline(file, line))
+            {
+                size_t pos = line.find("Has Mass");
+                if (pos == std::string::npos)
+                    continue;
+
+                // Parse:  "   Atom    N Element SYM  Has Mass   VALUE"
+                std::istringstream iss(line);
+                std::string        tok;
+                int                atomIdx;
+                std::string        elemWord, sym, hasTok, massTok;
+                double             massVal;
+
+                // "Atom"  N  "Element"  SYM  "Has"  "Mass"  VALUE
+                if (!(iss >> tok >> atomIdx >> elemWord >> sym >> hasTok >> massTok >> massVal))
+                    continue;
+
+                int i = atomIdx - 1;  // 1-based → 0-based
+                if (i >= 0 && i < sys.ncenter)
+                {
+                    sys.a[i].mass = massVal;
+                    ++found;
+                }
+            }
+
+            if (found != sys.ncenter)
+            {
+                std::cerr << "Warning: Q-Chem: Found " << found
+                          << " mass entries, expected " << sys.ncenter
+                          << ". Falling back to default masses.\n";
+                setatmmass(sys);
+            }
+        }
+        else
+        {
+            std::cerr << "Warning: Q-Chem: STANDARD THERMODYNAMIC QUANTITIES "
+                         "block not found; using default atomic masses.\n";
+            setatmmass(sys);
+        }
+    }
+
+    // ── Vibrational frequencies ───────────────────────────────────────────
+    loadQChemfreq(file, sys);
 }

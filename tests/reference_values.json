@@ -796,6 +796,60 @@
         "E_plus_H_au": -169.8386379,
         "E_plus_G_au": -169.8685570
       }
+    },
+    {
+      "id": "qchem_water_optfreq",
+      "description": "Q-Chem H2O opt+freq (SMD water)",
+      "input_file": "Qchem-OPT_water.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C2v",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -76.40585276,
+        "zpe_kJ": 53.960,
+        "zpe_kcal": 12.897,
+        "zpe_au": 0.020552,
+        "thermal_correction_U_kJ": 61.404,
+        "thermal_correction_U_au": 0.023388,
+        "thermal_correction_H_kJ": 63.883224,
+        "thermal_correction_H_au": 0.024332,
+        "thermal_correction_G_kJ": 7.555346,
+        "thermal_correction_G_au": 0.002878,
+        "total_CV_J": 25.144,
+        "total_CP_J": 33.458,
+        "total_S_J": 188.925,
+        "E_plus_ZPE_au": -76.3853006,
+        "E_plus_U_au": -76.3824651,
+        "E_plus_H_au": -76.3815209,
+        "E_plus_G_au": -76.4029751
+      }
+    },
+    {
+      "id": "qchem_c2h4_freq",
+      "description": "Q-Chem C2H4 triplet freq (SMD hexane)",
+      "input_file": "QChem-C2H4.out",
+      "extra_args": [],
+      "expected": {
+        "point_group": "C2h",
+        "rotational_symmetry_number": 2,
+        "electronic_energy_au": -78.40700812,
+        "zpe_kJ": 115.525,
+        "zpe_kcal": 27.611,
+        "zpe_au": 0.044001,
+        "thermal_correction_U_kJ": 124.642,
+        "thermal_correction_U_au": 0.047474,
+        "thermal_correction_H_kJ": 127.120834,
+        "thermal_correction_H_au": 0.048418,
+        "thermal_correction_G_kJ": 54.782265,
+        "thermal_correction_G_au": 0.020865,
+        "total_CV_J": 37.949,
+        "total_CP_J": 46.264,
+        "total_S_J": 242.625,
+        "E_plus_ZPE_au": -78.3630069,
+        "E_plus_U_au": -78.3595345,
+        "E_plus_H_au": -78.3585904,
+        "E_plus_G_au": -78.3861427
+      }
     }
   ]
 }

@@ -47,7 +47,7 @@ Key Components
 
 **File Loading (loadfile.cpp/h)**
    - Parses quantum chemistry output files
-   - Supports multiple formats (Gaussian, ORCA, GAMESS, NWChem, CP2K, VASP)
+   - Supports multiple formats (Gaussian, ORCA, GAMESS, NWChem, CP2K, VASP, Q-Chem)
    - Extracts geometry, frequencies, and electronic energies
 
 **Thermochemistry Calculations (calc.cpp/h)**

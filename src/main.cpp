@@ -295,7 +295,7 @@ auto main(int argc, char* argv[]) -> int
         if (sys.inputfile.empty())
         {
             std::cout << "\nInput file path, e.g. D:\\your_dir\\your_calc.log\n"
-                      << " OpenThermo supports Gaussian, ORCA, GAMESS-US, NWChem, CP2K, and VASP "
+                      << " OpenThermo supports Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, and Q-Chem "
                          "\n";
             while (true)
             {
@@ -401,6 +401,11 @@ auto main(int argc, char* argv[]) -> int
                     if (sys.prtlevel >= 2) std::cout << "Processing VASP output file...\n";
                     LoadFile::loadvasp(sys);
                 }
+                else if (qcprog == util::QuantumChemistryProgram::QChem)
+                {
+                    if (sys.prtlevel >= 2) std::cout << "Processing Q-Chem output file...\n";
+                    LoadFile::loadqchem(sys);
+                }
                 util::modmass(sys);
                 sys.nelevel = 1;
                 sys.elevel  = {0.0};
@@ -462,7 +467,7 @@ auto main(int argc, char* argv[]) -> int
                 else
                 {
                     std::cerr << "Error: Unable to identify the quantum chemical program that generated this file.\n";
-                    std::cerr << "Supported programs: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, xTB, and "
+                    std::cerr << "Supported programs: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, Q-Chem, xTB, and "
                                  "OpenThermo (.otm)\n";
                     std::cerr << "Maybe an old version or newly updated version of supported quantum chemical programs genereted this file \n";
                     std::cerr << "For batch processing, use a list file with .list or .txt extension containing file "

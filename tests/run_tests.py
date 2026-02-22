@@ -304,6 +304,18 @@ DEFAULT_TESTS = [
         "input_file": "NWChem_NH2COH_optfreq.otm",
         "extra_args": [],
     },
+    {
+        "id": "qchem_water_optfreq",
+        "description": "Q-Chem H2O opt+freq (SMD water)",
+        "input_file": "Qchem-OPT_water.out",
+        "extra_args": [],
+    },
+    {
+        "id": "qchem_c2h4_freq",
+        "description": "Q-Chem C2H4 triplet freq (SMD hexane)",
+        "input_file": "QChem-C2H4.out",
+        "extra_args": [],
+    },
 ]
 
 

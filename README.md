@@ -17,7 +17,7 @@
   </a>
 </p>
 
-A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
+A comprehensive C++ program for calculating molecular thermochemistry properties from quantum chemistry output files (Gaussian, Orca, GAMESS, NWCHEM, CP2K, VASP, Q-Chem). OpenThermo implements state-of-the-art methods for computing thermodynamic quantities including Gibbs free energy, enthalpy, entropy, and heat capacities using statistical mechanics.
 
 Online Document: [https://lenhanpham.github.io/OpenThermo](https://lenhanpham.github.io/OpenThermo) 
 
@@ -86,7 +86,7 @@ src/
 
 ### Development Status
 
-- **Version**: 0.001.5
+- **Version**: 0.001.6
 - **Language**: C++17 with clang++ compiler
 - **Build System**: GNU Make with CMake support
 - **Testing**: 27-test regression suite with CI on Linux, macOS, and Windows (+ AddressSanitizer, ThreadSanitizer)
@@ -96,7 +96,7 @@ src/
 
 ### Core Functionality
 
-- **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP
+- **Multi-format Support**: Gaussian, ORCA, GAMESS-US, NWChem, CP2K, VASP, Q-Chem (experimental)
 - **Advanced Thermochemistry**: Standard RRHO and quasi-RRHO treatments for low-frequency modes
 - **Statistical Mechanics**: Rigorous implementation of partition functions and thermodynamic properties
 - **Symmetry Analysis**: Automatic point group detection and rotational symmetry number calculation
@@ -734,6 +734,12 @@ H    1.007825   0.000000   0.000000   1.089000
 - **Requirements**: Vibrational analysis output in OUTCAR, sysmtem information in CONTCAR
 - **Features**: Supports molecular and periodic systems
 - **Note**: For condensed phase systems (ipmode=1): contributions of translation and rotation are ignored
+
+##### Q-Chem (.out)
+
+- **Requirements**: Frequency calculation output (standalone FREQ job or combined OPT+FREQ two-job file)
+- **Extracts**: Geometry from last `Standard Nuclear Orientation` block (converged structure), SCF energy (`SCF   energy =`), spin multiplicity from the `$molecule` input section, atomic masses from the `STANDARD THERMODYNAMIC QUANTITIES` block
+
 
 #### 3. List Files (.txt)
 
@@ -1453,7 +1459,7 @@ OpenThermo is licensed under the **MIT License**.
 
 ---
 
-**OpenThermo v0.001.5** - High-performance molecular thermochemistry calculations
+**OpenThermo v0.001.6** - High-performance molecular thermochemistry calculations
 Developed by Le Nhan Pham | [GitHub](https://github.com/lenhanpham/OpenThermo)
 
 For more information, visit the project documentation or use `OpenThermo --help`

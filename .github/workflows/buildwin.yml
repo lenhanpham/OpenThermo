@@ -101,10 +101,13 @@ jobs:
         echo "Collecting required DLLs..."
         mkdir -p dist
         cp build/OpenThermo.exe dist/
+        cp resources/QUICK_START.txt dist/
+        cp resources/add_to_path.bat dist/
         ldd build/OpenThermo.exe \
           | grep -i '/mingw64/' \
           | awk '{print $3}' \
           | xargs -I{} cp {} dist/
+        rm -f dist/libgcc_s_seh-1.dll dist/libwinpthread-1.dll
         echo "Contents of dist/:" && ls -lh dist/
 
         # Test executable

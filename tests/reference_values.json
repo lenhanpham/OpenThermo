@@ -45,7 +45,7 @@
       "input_file": "gaussian.log",
       "extra_args": [],
       "expected": {
-        "point_group": "C1",
+        "point_group": "Cs",
         "rotational_symmetry_number": 1,
         "electronic_energy_au": -690.567357,
         "zpe_kJ": 735.811,
@@ -99,7 +99,7 @@
       "input_file": "ORCA-optFreq.log",
       "extra_args": [],
       "expected": {
-        "point_group": "C1",
+        "point_group": "Cs",
         "rotational_symmetry_number": 1,
         "electronic_energy_au": -1594.34467012,
         "zpe_kJ": 286.979,
@@ -789,12 +789,12 @@
         "thermal_correction_G_kJ": 53.257114,
         "thermal_correction_G_au": 0.020285,
         "total_CV_J": 45.706,
-        "total_CP_J": 54.020,
+        "total_CP_J": 54.02,
         "total_S_J": 263.467,
         "E_plus_ZPE_au": -169.8435889,
         "E_plus_U_au": -169.8395821,
         "E_plus_H_au": -169.8386379,
-        "E_plus_G_au": -169.8685570
+        "E_plus_G_au": -169.868557
       }
     },
     {
@@ -806,7 +806,7 @@
         "point_group": "C2v",
         "rotational_symmetry_number": 2,
         "electronic_energy_au": -76.40585276,
-        "zpe_kJ": 53.960,
+        "zpe_kJ": 53.96,
         "zpe_kcal": 12.897,
         "zpe_au": 0.020552,
         "thermal_correction_U_kJ": 61.404,

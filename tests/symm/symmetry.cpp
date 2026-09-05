@@ -27,7 +27,7 @@
 namespace symmetry {
 
 // Forward declarations
-auto initialize_nsgb() -> std::array<std::array<int, 2>, 58>;
+auto initialize_nsgb() -> std::array<std::array<int, 2>, 57>;
 auto initialize_nsymop() -> std::array<std::array<std::array<int, 55>, 4>, 14>;
 
 // Data common block equivalent
@@ -185,11 +185,11 @@ auto issubgroup(const std::string& pg1, const std::string& pg2) -> bool {
     int npg;
 
     // Find pg2 in pgsymb array
-    for (npg = 0; npg < SymmetryData::max_pgs; npg++) {
+    for (npg = 0; npg < 57; npg++) {
         if (trim(pg2) == trim(SymmetryData::pgsymb[npg])) break;
     }
 
-    if (npg >= SymmetryData::max_pgs) return false; // pg2 not found
+    if (npg >= 57) return false; // pg2 not found
 
     // Check if pg1 is in the subgroup list for pg2
     for (int i = SymmetryData::nsgb[npg][0]; i < SymmetryData::nsgb[npg][0] + SymmetryData::nsgb[npg][1]; i++) {
@@ -241,61 +241,14 @@ void symm_check(int natoms, double delta, const std::vector<int>& nat,
     delta3 = local_delta3;
 }
 
-// Capacity helpers for dynamically growing symmetry tables.
-//
-// The original implementation was written with fixed dimensions (150 operations,
-// 250 permutations). High-symmetry molecules (Ih/Oh/Td/Dnh/Dnd, fullerenes)
-// legitimately approach those limits, and distorted inputs can transiently
-// exceed them while candidate axes are enumerated. Growing the tables keeps
-// detection alive; a generous hard ceiling preserves a catchable failure
-// mode instead of an out-of-bounds abort.
-static const int kMaxSymOps  = 4096;  // hard ceiling for nsym/symn entries
-static const int kMaxSymPerm = 4096;  // hard ceiling for nper columns
-
-// Ensure symn (3 x N) and nsym (N x 5) hold at least `need` entries.
-static void ensure_sym_capacity(std::vector<std::vector<double>>& symn,
-                                std::vector<std::vector<int>>&    nsym,
-                                int                               need)
-{
-    if (need <= 0) return;
-    if (need > kMaxSymOps) {
-        throw std::runtime_error(
-            "ERROR: Too many symmetry operations (exceeds capacity). Try a different tolerance.");
-    }
-    while (static_cast<int>(nsym.size()) < need) {
-        nsym.emplace_back(5, 0);
-        for (int k = 0; k < 3; ++k) symn[k].push_back(0.0);
-    }
-}
-
-// Ensure nper (natoms x P) holds at least `need` permutation columns.
-static void ensure_nper_capacity(std::vector<std::vector<int>>& nper, int natoms, int need)
-{
-    if (need <= 0) return;
-    if (need > kMaxSymPerm) {
-        throw std::runtime_error(
-            "ERROR: Too many symmetry permutations (exceeds capacity). Try a different tolerance.");
-    }
-    if (nper.empty()) return;
-    if (static_cast<int>(nper[0].size()) >= need) return;
-    int grown = static_cast<int>(nper[0].size()) * 2;
-    if (grown < need) grown = need;
-    for (int j = 0; j < natoms; ++j) nper[j].resize(grown, 0);
-}
-
 // Implementation of add_perm function
 void add_perm(int natoms, const std::vector<int>& ntrans, int& nprm,
               std::vector<std::vector<int>>& nper) {
-    // ntrans holds 0-based atom indices (see symm_check); the permutation
-    // table is 1-based throughout (columns 0/1 store i+1, symclass compares
-    // against 1-based labels). Convert once so every column is consistent;
-    // mixing bases lets a class collect natoms+1 distinct values and
-    // overflow the equivalence-class table in symclass.
     // Check if this permutation already exists
     for (int i = 0; i < nprm; ++i) {
         bool match = true;
         for (int j = 0; j < natoms; ++j) {
-            if (ntrans[j] + 1 != nper[j][i]) {
+            if (ntrans[j] != nper[j][i]) {
                 match = false;
                 break;
             }
@@ -303,11 +256,13 @@ void add_perm(int natoms, const std::vector<int>& ntrans, int& nprm,
         if (match) return; // Already exists
     }
 
-    // Add new permutation (grow the table on demand instead of aborting)
-    ensure_nper_capacity(nper, natoms, nprm + 1);
+    // Add new permutation
+    if (nprm >= 250) {
+        throw std::runtime_error("ERROR: You need to enlarge the second dimension of 'nper' array and recompile the code");
+    }
 
     for (int j = 0; j < natoms; ++j) {
-        nper[j][nprm] = ntrans[j] + 1; // store 1-based for consistency
+        nper[j][nprm] = ntrans[j];
     }
     nprm++;
 }
@@ -545,7 +500,7 @@ auto symm_point_group(int ngp, int ni, int nsg, int ncr, int nsr, int np, int no
     std::array<int, SymmetryData::max_pgs> principal_axis{};
     for (int i = 0; i < SymmetryData::max_pgs; ++i) {
         const std::string& s = SymmetryData::sg[i];
-        if (s == "Civ" || s == "Dih" || s == "Kh ") {
+        if (s == "Civ" || s == "Dih") {
             principal_axis[i] = -1;
         } else if (s[0] == 'C' || s[0] == 'D') {
             try {
@@ -650,7 +605,7 @@ void PG_determ(int natoms, const std::vector<int>& nat,
     std::vector<std::vector<int>> nsym(nmax, std::vector<int>(5));
 
     if (natoms == 1) {
-        PGlab = "Kh"; // single atom: full rotation group K_h
+        PGlab = "C1";
         return;
     }
 
@@ -710,42 +665,17 @@ void SymmetryDetector::detectPG(int ishow) {
             nat[i] = this->a[i].index;
         }
 
-        // Pristine coordinates: PG_determ recenters its input in place, so
-        // every tolerance retry must start from the same original geometry.
-        const std::vector<std::vector<double>> tmpmat_pristine = tmpmat;
-
         // This tolerance is suitable for most systems
         PG_determ(this->ncenter, nat, tmpmat, 0.01, PGname3);
 
-        if (trim(PGname3).empty()) {
-            // No match at 0.01 (usually over-counted operations): retry finer
-            // first (0.001 rescues near-symmetric inputs), then the standard
-            // 0.005..0.10 sweep. NOTE: symm_point_group reports "no match"
-            // as a blank string, so the check must be trim-based.
-            for (int i = 0; i <= 20; i++) {
-                double delta_try = (i == 0) ? 0.001 : i * 0.005;
-                tmpmat           = tmpmat_pristine;
-                PG_determ(this->ncenter, nat, tmpmat, delta_try, PGname3);
-                if (!trim(PGname3).empty()) break;
-            }
-        }
-        if (trim(PGname3) == "C1") {
-            // A C1 verdict (at 0.01 or after the sweep above) can be a
-            // collapse of a distorted but symmetric molecule (operations
-            // just miss a tight tolerance). Probe looser tolerances; the
-            // first resolving label wins, otherwise keep C1.
-            for (double delta_try : {0.05, 0.10}) {
-                std::string trial;
-                tmpmat = tmpmat_pristine;
-                PG_determ(this->ncenter, nat, tmpmat, delta_try, trial);
-                if (!trim(trial).empty() && trim(trial) != "C1") {
-                    PGname3 = trial;
-                    break;
-                }
+        if (PGname3 == " " || PGname3.empty()) {
+            for (int i = 1; i <= 20; i++) {
+                PG_determ(this->ncenter, nat, tmpmat, i * 0.005, PGname3);
+                if (PGname3 != " " && !PGname3.empty()) break;
             }
         }
 
-        if (trim(PGname3).empty()) {
+        if (PGname3 == " " || PGname3.empty()) {
             std::cout << "Warning: Failed to identify point group; C1 will be used " << "\n";
             this->PGname = "C1  ";
         } else {
@@ -768,7 +698,7 @@ void SymmetryDetector::PGname2rotsym() {
     int ie = PGname_trimmed.length();
 
     if (PGname_trimmed == "C1" || PGname_trimmed == "Ci" ||
-        PGname_trimmed == "Cs" || PGname_trimmed == "Civ" || PGname_trimmed == "Kh") {
+        PGname_trimmed == "Cs" || PGname_trimmed == "Civ") {
         this->rotsym = 1;
     } else if (PGname_trimmed == "Dih") {
         this->rotsym = 2;
@@ -826,7 +756,7 @@ void SymmetryDetector::PGname2rotsym() {
 //}};
 
 // 2. Subgroup boundaries (nsgb)
-const std::array<int, 116> nsgb_1d = {
+const std::array<int, 114> nsgb_1d = {
       1,   1,     2,   2,     4,   2,     6,   2,     8,   2,
      10,   3,    13,   2,    15,   4,    19,   2,    21,   4,
      25,   3,    28,   4,    32,   5,    37,   4,    41,   7,
@@ -838,10 +768,10 @@ const std::array<int, 116> nsgb_1d = {
     249,  10,   259,   8,   267,  13,   280,   8,   288,  12,
     300,   3,   303,   4,   307,   4,   311,   5,   316,  12,
     328,  11,   339,   9,   348,  25,   373,   9,   382,  21,
-    403,   2,   405,   2,   407,   2
+    403,   2,   405,   2
 };
 
-const std::array<std::array<int, 2>, 58> nsgb_ = convert_fortran_to_cpp<58, 2>(nsgb_1d);
+const std::array<std::array<int, 2>, 57> nsgb_ = convert_fortran_to_cpp<57, 2>(nsgb_1d);
 
 
 
@@ -1045,7 +975,7 @@ const std::array<std::string, SymmetryData::max_pgs> SymmetryData::sg = {
     "C5v", "C6v", "C7v", "C8v", "C2h", "C3h", "C4h", "C5h", "C6h", "C7h",
     "C8h", "D2h", "D3h", "D4h", "D5h", "D6h", "D7h", "D8h", "D2d", "D3d",
     "D4d", "D5d", "D6d", "D7d", "D8d", "S4 ", "S6 ", "S8 ", "T  ", "Th ",
-    "Td ", "O  ", "Oh ", "I  ", "Ih ", "Civ", "Dih", "Kh "
+    "Td ", "O  ", "Oh ", "I  ", "Ih ", "Civ", "Dih"
 };
 
 const std::array<std::array<int, 6>, SymmetryData::max_pgs> SymmetryData::ng = {{
@@ -1105,8 +1035,7 @@ const std::array<std::array<int, 6>, SymmetryData::max_pgs> SymmetryData::ng = {
     { 60, 0,  0, 59,  0,  0}, // I
     {120, 1, 15, 59, 44,  0}, // Ih
     { -1, 0,  1,  1,  0, -1}, // Civ
-    { -1, 1,  1,  2,  1, -1}, // Dih
-    { -1, 1, -1, -1, -1, -1}  // Kh (single atom; infinite order, never matched by counts)
+    { -1, 1,  1,  2,  1, -1}  // Dih
 }};
 
 const std::array<std::string, SymmetryData::max_pgs> SymmetryData::cg = {
@@ -1166,8 +1095,7 @@ const std::array<std::string, SymmetryData::max_pgs> SymmetryData::cg = {
     "{(E) 6*(C5) 10*(C3) 15*(C2)}                           ",
     "{(E) (i) 6*(C5) 10*(C3) 15*(C2) 6*(S10) 10*(S6) 15*(SG)}",
     "{(E) 2*(Cinf) ... inf*(SG)}                             ",
-    "{(E) (i) 2*(Cinf) ... inf*(C2) 2*(Sinf) ... inf*(SG)}   ",
-    "{(E) (i) inf*(Cinf) ... inf*(SG)}                       "
+    "{(E) (i) 2*(Cinf) ... inf*(C2) 2*(Sinf) ... inf*(SG)}   "
 };
 
 // Initialize static members
@@ -1177,7 +1105,7 @@ std::array<std::string, SymmetryData::max_pgs> SymmetryData::pgsymb = {
     "C5v", "C6v", "C7v", "C8v", "C2h", "C3h", "C4h", "C5h", "C6h", "C7h",
     "C8h", "D2h", "D3h", "D4h", "D5h", "D6h", "D7h", "D8h", "D2d", "D3d",
     "D4d", "D5d", "D6d", "D7d", "D8d", "S4 ", "S6 ", "S8 ", "T  ", "Th ",
-    "Td ", "O  ", "Oh ", "I  ", "Ih ", "Civ", "Dih", "Kh "
+    "Td ", "O  ", "Oh ", "I  ", "Ih ", "Civ", "Dih"
 };
 
 std::array<std::array<int, 2>, SymmetryData::max_pgs> SymmetryData::nsgb = initialize_nsgb();
@@ -1223,7 +1151,7 @@ std::array<int, SymmetryData::max_subgroups> SymmetryData::nsgr = {{
     52, 53,  1,  4,  5,  7, 11, 12, 14, 49,
     54,  1,  2,  3,  4,  5,  7, 11, 12, 14,
     18, 19, 21, 25, 32, 40, 42, 47, 49, 50,
-    54, 55,  1, 56,  1, 57,  1, 58
+    54, 55,  1, 56,  1, 57
 }};
 
 
@@ -1237,8 +1165,8 @@ std::array<int, SymmetryData::max_subgroups> SymmetryData::nsgr = {{
  * @brief Function to initialize nsgb_ from 1D Fortran data
  * @return 2D array of subgroup boundaries
  */
-auto initialize_nsgb() -> std::array<std::array<int, 2>, 58> {
-    return convert_fortran_to_cpp<58, 2>(nsgb_1d);
+auto initialize_nsgb() -> std::array<std::array<int, 2>, 57> {
+    return convert_fortran_to_cpp<57, 2>(nsgb_1d);
 }
 
 
@@ -1636,12 +1564,7 @@ void symclass(int natoms, int nprm, const std::vector<std::vector<int>>& nper,
 
             if (continue_inner) continue;
 
-            // Add nper(i,j) to the current class. Values are 1-based atom
-            // labels, so a class can hold at most natoms members; guard the
-            // write so inconsistent input degrades gracefully instead of
-            // aborting on an out-of-bounds access.
-            if (nper[i][j] < 1 || nper[i][j] > natoms) continue;
-            if (nccl[nseq - 1] >= natoms) continue;
+            // Add nper(i,j) to the current class
             nscl[nccl[nseq - 1]][nseq - 1] = nper[i][j];
             nccl[nseq - 1]++;
         }
@@ -1749,9 +1672,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
         }
 
         if (!found) {
-            if (neq >= static_cast<int>(ieq.size())) {
-                ieq.emplace_back(natoms, 0); // support >10 element types
-            }
             meq[neq] = 1;
             ieq[neq][0] = i + 1; // 1-based
             neq++;
@@ -2133,9 +2053,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
     // Output planes of symmetry
     if (nout >= 1) std::cout << "\n-- PLANES OF SYMMETRY --" << "\n";
 
-    // Plane entries live at nsym/symn[1..nsg]; grow if nsg reached capacity.
-    ensure_sym_capacity(symn, nsym, nsg + 1);
-
     for (int i = 0; i < nsg; ++i) {
         if (nout >= 1) std::cout << "\n-- Plane #" << (i + 1) << "\n";
 
@@ -2471,7 +2388,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 if (del > delta3) delta3 = del;
                 add_perm(natoms, ntrans, nprm, nper);
                 ii++;
-                ensure_sym_capacity(symn, nsym, nsgi + ii);
 
                 int m = 0;
                 for (int j = 0; j < natoms; ++j) {
@@ -2518,7 +2434,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                             if (del > delta3) delta3 = del;
                             add_perm(natoms, ntrans, nprm, nper);
                             ii++;
-                            ensure_sym_capacity(symn, nsym, nsgi + ii);
 
                             // Store vector n
                             for (int idx = 0; idx < 3; ++idx) {
@@ -2570,7 +2485,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                 if (del > delta3) delta3 = del;
                 add_perm(natoms, ntrans, nprm, nper);
                 ii++;
-                ensure_sym_capacity(symn, nsym, nsgicn + ii);
 
                 int m = 0;
                 if (icent > 0) m = 1;
@@ -2607,7 +2521,6 @@ void sym_elements(int natoms, const std::vector<int>& nat,
                         if (del > delta3) delta3 = del;
                         add_perm(natoms, ntrans, nprm, nper);
                         ii++;
-                        ensure_sym_capacity(symn, nsym, nsgicn + ii);
 
                         for (int idx = 0; idx < 3; ++idx) {
                             symn[idx][nsgicn + ii - 1] = v1[idx];
@@ -2914,7 +2827,7 @@ void sym_elements(int natoms, const std::vector<int>& nat,
  *
  * This is the 14×322 character table
  * table contains the character values (typically 1, -1, 2, etc.) for all
- * irreducible representations across all 58 supported point groups.
+ * irreducible representations across all 57 supported point groups.
  *
  * @return Complete character table as 14×322 array
  */

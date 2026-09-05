@@ -390,8 +390,8 @@ namespace symmetry
      */
     struct SymmetryData
     {
-        static const int max_pgs       = 58;  /**< Maximum number of supported point groups */
-        static const int max_subgroups = 408; /**< Maximum number of subgroup relationships */
+        static const int max_pgs       = 57;  /**< Maximum number of supported point groups */
+        static const int max_subgroups = 406; /**< Maximum number of subgroup relationships */
 
         static std::array<std::string, max_pgs>        pgsymb; /**< Point group symbols (extended form) */
         static std::array<std::array<int, 2>, max_pgs> nsgb;   /**< Subgroup boundary indices for each point group */

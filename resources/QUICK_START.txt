@@ -1,0 +1,15 @@
+#  \OpenThermo - Windows Distribution 
+
+## Use through Windows terminal (windows powershell):
+1. Extract all files to a folder where you want to keep the program, for example D:\software\OpenThermo
+2. Add this dir (D:\software\OpenThermo) to your windows PATH system
+-Simple and atomatic:
+ double click on add_to_path.bat to add the current path to your PATH system. 
+
+-Manually:
++ Type env in your windows search icon, and select Edit the system environment variables
++ Windows Systems Properties windows will appear; mak sure that you select Advanced tab, and click on Environment Variables 
++ Environment variables windows will apper, select Path, and then click Edit --> NEW --> past the program dir -- Click OK
+
+3. Use windows terminal to execute functions you want:  OpenThermo.exe <your-option>
+Read README.md for usage 

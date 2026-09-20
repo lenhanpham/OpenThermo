@@ -1459,7 +1459,7 @@ OpenThermo is licensed under the **MIT License**.
 
 ---
 
-**OpenThermo v0.001.6** - High-performance molecular thermochemistry calculations
+**OpenThermo v0.1.0** - High-performance molecular thermochemistry calculations
 Developed by Le Nhan Pham | [GitHub](https://github.com/lenhanpham/OpenThermo)
 
 For more information, visit the project documentation or use `OpenThermo --help`

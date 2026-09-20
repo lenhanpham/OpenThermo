@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.abspath('../src'))
 project = 'OpenThermo'
 copyright = '2026, Le Nhan Pham'
 author = 'Le Nhan Pham'
-release = '0.001.6'
-version = '0.001.6'
+release = '0.1.0'
+version = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 

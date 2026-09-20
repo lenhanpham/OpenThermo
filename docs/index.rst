@@ -126,9 +126,9 @@ OpenThermo is released under the MIT License. See the LICENSE file for details.
 Version Information
 ====================
 
-Current Version: **v0.001.6**
+Current Version: **v0.1.0**
 
-- **v0.001.6**: Updated version with improved multi-format support and bug fixes
+- **v0.1.0**: Updated version with improved accuracy of symmetry 
 
 .. note::
-    This documentation is for OpenThermo v0.001.6. For older versions, please refer to the archived documentation.
+    This documentation is for OpenThermo v0.1.0. For older versions, please refer to the archived documentation.

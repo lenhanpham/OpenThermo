@@ -46,7 +46,7 @@ jobs:
           mingw-w64-x86_64-lld
           mingw-w64-x86_64-gcc-libs
           mingw-w64-x86_64-binutils
-          mingw-w64-x86_64-openmp
+          mingw-w64-x86_64-llvm-openmp
 
     - name: Configure and Build
       shell: msys2 {0}
